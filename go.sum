@@ -1,0 +1,6 @@
+github.com/hashicorp/errwrap v1.0.0 h1:hLrqtEDnRye3+sgx6z4qVLNuviH3MR5aQ0ykNJa/UYA=
+github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
+github.com/hashicorp/go-multierror v1.0.0 h1:iVjPR7a6H0tWELX5NxNe7bYopibicUzc7uPribsnS6o=
+github.com/hashicorp/go-multierror v1.0.0/go.mod h1:dHtQlpGsu+cZNNAkkCN/P3hoUDHhCYQXV3UM06sGGrk=
+gobot.io/x/gobot v1.12.0 h1:zXz48RRRs7QSEN9fbB03lmNnzgRWCJJHOB10g6r1vEw=
+gobot.io/x/gobot v1.12.0/go.mod h1:yQwOPKcHJsXOfrtPaszuiCm/QkUhSNvDwf8+BTrll1A=
