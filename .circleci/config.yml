@@ -1,0 +1,135 @@
+version: 2
+
+go-image: &go-image quay.io/deis/lightweight-docker-go:v0.3.0
+docker-image: &docker-image docker:18.03.0-dind
+
+base-go-job: &base-go-job
+  docker:
+    - image: *go-image
+  environment:
+    SKIP_DOCKER: true
+  working_directory: /go/src/github.com/krancour/drone-examples
+
+base-docker-job: &base-docker-job
+  docker:
+    - image: *docker-image
+install-make-and-git-step: &install-make-and-git-step
+  name: Install Make & Git
+  command: |
+    apk update
+    apk add make git
+log-into-docker-hub-step: &log-into-docker-hub-step
+  name: Log into Docker Hub
+  command: docker login -u "${DOCKER_HUB_USERNAME}" -p "${DOCKER_HUB_PASSWORD}"
+
+jobs:
+  verify:
+    <<: *base-go-job
+    steps:
+      - checkout
+      - run:
+          name: Verify
+          command: make verify
+  lint:
+    <<: *base-go-job
+    steps:
+      - checkout
+      - run:
+          name: Lint Go Code
+          command: make lint
+  test:
+    <<: *base-go-job
+    steps:
+      - checkout
+      - run:
+          name: Run Tests
+          command: make test
+  build:
+    <<: *base-docker-job
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          <<: *install-make-and-git-step
+      - run:
+          name: Build Binary & Docker Image
+          command: make build
+  publish-rc-images:
+    <<: *base-docker-job
+    environment:
+      DOCKER_REPO: microsoft/
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          <<: *install-make-and-git-step
+      - run:
+          <<: *log-into-docker-hub-step
+      - run:
+          name: Publish Release Candidate Images to Docker Hub
+          command: make push-rc
+  publish-release-images:
+    <<: *base-docker-job
+    environment:
+      DOCKER_REPO: microsoft/
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          <<: *install-make-and-git-step
+      - run:
+          <<: *log-into-docker-hub-step
+      - run:
+          name: Publish Release Images to Docker Hub
+          command: REL_VERSION="${CIRCLE_TAG}" make push-release
+
+base-pr-step: &base-pr-step
+  filters:
+    branches:
+      ignore: master
+
+base-master-step: &base-master-step
+  filters:
+    branches:
+      only: master
+
+base-release-step: &base-release-step
+  filters:
+    branches:
+      ignore: /.*/
+    tags:
+      only: /v[0-9]+(\.[0-9]+)*(\-.+)?/
+
+workflows:
+  version: 2
+  build-and-test-pr:
+    jobs:
+      - verify:
+          <<: *base-pr-step
+      - lint:
+          <<: *base-pr-step
+      - test:
+          <<: *base-pr-step
+      - build:
+          <<: *base-pr-step
+  build-and-test-master:
+    jobs:
+      - verify:
+          <<: *base-master-step
+      - lint:
+          <<: *base-master-step
+      - test:
+          <<: *base-master-step
+      - build:
+          <<: *base-master-step
+      - publish-rc-images:
+          <<: *base-master-step
+          requires:
+            - verify
+            - lint
+            - test
+            - build
+  release:
+    jobs:
+      - publish-release-images:
+          <<: *base-release-step
