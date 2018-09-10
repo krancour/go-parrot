@@ -23,10 +23,10 @@ func main() {
 
 	// Video setup
 	log.Println("Setting up video stream...")
-	if err := bebop.VideoStreamMode(2); err != nil {
-		log.Fatalf("Error setting stream mode to RTP: %s\n", err)
+	if err := bebop.VideoStreamMode(0); err != nil {
+		log.Fatalf("Error setting setting lowest latency streaming mode: %s\n", err)
 	}
-	log.Println("Stream mode set to RTP.")
+	log.Println("Using lowest latency streaming mode.")
 	if err := bebop.VideoEnable(true); err != nil {
 		log.Fatalf("Error enabling video stream: %s\n", err)
 	}
