@@ -72,6 +72,18 @@ else
 	$(DOCKER_CMD) scripts/verify.sh
 endif
 
+.PHONY: linux-stream
+linux-stream:
+	vlc live-stream.sdp
+
+.PHONY: mac-stream
+mac-stream:
+	/Applications/VLC.app/Contents/MacOS/VLC live-stream.sdp
+
+.PHONY: land
+land: build
+	docker run --rm $(RC_IMAGE_NAME) emergency-landing
+
 ################################################################################
 # Tests                                                                        #
 ################################################################################
@@ -98,7 +110,7 @@ endif
 # Misc                                                                         #
 ################################################################################
 
-EXAMPLE ?= example-01
+EXAMPLE ?= video-stream-only
 
 # Build the binaries and docker image from code, then run the specified binary--
 # unconditionally requires docker
