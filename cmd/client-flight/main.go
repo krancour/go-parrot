@@ -13,7 +13,7 @@ import (
 )
 
 const flightTime = 3 * time.Second
-const withVideo = false
+const withVideo = true
 
 func main() {
 	// Connect
@@ -24,6 +24,8 @@ func main() {
 	log.Println("Connected. [Press ctrl+c to disconnect.]")
 
 	// Configure drone
+	log.Println("Configuring drone...")
+	log.Println("Configuring drone for indoor flight...")
 	if err := bebop.Outdoor(false); err != nil {
 		log.Fatalf("Error configuring for indoor flight: %s\n", err)
 	}
@@ -32,21 +34,22 @@ func main() {
 		log.Fatalf("Error configuring physical drone attributes: %s\n", err)
 	}
 	log.Println("Configured physical drone attributes.")
+	if !withVideo {
+		log.Println("Disabling video capture...")
+		if err := bebop.VideoAutoRecordSelection(false); err != nil {
+			log.Fatalf("Error disabling video capture: %s\n", err)
+		}
+		log.Println("Video capture disabled.")
+	}
+	log.Println("Dron configured.")
 
 	// Take off
+	log.Println("Launching...")
 	if err := bebop.TakeOff(); err != nil {
 		log.Fatalf("Launch error: %s\n", err)
 	}
 	log.Println("We have liftoff!")
 	log.Printf("Hovering for %s...\n", flightTime)
-
-	// Video is captured by default. Turn it off if not desired.
-	if !withVideo {
-		if err := bebop.StopRecording(); err != nil {
-			log.Fatalf("Error disabling video capure: %s", err)
-		}
-		log.Println("Video capture disabled.")
-	}
 
 	// Signal handling
 	ctx, cancel := context.WithCancel(context.Background())
@@ -69,6 +72,7 @@ func main() {
 	}
 
 	// Land
+	log.Println("Landing...")
 	if err := bebop.Land(); err != nil {
 		log.Fatalf("Landing error: %s\n", err)
 	}
