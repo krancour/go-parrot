@@ -8,8 +8,7 @@ import (
 )
 
 func TestEncodeFrame(t *testing.T) {
-	// TODO: Test frame encoding
-	packet := defaultEncodeFrame(
+	data := defaultEncodeFrame(
 		arnetworkal.Frame{
 			Type: arnetworkal.FrameTypeAck,
 			ID:   186,
@@ -26,19 +25,19 @@ func TestEncodeFrame(t *testing.T) {
 			0x08, 0x00, 0x00, 0x00, // Frame size (little endian)
 			0x42, // Data
 		},
-		packet,
+		data,
 	)
 }
 
-func TestDecodePackets(t *testing.T) {
+func TestDecodeData(t *testing.T) {
 	testCases := []struct {
 		name   string
-		packet []byte
+		data   []byte
 		assert func(t *testing.T, frames []arnetworkal.Frame, err error)
 	}{
 		{
 			name: "single, incomplete frame",
-			packet: []byte{
+			data: []byte{
 				0x01, // Type
 				0xba, // ID
 				0x27, // Seq
@@ -51,7 +50,7 @@ func TestDecodePackets(t *testing.T) {
 		},
 		{
 			name: "one good frame, one with a missing byte",
-			packet: []byte{
+			data: []byte{
 				// Start first frame
 				0x01,                   // Type
 				0xba,                   // ID
@@ -71,8 +70,8 @@ func TestDecodePackets(t *testing.T) {
 			},
 		},
 		{
-			name:   "empty packet",
-			packet: []byte{},
+			name: "empty data",
+			data: []byte{},
 			assert: func(t *testing.T, frames []arnetworkal.Frame, err error) {
 				assert.Nil(t, err)
 				assert.Empty(t, frames)
@@ -80,7 +79,7 @@ func TestDecodePackets(t *testing.T) {
 		},
 		{
 			name: "single frame",
-			packet: []byte{
+			data: []byte{
 				0x01,                   // Type
 				0xba,                   // ID
 				0x27,                   // Seq
@@ -94,7 +93,7 @@ func TestDecodePackets(t *testing.T) {
 		},
 		{
 			name: "multiple frames",
-			packet: []byte{
+			data: []byte{
 				// Start first frame
 				0x01,                   // Type
 				0xba,                   // ID
@@ -116,7 +115,7 @@ func TestDecodePackets(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			frames, err := defaultDecodePacket(testCase.packet)
+			frames, err := defaultDecodeData(testCase.data)
 			testCase.assert(t, frames, err)
 		})
 	}

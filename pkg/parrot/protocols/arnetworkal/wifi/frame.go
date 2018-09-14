@@ -13,32 +13,31 @@ import (
 const headerBytesLength = 7
 
 func defaultEncodeFrame(frame arnetworkal.Frame) []byte {
-	var packetBuf bytes.Buffer
-	packetBuf.WriteByte(byte(frame.Type)) // 1 byte
-	packetBuf.WriteByte(frame.ID)         // 1 byte
-	packetBuf.WriteByte(frame.Seq)        // 1 byte
+	var buf bytes.Buffer
+	buf.WriteByte(byte(frame.Type)) // 1 byte
+	buf.WriteByte(frame.ID)         // 1 byte
+	buf.WriteByte(frame.Seq)        // 1 byte
 	var sizeBuf bytes.Buffer
 	binary.Write(
 		&sizeBuf,
 		binary.LittleEndian,
 		uint32(headerBytesLength+len(frame.Data)),
 	)
-	packetBuf.Write(sizeBuf.Bytes()) // 4 bytes
-	packetBuf.Write(frame.Data)
-	return packetBuf.Bytes()
+	buf.Write(sizeBuf.Bytes()) // 4 bytes
+	buf.Write(frame.Data)
+	return buf.Bytes()
 }
 
-func defaultDecodePacket(packet []byte) ([]arnetworkal.Frame, error) {
-	data := packet
+func defaultDecodeData(data []byte) ([]arnetworkal.Frame, error) {
 	frames := []arnetworkal.Frame{}
 	for {
 		if len(data) == 0 {
 			return frames, nil
 		}
 		if len(data) < headerBytesLength {
-			// We are clearly dealing with a malformed packet. We can't trust
+			// We are clearly dealing with malformed data. We can't trust
 			// ANY of these frames. Discard them all and return an error.
-			return nil, fmt.Errorf("error decoding malformed packet")
+			return nil, fmt.Errorf("error decoding malformed data")
 		}
 		frame := arnetworkal.Frame{
 			Type: arnetworkal.FrameType(data[0]), // 1 byte
@@ -55,9 +54,9 @@ func defaultDecodePacket(packet []byte) ([]arnetworkal.Frame, error) {
 			&frameSize,
 		)
 		if uint32(len(data)) < frameSize {
-			// We are clearly dealing with a malformed packet. We can't trust
+			// We are clearly dealing with malformed data. We can't trust
 			// ANY of these frames. Discard them all and return an error.
-			return nil, fmt.Errorf("error decoding malformed packet")
+			return nil, fmt.Errorf("error decoding malformed data")
 		}
 		frame.Data = data[7:frameSize]
 		frames = append(frames, frame)
