@@ -6,7 +6,7 @@ package arnetworkal
 type Connection interface {
 	// Send delivers an ARNetworkAL frame over a network connection of some
 	// type.
-	Send(frame Frame) error
+	Send(Frame) error
 	// Receive receives 1 or more ARNetworkAL frames over a network connection
 	// of some type. Calls to this functions should expect to block until data
 	// is received.

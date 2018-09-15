@@ -5,10 +5,10 @@ package arnetworkal
 type FrameType uint8
 
 const (
-	// FrameTypeUninitialized is the zero value for type FrameType and
+	// frameTypeUninitialized is the zero value for type FrameType and
 	// represents an unspecified frame type. This should not be deliberately
 	// used!
-	FrameTypeUninitialized FrameType = 0
+	frameTypeUninitialized FrameType = 0
 	// FrameTypeAck represents a frame that acknowledges receipt of another
 	// frame.
 	FrameTypeAck FrameType = 1
@@ -21,9 +21,9 @@ const (
 	// internally, implementations of the ARNetworkAL protocol prioritize such
 	// frames.
 	FrameTypeLowLatencyData FrameType = 3
-	// FrameTypeDateWithAck represents a frame containing data AND requiring
+	// FrameTypeDataWithAck represents a frame containing data AND requiring
 	// acknowledgement of receipt.
-	FrameTypeDateWithAck FrameType = 4
+	FrameTypeDataWithAck FrameType = 4
 )
 
 // Frame represents a single frame of data to be delivered using the ARNetworkAL
