@@ -171,7 +171,7 @@ func NewConnection() (arnetworkal.Connection, error) {
 }
 
 func (c *connection) Send(frame arnetworkal.Frame) error {
-	if _, err := c.c2dConn.WriteToUDP(c.encodeFrame(frame), c.c2dAddr); err != nil {
+	if _, err := c.c2dConn.Write(c.encodeFrame(frame)); err != nil {
 		return fmt.Errorf("error writing frame to outbound connection: %s", err)
 	}
 	return nil
