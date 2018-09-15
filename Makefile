@@ -16,8 +16,8 @@ endif
 
 BASE_PACKAGE_NAME := github.com/krancour/drone-examples
 
-LDFLAGS = -w -X $(BASE_PACKAGE_NAME)/pkg/version.commit=$(GIT_VERSION) \
-	-X $(BASE_PACKAGE_NAME)/pkg/version.version=$(EXAMPLES_VERSION)
+LDFLAGS = -w -X $(BASE_PACKAGE_NAME)/version.commit=$(GIT_VERSION) \
+	-X $(BASE_PACKAGE_NAME)/version.version=$(EXAMPLES_VERSION)
 
 ################################################################################
 # Containerized development environment                                        #
@@ -110,7 +110,7 @@ endif
 # Misc                                                                         #
 ################################################################################
 
-EXAMPLE ?= video-stream-only
+EXAMPLE ?= connect
 
 # Build the binaries and docker image from code, then run the specified binary--
 # unconditionally requires docker

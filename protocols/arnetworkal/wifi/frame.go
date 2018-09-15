@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/krancour/drone-examples/pkg/parrot/protocols/arnetworkal"
+	"github.com/krancour/drone-examples/protocols/arnetworkal"
 )
 
 // headerBytesLength is the combined length of all ARNetworkAL frame headers

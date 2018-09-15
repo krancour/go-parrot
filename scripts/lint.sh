@@ -6,7 +6,7 @@ set -euxo pipefail
 
 export GO111MODULE=off
 
-gometalinter cmd/... pkg/... \
+gometalinter examples/... pkg/... \
 	--concurrency=1 \
 	--disable-all \
 	--enable gofmt \

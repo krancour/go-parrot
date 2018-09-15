@@ -3,10 +3,10 @@ package bebop2
 import (
 	"fmt"
 
-	"github.com/krancour/drone-examples/pkg/parrot/features/ardrone3"
-	"github.com/krancour/drone-examples/pkg/parrot/features/common"
-	"github.com/krancour/drone-examples/pkg/parrot/protocols/arnetwork"
-	"github.com/krancour/drone-examples/pkg/parrot/protocols/arnetworkal/wifi"
+	"github.com/krancour/drone-examples/features/ardrone3"
+	"github.com/krancour/drone-examples/features/common"
+	"github.com/krancour/drone-examples/protocols/arnetwork"
+	"github.com/krancour/drone-examples/protocols/arnetworkal/wifi"
 )
 
 // Client ...

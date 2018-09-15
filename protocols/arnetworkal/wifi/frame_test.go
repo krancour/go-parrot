@@ -3,7 +3,7 @@ package wifi
 import (
 	"testing"
 
-	"github.com/krancour/drone-examples/pkg/parrot/protocols/arnetworkal"
+	"github.com/krancour/drone-examples/protocols/arnetworkal"
 	"github.com/stretchr/testify/assert"
 )
 

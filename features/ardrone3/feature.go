@@ -1,6 +1,6 @@
 package ardrone3
 
-import "github.com/krancour/drone-examples/pkg/parrot/protocols/arnetwork"
+import "github.com/krancour/drone-examples/protocols/arnetwork"
 
 // Feature ...
 // TODO: Document this

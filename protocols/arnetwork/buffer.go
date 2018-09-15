@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/krancour/drone-examples/pkg/parrot/protocols/arnetworkal"
+	"github.com/krancour/drone-examples/protocols/arnetworkal"
 )
 
 // BufferDirection is a type for constants used to indicate the direction of
