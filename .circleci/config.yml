@@ -8,7 +8,7 @@ base-go-job: &base-go-job
     - image: *go-image
   environment:
     SKIP_DOCKER: true
-  working_directory: /go/src/github.com/krancour/drone-examples
+  working_directory: /go/src/github.com/krancour/go-parrot
 
 base-docker-job: &base-docker-job
   docker:

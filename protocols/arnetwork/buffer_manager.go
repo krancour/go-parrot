@@ -1,7 +1,7 @@
 package arnetwork
 
 import (
-	"github.com/krancour/drone-examples/protocols/arnetworkal"
+	"github.com/krancour/go-parrot/protocols/arnetworkal"
 )
 
 // BufferManager ...

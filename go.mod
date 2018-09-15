@@ -1,4 +1,4 @@
-module github.com/krancour/drone-examples
+module github.com/krancour/go-parrot
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect

@@ -7,7 +7,7 @@ import (
 	"net"
 	"testing"
 
-	"github.com/krancour/drone-examples/protocols/arnetworkal"
+	"github.com/krancour/go-parrot/protocols/arnetworkal"
 	"github.com/phayes/freeport"
 	"github.com/stretchr/testify/require"
 )

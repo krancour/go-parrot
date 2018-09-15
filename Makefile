@@ -14,7 +14,7 @@ endif
 # Go build details                                                             #
 ################################################################################
 
-BASE_PACKAGE_NAME := github.com/krancour/drone-examples
+BASE_PACKAGE_NAME := github.com/krancour/go-parrot
 
 LDFLAGS = -w -X $(BASE_PACKAGE_NAME)/version.commit=$(GIT_VERSION) \
 	-X $(BASE_PACKAGE_NAME)/version.version=$(EXAMPLES_VERSION)
@@ -37,7 +37,7 @@ DOCKER_CMD := docker run \
 # Docker images we build and publish                                           #
 ################################################################################
 
-BASE_IMAGE_NAME        = drone-examples
+BASE_IMAGE_NAME        = go-parrot
 
 RC_IMAGE_NAME          = $(DOCKER_REPO)$(BASE_IMAGE_NAME):$(GIT_VERSION)
 RC_MUTABLE_IMAGE_NAME  = $(DOCKER_REPO)$(BASE_IMAGE_NAME):canary

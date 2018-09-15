@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	arnetworkal "github.com/krancour/drone-examples/protocols/arnetworkal/wifi"
+	arnetworkal "github.com/krancour/go-parrot/protocols/arnetworkal/wifi"
 )
 
 func main() {

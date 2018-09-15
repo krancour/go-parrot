@@ -1,3 +1,3 @@
-# drone-examples
+# go-parrot
 
 Placeholder
