@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"testing"
+	"time"
 
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
 	"github.com/phayes/freeport"
@@ -15,6 +16,8 @@ import (
 func TestConnection(t *testing.T) {
 	// Override the IP address and ports
 	deviceIP = "127.0.0.1"
+
+	listeningCh := make(chan struct{})
 
 	// Pick an available port and override the default discovery port.
 	// (This is also the port used for connection negotiation.)
@@ -34,6 +37,7 @@ func TestConnection(t *testing.T) {
 		negListener, err := net.ListenTCP("tcp", negConnAddr)
 		defer negListener.Close()
 		require.Nil(t, err)
+		close(listeningCh) // Signal the test to continue
 		// Wait for a connection
 		negConn, err := negListener.Accept()
 		require.Nil(t, err)
@@ -55,6 +59,16 @@ func TestConnection(t *testing.T) {
 		_, err = negConn.Write(jsonBytes)
 		require.Nil(t, err)
 	}()
+
+	// Block until the test server is listening, or give up after 5 seconds.
+	// This prevents us from racing to connect to a server that isn't listening
+	// yet. The timeout is to avoid the possibility of blocking indefinitely if
+	// something goes wrong.
+	select {
+	case <-listeningCh:
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "timed out waiting for test server to start listening")
+	}
 
 	// Create a UDP/IP based ARNetworkAL connection
 	iConn, err := NewConnection()
