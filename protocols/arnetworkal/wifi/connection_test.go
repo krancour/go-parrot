@@ -87,7 +87,15 @@ func TestConnection(t *testing.T) {
 	conn.decodeData = func(data []byte) ([]arnetworkal.Frame, error) {
 		// Expect to receive "bar"
 		require.Equal(t, "bar", string(data))
-		return nil, nil
+		// Return a dummy frame
+		return []arnetworkal.Frame{
+			{
+				Type: arnetworkal.FrameTypeAck,
+				ID:   2,
+				Seq:  3,
+				Data: []byte("bar"),
+			},
+		}, nil
 	}
 
 	// Set up a test server we can send to
@@ -125,6 +133,17 @@ func TestConnection(t *testing.T) {
 	require.Nil(t, err)
 
 	// Use the connection to receive some data from the test client
-	_, err = conn.Receive()
+	frame, ok, err := conn.Receive()
 	require.Nil(t, err)
+	require.True(t, ok)
+	require.Equal(
+		t,
+		arnetworkal.Frame{
+			Type: arnetworkal.FrameTypeAck,
+			ID:   2,
+			Seq:  3,
+			Data: []byte("bar"),
+		},
+		frame,
+	)
 }
