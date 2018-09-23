@@ -1,10 +1,10 @@
 package arnetwork
 
-// Frame ...
-// TODO: Document this
-// TODO: Not yet positive that this has the right attributes
+// Frame represents a frame to be sent or received over the arnetwork
+// protocol. At this level of abstraction, no details of the underlying
+// network protocols (arnetworkal, UDP/IP, BLE, etc.) bleed through.
 type Frame struct {
 	ID   uint8
-	Seq  uint8
 	Data []byte
+	seq  uint8
 }
