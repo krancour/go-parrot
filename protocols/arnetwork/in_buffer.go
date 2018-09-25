@@ -1,48 +1,54 @@
 package arnetwork
 
-import "sync"
+import (
+	"fmt"
+)
 
 type inBuffer struct {
 	InBufferConfig
 	*buffer
-	mtx            sync.Mutex
-	seqInitialized bool
+	inCh  chan Frame
+	seq   *uint8
+	ackCh chan Frame
 }
 
 func newInBuffer(bufCfg InBufferConfig) *inBuffer {
 	buf := &inBuffer{
 		InBufferConfig: bufCfg,
 		buffer:         newBuffer(bufCfg.BaseBufferConfig),
+		inCh:           make(chan Frame),
 	}
-	// TODO: Start a goroutine that reads from the head of the buffer and passes
-	// the frame to a function.
+
+	go buf.receiveFrames()
+
 	return buf
 }
 
-func (i *inBuffer) write(frame Frame) bool {
-	i.mtx.Lock()
-	defer i.mtx.Unlock()
-	// If this buffer doesn't yet have a reference sequence number or...
-	//
-	// The frame's sequence number is higher than the buffer's reference
-	// sequence number or...
-	//
-	// The gap between the frame sequence number and the buffer's reference
-	// sequecne number is bigger than 10...
-	//
-	// Then we should accept this frame and update the buffer's reference
-	// sequence number.
-	//
-	// Otherwise, we're dealing with a frame that has arrived out of order.
-	// We won't write it to the underlying buffer, but we'll still return true,
-	// which will allow acknowledgement of this frame to proceed regardless.
-	if !i.seqInitialized ||
-		frame.seq > i.seq ||
-		i.seq-frame.seq >= 10 {
-		i.seq = frame.seq
-		i.seqInitialized = true
-	} else {
-		return true
+func (i *inBuffer) receiveFrames() {
+	for frame := range i.inCh {
+		// If acknowledgement was requested, send it...
+		if i.ackCh != nil {
+			i.ackCh <- Frame{
+				Data: []byte(fmt.Sprintf("%d", frame.seq)),
+			}
+		}
+		// If this buffer doesn't yet have a reference sequence number or...
+		//
+		// The frame's sequence number is higher than the buffer's reference
+		// sequence number or...
+		//
+		// The gap between the frame sequence number and the buffer's reference
+		// sequecne number is bigger than 10...
+		//
+		// Then we should accept this frame and update the buffer's reference
+		// sequence number.
+		//
+		// Otherwise, we're dealing with a frame that has arrived out of order.
+		// We'll drop such frames.
+		if i.seq == nil || frame.seq > *i.seq || *i.seq-frame.seq >= 10 {
+			i.seq = &frame.seq
+			i.buffer.inCh <- frame
+		}
 	}
-	return i.buffer.write(frame)
+	close(i.buffer.inCh)
 }

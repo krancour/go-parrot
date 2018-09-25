@@ -2,7 +2,6 @@ package arnetwork
 
 import (
 	"log"
-	"sync"
 
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
 )
@@ -10,8 +9,9 @@ import (
 type outBuffer struct {
 	OutBufferConfig
 	*buffer
-	conn arnetworkal.Connection
-	mtx  sync.Mutex
+	conn  arnetworkal.Connection
+	seq   uint8
+	ackCh chan Frame
 }
 
 func newOutBuffer(
@@ -23,36 +23,21 @@ func newOutBuffer(
 		buffer:          newBuffer(bufCfg.BaseBufferConfig),
 		conn:            conn,
 	}
+
 	go buf.writeFrames()
+
 	return buf
 }
 
-// TODO: How do we deal with errors?
-// TODO: How do we stop this goroutine?
 func (o *outBuffer) writeFrames() {
-	for {
-		frame, ok, err := o.read()
-		if err != nil {
-			log.Printf(
-				"error reading frame from head of outbound buffer: %s\n",
-				err,
-			)
-			continue
-		}
-		if !ok {
-			// We didn't get anything
-			continue
-		}
+	for frame := range o.outCh {
 		o.writeFrame(frame)
 	}
 }
 
-// TODO: How do we deal with errors?
 func (o *outBuffer) writeFrame(frame Frame) {
-	o.mtx.Lock()
-	defer o.mtx.Unlock()
 	netFrame := arnetworkal.Frame{
-		ID:   frame.BufferID,
+		ID:   o.ID,
 		Type: o.BaseBufferConfig.FrameType,
 		Seq:  o.seq,
 		Data: frame.Data,
@@ -62,10 +47,6 @@ func (o *outBuffer) writeFrame(frame Frame) {
 		log.Printf("error sending frame: %s\n", err)
 	}
 	if netFrame.Type == arnetworkal.FrameTypeDataWithAck {
-		// TODO: Uncomment this
-		// attempts := 1
-		// TODO: We should have an ack coming back to us. How
-		// do we learn about it?
-		// TODO: Loop until we get an ack or reach max retries.
+		// TODO: Loop / wait for ack
 	}
 }

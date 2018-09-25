@@ -10,6 +10,7 @@ import (
 
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
 	"github.com/phayes/freeport"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,37 +18,37 @@ func TestConnection(t *testing.T) {
 	// Override the IP address and ports
 	deviceIP = "127.0.0.1"
 
-	listeningCh := make(chan struct{})
-
 	// Pick an available port and override the default discovery port.
 	// (This is also the port used for connection negotiation.)
 	var err error
 	discoveryPort, err = freeport.GetFreePort()
-	require.Nil(t, err)
+	assert.Nil(t, err)
+
 	// Create a dummy server that implements connection negotiation. Run it in
 	// its on goroutine so we can move on to trying to talk to it.
+	listeningCh := make(chan struct{})
 	go func() {
 		c2dPort, err := freeport.GetFreePort()
-		require.Nil(t, err)
+		assert.Nil(t, err)
 		negConnAddr, err := net.ResolveTCPAddr(
 			"tcp",
 			fmt.Sprintf(":%d", discoveryPort),
 		)
-		require.Nil(t, err)
+		assert.Nil(t, err)
 		negListener, err := net.ListenTCP("tcp", negConnAddr)
 		defer negListener.Close()
-		require.Nil(t, err)
+		assert.Nil(t, err)
 		close(listeningCh) // Signal the test to continue
 		// Wait for a connection
-		negConn, err := negListener.Accept()
-		require.Nil(t, err)
+		negConn, err := negListener.AcceptTCP()
+		assert.Nil(t, err)
 		defer negConn.Close()
 		// Wait for the request
 		data, err := bufio.NewReader(negConn).ReadBytes(0x00)
-		require.Nil(t, err)
+		assert.Nil(t, err)
 		var negReq connectionNegotiationRequest
 		err = json.Unmarshal(data[:len(data)-1], &negReq)
-		require.Nil(t, err)
+		assert.Nil(t, err)
 		// Send a response
 		jsonBytes, err := json.Marshal(
 			connectionNegotiationResponse{
@@ -57,7 +58,7 @@ func TestConnection(t *testing.T) {
 		)
 		jsonBytes = append(jsonBytes, 0x00)
 		_, err = negConn.Write(jsonBytes)
-		require.Nil(t, err)
+		assert.Nil(t, err)
 	}()
 
 	// Block until the test server is listening, or give up after 5 seconds.
@@ -72,10 +73,10 @@ func TestConnection(t *testing.T) {
 
 	// Create a UDP/IP based ARNetworkAL connection
 	iConn, err := NewConnection()
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	defer iConn.Close()
 	conn, ok := iConn.(*connection)
-	require.True(t, ok)
+	assert.True(t, ok)
 
 	// Override frame encoding scheme to keep things simple-- we'll always
 	// send "foo"
@@ -83,19 +84,11 @@ func TestConnection(t *testing.T) {
 		return []byte("foo")
 	}
 
-	// Override data decoding to make some assertions
-	conn.decodeData = func(data []byte) ([]arnetworkal.Frame, error) {
+	// Override packet decoding to make some assertions
+	conn.decodePacket = func(packet []byte) ([]arnetworkal.Frame, error) {
 		// Expect to receive "bar"
-		require.Equal(t, "bar", string(data))
-		// Return a dummy frame
-		return []arnetworkal.Frame{
-			{
-				Type: arnetworkal.FrameTypeAck,
-				ID:   2,
-				Seq:  3,
-				Data: []byte("bar"),
-			},
-		}, nil
+		assert.Equal(t, "bar", string(packet))
+		return nil, nil
 	}
 
 	// Set up a test server we can send to
@@ -103,9 +96,9 @@ func TestConnection(t *testing.T) {
 		"udp",
 		fmt.Sprintf(":%d", conn.c2dPort),
 	)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	testServerListenConn, err := net.ListenUDP("udp", testServerListenAddr)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	defer testServerListenConn.Close()
 
 	// Set up a test client we can receive from
@@ -113,37 +106,26 @@ func TestConnection(t *testing.T) {
 		"udp",
 		fmt.Sprintf("%s:%d", deviceIP, conn.d2cPort),
 	)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	testClientWriteConn, err := net.DialUDP("udp", nil, testClientWriteAddr)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	defer testClientWriteConn.Close()
 
 	// Use the connection to send some data to the test server
 	err = conn.Send(arnetworkal.Frame{})
-	require.Nil(t, err)
+	assert.Nil(t, err)
 
 	// Verify the test server received the data
-	data := make([]byte, maxUDPDataBytes)
-	bytesRead, _, err := testServerListenConn.ReadFromUDP(data)
-	require.Nil(t, err)
-	require.Equal(t, "foo", string(data[:bytesRead]))
+	packet := make([]byte, maxUDPDataBytes)
+	bytesRead, _, err := testServerListenConn.ReadFromUDP(packet)
+	assert.Nil(t, err)
+	assert.Equal(t, "foo", string(packet[:bytesRead]))
 
 	// Use the test client to send some data for the connection to receive
 	_, err = testClientWriteConn.Write([]byte("bar"))
-	require.Nil(t, err)
+	assert.Nil(t, err)
 
 	// Use the connection to receive some data from the test client
-	frame, ok, err := conn.Receive()
-	require.Nil(t, err)
-	require.True(t, ok)
-	require.Equal(
-		t,
-		arnetworkal.Frame{
-			Type: arnetworkal.FrameTypeAck,
-			ID:   2,
-			Seq:  3,
-			Data: []byte("bar"),
-		},
-		frame,
-	)
+	_, err = conn.Receive()
+	assert.Nil(t, err)
 }

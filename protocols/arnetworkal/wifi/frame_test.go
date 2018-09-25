@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEncodeFrame(t *testing.T) {
-	data := defaultEncodeFrame(
+	packet := defaultEncodeFrame(
 		arnetworkal.Frame{
 			Type: arnetworkal.FrameTypeAck,
 			ID:   186,
@@ -16,7 +16,7 @@ func TestEncodeFrame(t *testing.T) {
 			Data: []byte{0x42},
 		},
 	)
-	require.Equal(
+	assert.Equal(
 		t,
 		[]byte{
 			0x01,                   // Type
@@ -25,32 +25,32 @@ func TestEncodeFrame(t *testing.T) {
 			0x08, 0x00, 0x00, 0x00, // Frame size (little endian)
 			0x42, // Data
 		},
-		data,
+		packet,
 	)
 }
 
-func TestDecodeData(t *testing.T) {
+func TestDecodePacket(t *testing.T) {
 	testCases := []struct {
 		name   string
-		data   []byte
+		packet []byte
 		assert func(t *testing.T, frames []arnetworkal.Frame, err error)
 	}{
 		{
 			name: "single, incomplete frame",
-			data: []byte{
+			packet: []byte{
 				0x01, // Type
 				0xba, // ID
 				0x27, // Seq
 				// Size header missing
 			},
 			assert: func(t *testing.T, frames []arnetworkal.Frame, err error) {
-				require.NotNil(t, err)
-				require.Empty(t, frames)
+				assert.NotNil(t, err)
+				assert.Empty(t, frames)
 			},
 		},
 		{
 			name: "one good frame, one with a missing byte",
-			data: []byte{
+			packet: []byte{
 				// Start first frame
 				0x01,                   // Type
 				0xba,                   // ID
@@ -65,21 +65,21 @@ func TestDecodeData(t *testing.T) {
 				0x12, 0x34, 0x56, // Data (with one byte missing)
 			},
 			assert: func(t *testing.T, frames []arnetworkal.Frame, err error) {
-				require.NotNil(t, err)
-				require.Empty(t, frames)
+				assert.NotNil(t, err)
+				assert.Empty(t, frames)
 			},
 		},
 		{
-			name: "empty data",
-			data: []byte{},
+			name:   "empty packet",
+			packet: []byte{},
 			assert: func(t *testing.T, frames []arnetworkal.Frame, err error) {
-				require.Nil(t, err)
-				require.Empty(t, frames)
+				assert.Nil(t, err)
+				assert.Empty(t, frames)
 			},
 		},
 		{
 			name: "single frame",
-			data: []byte{
+			packet: []byte{
 				0x01,                   // Type
 				0xba,                   // ID
 				0x27,                   // Seq
@@ -87,13 +87,13 @@ func TestDecodeData(t *testing.T) {
 				0x42, // Data
 			},
 			assert: func(t *testing.T, frames []arnetworkal.Frame, err error) {
-				require.Nil(t, err)
-				require.Equal(t, 1, len(frames))
+				assert.Nil(t, err)
+				assert.Equal(t, 1, len(frames))
 			},
 		},
 		{
 			name: "multiple frames",
-			data: []byte{
+			packet: []byte{
 				// Start first frame
 				0x01,                   // Type
 				0xba,                   // ID
@@ -108,14 +108,14 @@ func TestDecodeData(t *testing.T) {
 				0x12, 0x34, 0x56, 0x78, // Data
 			},
 			assert: func(t *testing.T, frames []arnetworkal.Frame, err error) {
-				require.Nil(t, err)
-				require.Equal(t, 2, len(frames))
+				assert.Nil(t, err)
+				assert.Equal(t, 2, len(frames))
 			},
 		},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			frames, err := defaultDecodeData(testCase.data)
+			frames, err := defaultDecodePacket(testCase.packet)
 			testCase.assert(t, frames, err)
 		})
 	}

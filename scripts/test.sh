@@ -6,7 +6,7 @@ set -euxo pipefail
 
 export GO111MODULE=off
 
-go test \
+go test -v \
     ./devices/... \
     ./examples/... \
     ./features/... \

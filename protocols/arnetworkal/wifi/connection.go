@@ -5,9 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net"
-	"strings"
-	"time"
 
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
 	"github.com/phayes/freeport"
@@ -39,19 +38,15 @@ type connectionNegotiationResponse struct {
 }
 
 type connection struct {
-	c2dPort    int
-	c2dAddr    *net.UDPAddr
-	c2dConn    *net.UDPConn
-	d2cPort    int
-	d2cConn    *net.UDPConn
-	rcvFrameCh chan arnetworkal.Frame
-	rcvErrCh   chan error
-	rcvStopCh  chan struct{}
-	rcvDoneCh  chan struct{}
+	c2dPort int
+	c2dAddr *net.UDPAddr
+	c2dConn *net.UDPConn
+	d2cPort int
+	d2cConn *net.UDPConn
 	// This function is overridable by unit tests
 	encodeFrame func(frame arnetworkal.Frame) []byte
 	// This function is overridable by unit tests
-	decodeData func(data []byte) ([]arnetworkal.Frame, error)
+	decodePacket func(data []byte) ([]arnetworkal.Frame, error)
 }
 
 // NewConnection returns a UDP/IP based implementation of the
@@ -67,6 +62,7 @@ func NewConnection() (arnetworkal.Connection, error) {
 	// Negotiate the connection. This is how the client informs the device
 	// of the UDP port it will listen on. In response, the device informs
 	// the client of which UDP port it will listen on.
+	// TODO: Should this be moved into its own protocol packages?
 	negAddr, err := net.ResolveTCPAddr(
 		"tcp",
 		fmt.Sprintf("%s:%d", deviceIP, discoveryPort),
@@ -164,23 +160,15 @@ func NewConnection() (arnetworkal.Connection, error) {
 		return nil, fmt.Errorf("error establishing inbound connection: %s", err)
 	}
 
-	conn := &connection{
-		c2dPort:     negRes.C2DPort,
-		c2dAddr:     c2dAddr,
-		c2dConn:     c2dConn,
-		d2cPort:     d2cPort,
-		d2cConn:     d2cConn,
-		rcvFrameCh:  make(chan arnetworkal.Frame),
-		rcvErrCh:    make(chan error),
-		rcvStopCh:   make(chan struct{}),
-		rcvDoneCh:   make(chan struct{}),
-		encodeFrame: defaultEncodeFrame,
-		decodeData:  defaultDecodeData,
-	}
-
-	go conn.receivePackets()
-
-	return conn, nil
+	return &connection{
+		c2dPort:      negRes.C2DPort,
+		c2dAddr:      c2dAddr,
+		c2dConn:      c2dConn,
+		d2cPort:      d2cPort,
+		d2cConn:      d2cConn,
+		encodeFrame:  defaultEncodeFrame,
+		decodePacket: defaultDecodePacket,
+	}, nil
 }
 
 func (c *connection) Send(frame arnetworkal.Frame) error {
@@ -190,95 +178,24 @@ func (c *connection) Send(frame arnetworkal.Frame) error {
 	return nil
 }
 
-func (c *connection) receivePackets() {
-	defer close(c.rcvDoneCh)
-	data := make([]byte, maxUDPDataBytes)
-	for {
-		select {
-		case <-c.rcvStopCh:
-			return
-		default:
-			if err :=
-				c.d2cConn.SetReadDeadline(time.Now().Add(3 * time.Second)); err != nil {
-				select {
-				case c.rcvErrCh <- fmt.Errorf("error setting read deadline: %s", err):
-					continue
-				case <-c.rcvStopCh:
-					return
-				}
-			}
-			bytesRead, _, err := c.d2cConn.ReadFromUDP(data)
-			if err != nil {
-				// Timeouts are ok. We deliberately timeout every three seconds to
-				// give ourselves a chance to be interrupted. Handle all other errors.
-				if opErr, ok := err.(*net.OpError); !ok || !opErr.Timeout() {
-					select {
-					case c.rcvErrCh <- fmt.Errorf(
-						"error receiving data from inbound connection: %s",
-						err,
-					):
-						continue
-					case <-c.rcvStopCh:
-						return
-					}
-				}
-				continue
-			}
-			frames, err := c.decodeData(data[0:bytesRead])
-			if err != nil {
-				select {
-				case c.rcvErrCh <- fmt.Errorf("error decoding inbound data: %s", err):
-					continue
-				case <-c.rcvStopCh:
-					return
-				}
-			}
-			for _, frame := range frames {
-				select {
-				case c.rcvFrameCh <- frame:
-				case <-c.rcvStopCh:
-				}
-			}
-		}
+func (c *connection) Receive() ([]arnetworkal.Frame, error) {
+	packet := make([]byte, maxUDPDataBytes)
+	bytesRead, _, err := c.d2cConn.ReadFromUDP(packet)
+	if err != nil {
+		return nil,
+			fmt.Errorf(
+				"error receiving frames from inbound connection: %s",
+				err,
+			)
 	}
+	return c.decodePacket(packet[0:bytesRead])
 }
 
-func (c *connection) Receive() (arnetworkal.Frame, bool, error) {
-	select {
-	case frame := <-c.rcvFrameCh:
-		return frame, true, nil
-	case err := <-c.rcvErrCh:
-		return arnetworkal.Frame{}, false, err
-	case <-c.rcvDoneCh:
-		return arnetworkal.Frame{}, false, nil
-	}
-}
-
-func (c *connection) Close() error {
-	// Signal the goroutine that is receiving packets from the device to stop
-	// listening-- we don't want to close the d2c connection while it is.
-	close(c.rcvStopCh)
-	// Wait for confirmation that the goroutine has stopped listening.
-	<-c.rcvDoneCh
-	// Now it is safe to close connections.
-	errStrs := []string{}
+func (c *connection) Close() {
 	if err := c.c2dConn.Close(); err != nil {
-		errStrs = append(
-			errStrs,
-			fmt.Sprintf("error closing outbound connection: %s\n", err),
-		)
+		log.Printf("error closing outbound connection: %s\n", err)
 	}
 	if err := c.d2cConn.Close(); err != nil {
-		errStrs = append(
-			errStrs,
-			fmt.Sprintf("error closing inbound connection: %s\n", err),
-		)
+		log.Printf("error closing inbound connection: %s\n", err)
 	}
-	if len(errStrs) > 0 {
-		return fmt.Errorf(
-			"error(s) closing connection: %s",
-			strings.Join(errStrs, "; "),
-		)
-	}
-	return nil
 }
