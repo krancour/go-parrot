@@ -10,13 +10,13 @@ import (
 func TestBufferWrite(t *testing.T) {
 	testCases := []struct {
 		name           string
-		bufCfg         BufferConfig
+		bufCfg         BaseBufferConfig
 		testFrames     []Frame
 		expectedFrames []Frame
 	}{
 		{
 			name: "fill buffer",
-			bufCfg: BufferConfig{
+			bufCfg: BaseBufferConfig{
 				Size: 5,
 			},
 			testFrames: []Frame{
@@ -36,7 +36,7 @@ func TestBufferWrite(t *testing.T) {
 		},
 		{
 			name: "overfill buffer with no overwrite",
-			bufCfg: BufferConfig{
+			bufCfg: BaseBufferConfig{
 				Size:          5,
 				IsOverwriting: false,
 			},
@@ -59,7 +59,7 @@ func TestBufferWrite(t *testing.T) {
 		},
 		{
 			name: "overfill buffer with overwrite",
-			bufCfg: BufferConfig{
+			bufCfg: BaseBufferConfig{
 				Size:          5,
 				IsOverwriting: true,
 			},
@@ -83,7 +83,7 @@ func TestBufferWrite(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			buf := newBuffer(testCase.bufCfg, nil)
+			buf := newBuffer(testCase.bufCfg)
 			require.Nil(t, buf.head)
 			require.NotNil(t, buf.next)
 			for _, frame := range testCase.testFrames {
@@ -101,11 +101,11 @@ func TestBufferWrite(t *testing.T) {
 }
 
 func TestBufferReadFromEmptyBuffer(t *testing.T) {
+	const bufSize = 5
 	buf := newBuffer(
-		BufferConfig{
-			Size: 5,
+		BaseBufferConfig{
+			Size: bufSize,
 		},
-		nil,
 	)
 	require.Nil(t, buf.head)
 	require.NotNil(t, buf.next)
@@ -117,7 +117,7 @@ func TestBufferReadFromEmptyBuffer(t *testing.T) {
 		Frame{Data: []byte("d")},
 		Frame{Data: []byte("e")},
 	}
-	buf.head = ring.New(int(buf.Size))
+	buf.head = ring.New(bufSize)
 	buf.next = buf.head
 	for _, frame := range testFrames {
 		buf.next.Value = frame
