@@ -53,7 +53,6 @@ func NewBufferManager(
 				},
 				conn,
 			)
-			b.outBuffers[ackBufID] = ackBuf
 			buf.ackCh = ackBuf.inCh
 		}
 	}
@@ -79,7 +78,6 @@ func NewBufferManager(
 					},
 				},
 			)
-			b.inBuffers[ackBufID] = ackBuf
 			buf.ackCh = ackBuf.outCh
 		}
 	}

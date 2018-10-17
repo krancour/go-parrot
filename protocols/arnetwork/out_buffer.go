@@ -1,7 +1,10 @@
 package arnetwork
 
 import (
+	"bytes"
+	"fmt"
 	"log"
+	"time"
 
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
 )
@@ -36,17 +39,28 @@ func (o *outBuffer) writeFrames() {
 }
 
 func (o *outBuffer) writeFrame(frame Frame) {
-	netFrame := arnetworkal.Frame{
-		ID:   o.ID,
-		Type: o.BaseBufferConfig.FrameType,
-		Seq:  o.seq,
-		Data: frame.Data,
-	}
-	o.seq++
-	if err := o.conn.Send(netFrame); err != nil {
-		log.Printf("error sending frame: %s\n", err)
-	}
-	if netFrame.Type == arnetworkal.FrameTypeDataWithAck {
-		// TODO: Loop / wait for ack
+	for attempts := 0; attempts <= o.MaxRetries || o.MaxRetries == -1; attempts++ {
+		netFrame := arnetworkal.Frame{
+			ID:   o.ID,
+			Type: o.BaseBufferConfig.FrameType,
+			Seq:  o.seq,
+			Data: frame.Data,
+		}
+		o.seq++
+		if err := o.conn.Send(netFrame); err != nil {
+			log.Printf("error sending frame: %s\n", err)
+		}
+		if netFrame.Type == arnetworkal.FrameTypeDataWithAck {
+			select {
+			case ack := <-o.ackCh:
+				if bytes.Equal(
+					[]byte(fmt.Sprintf("%d", netFrame.Seq)),
+					ack.Data,
+				) {
+					return
+				}
+			case <-time.After(o.AckTimeout):
+			}
+		}
 	}
 }
