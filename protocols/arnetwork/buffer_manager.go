@@ -41,15 +41,13 @@ func NewBufferManager(
 			// nolint: lll
 			ackBuf := newOutBuffer(
 				OutBufferConfig{
-					BaseBufferConfig: BaseBufferConfig{
-						ID:            ackBufID,
-						FrameType:     arnetworkal.FrameTypeAck,
-						Size:          1,     // Never more than one ack at a time
-						MaxDataSize:   1,     // One byte of data: the sequence number
-						IsOverwriting: false, // Useless by design: there is only one ack waiting at a time
-					},
-					AckTimeout: 0, // Unused
-					MaxRetries: 0, // Unused
+					ID:            ackBufID,
+					FrameType:     arnetworkal.FrameTypeAck,
+					Size:          1,     // Never more than one ack at a time
+					MaxDataSize:   1,     // One byte of data: the sequence number
+					IsOverwriting: false, // Useless by design: there is only one ack waiting at a time
+					AckTimeout:    0,     // Unused
+					MaxRetries:    0,     // Unused
 				},
 				conn,
 			)
@@ -69,13 +67,11 @@ func NewBufferManager(
 			// nolint: lll
 			ackBuf := newInBuffer(
 				InBufferConfig{
-					BaseBufferConfig: BaseBufferConfig{
-						ID:            ackBufID,
-						FrameType:     arnetworkal.FrameTypeAck,
-						Size:          1,     // Never more than one ack at a time
-						MaxDataSize:   1,     // One byte of data: the sequence number
-						IsOverwriting: false, // Useless by design: there is only one ack waiting at a time
-					},
+					ID:            ackBufID,
+					FrameType:     arnetworkal.FrameTypeAck,
+					Size:          1,     // Never more than one ack at a time
+					MaxDataSize:   1,     // One byte of data: the sequence number
+					IsOverwriting: false, // Useless by design: there is only one ack waiting at a time
 				},
 			)
 			buf.ackCh = ackBuf.outCh

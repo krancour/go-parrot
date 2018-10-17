@@ -15,7 +15,7 @@ type inBuffer struct {
 func newInBuffer(bufCfg InBufferConfig) *inBuffer {
 	buf := &inBuffer{
 		InBufferConfig: bufCfg,
-		buffer:         newBuffer(bufCfg.BaseBufferConfig),
+		buffer:         newBuffer(bufCfg.Size, bufCfg.IsOverwriting),
 		inCh:           make(chan Frame),
 	}
 

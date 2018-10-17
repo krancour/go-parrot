@@ -23,7 +23,7 @@ func newOutBuffer(
 ) *outBuffer {
 	buf := &outBuffer{
 		OutBufferConfig: bufCfg,
-		buffer:          newBuffer(bufCfg.BaseBufferConfig),
+		buffer:          newBuffer(bufCfg.Size, bufCfg.IsOverwriting),
 		conn:            conn,
 	}
 
@@ -42,7 +42,7 @@ func (o *outBuffer) writeFrame(frame Frame) {
 	for attempts := 0; attempts <= o.MaxRetries || o.MaxRetries == -1; attempts++ {
 		netFrame := arnetworkal.Frame{
 			ID:   o.ID,
-			Type: o.BaseBufferConfig.FrameType,
+			Type: o.FrameType,
 			Seq:  o.seq,
 			Data: frame.Data,
 		}

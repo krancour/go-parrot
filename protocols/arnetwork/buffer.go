@@ -8,11 +8,11 @@ type buffer struct {
 	isOverwriting bool
 }
 
-func newBuffer(bufCfg BaseBufferConfig) *buffer {
+func newBuffer(size int32, isOverwriting bool) *buffer {
 	buf := &buffer{
 		inCh:          make(chan Frame),
-		outCh:         make(chan Frame, bufCfg.Size),
-		isOverwriting: bufCfg.IsOverwriting,
+		outCh:         make(chan Frame, size),
+		isOverwriting: isOverwriting,
 	}
 
 	go buf.receiveFrames()
