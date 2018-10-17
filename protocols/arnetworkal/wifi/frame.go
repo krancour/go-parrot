@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
 )
 
@@ -13,6 +14,14 @@ import (
 const headerBytesLength = 7
 
 func defaultEncodeFrame(frame arnetworkal.Frame) []byte {
+	log := log.WithField(
+		"buffer", frame.ID,
+	).WithField(
+		"type", frame.Type,
+	).WithField(
+		"seq", frame.Seq,
+	)
+	log.Debug("encoding arnetworkal frame as datagram")
 	var packetBuf bytes.Buffer
 	packetBuf.WriteByte(byte(frame.Type)) // 1 byte
 	packetBuf.WriteByte(frame.ID)         // 1 byte
@@ -25,14 +34,19 @@ func defaultEncodeFrame(frame arnetworkal.Frame) []byte {
 	)
 	packetBuf.Write(sizeBuf.Bytes()) // 4 bytes
 	packetBuf.Write(frame.Data)
+	log.Debug("encoded arnetworkal frame as datagram")
 	return packetBuf.Bytes()
 }
 
 func defaultDecodePacket(packet []byte) ([]arnetworkal.Frame, error) {
+	log.Debug("decoding datagram")
 	data := packet
 	frames := []arnetworkal.Frame{}
 	for {
 		if len(data) == 0 {
+			log.WithField(
+				"frameCount", len(frames),
+			).Debug("extracted arnetworkal frames from datagram")
 			return frames, nil
 		}
 		if len(data) < headerBytesLength {
@@ -60,6 +74,13 @@ func defaultDecodePacket(packet []byte) ([]arnetworkal.Frame, error) {
 			return nil, fmt.Errorf("error decoding malformed packet")
 		}
 		frame.Data = data[7:frameSize]
+		log.WithField(
+			"buffer", frame.ID,
+		).WithField(
+			"type", frame.Type,
+		).WithField(
+			"seq", frame.Seq,
+		).Debug("extracted arnetworkal frame datagram")
 		frames = append(frames, frame)
 		data = data[frameSize:]
 	}
