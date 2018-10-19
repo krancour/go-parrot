@@ -4,9 +4,18 @@
 
 set -euxo pipefail
 
-export GO111MODULE=off
+# gometalinter doesn't seem to work with modules yet, so we will vendor the
+# modules for the sake of linting. These are NOT tracked in source control
+# since it is not customary for libraries to vendor dependencies.
 
-gometalinter examples/... pkg/... \
+GO111MODULE=on go mod vendor
+
+GO111MODULE=off \
+	gometalinter ./devices/... \
+	./examples/... \
+	./features/... \
+	./protocols/... \
+	./version/... \
 	--concurrency=1 \
 	--disable-all \
 	--enable gofmt \

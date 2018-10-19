@@ -1,7 +1,7 @@
 package arnetwork
 
 // The arnetwork package implements the ARNetwork protocol and is responsible
-// for a buffer abstraction that is utilized by other, higer level protocols.
+// for a buffer abstraction that is utilized by other, higher level protocols.
 //
 // The buffer abstraction intelligently handles frame packing/unpacking,
 // acknowledgement of frame receipt, retries, timeouts, etc. as defined by the

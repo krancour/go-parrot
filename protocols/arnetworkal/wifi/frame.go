@@ -13,7 +13,7 @@ import (
 // in bytes.
 const headerBytesLength = 7
 
-func defaultEncodeFrame(frame arnetworkal.Frame) []byte {
+func defaultEncodeFrame(frame arnetworkal.Frame) ([]byte, error) {
 	log := log.WithField(
 		"buffer", frame.ID,
 	).WithField(
@@ -27,15 +27,18 @@ func defaultEncodeFrame(frame arnetworkal.Frame) []byte {
 	packetBuf.WriteByte(frame.ID)         // 1 byte
 	packetBuf.WriteByte(frame.Seq)        // 1 byte
 	var sizeBuf bytes.Buffer
-	binary.Write(
+	if err := binary.Write(
 		&sizeBuf,
 		binary.LittleEndian,
 		uint32(headerBytesLength+len(frame.Data)),
-	)
+	); err != nil {
+		return nil,
+			fmt.Errorf("error encoding arnetworkal frame as datagram: %s", err)
+	}
 	packetBuf.Write(sizeBuf.Bytes()) // 4 bytes
 	packetBuf.Write(frame.Data)
 	log.Debug("encoded arnetworkal frame as datagram")
-	return packetBuf.Bytes()
+	return packetBuf.Bytes(), nil
 }
 
 func defaultDecodePacket(packet []byte) ([]arnetworkal.Frame, error) {
@@ -61,13 +64,15 @@ func defaultDecodePacket(packet []byte) ([]arnetworkal.Frame, error) {
 			Data: []byte{},
 		}
 		var frameSize uint32 // 4 bytes
-		binary.Read(
+		if err := binary.Read(
 			bytes.NewReader(
 				data[3:7],
 			),
 			binary.LittleEndian,
 			&frameSize,
-		)
+		); err != nil {
+			return nil, fmt.Errorf("error determining frame data length: %s", err)
+		}
 		if uint32(len(data)) < frameSize {
 			// We are clearly dealing with a malformed packet. We can't trust
 			// ANY of these frames. Discard them all and return an error.

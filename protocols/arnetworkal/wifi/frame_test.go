@@ -8,7 +8,7 @@ import (
 )
 
 func TestEncodeFrame(t *testing.T) {
-	packet := defaultEncodeFrame(
+	packet, err := defaultEncodeFrame(
 		arnetworkal.Frame{
 			Type: arnetworkal.FrameTypeAck,
 			ID:   186,
@@ -16,6 +16,7 @@ func TestEncodeFrame(t *testing.T) {
 			Data: []byte{0x42},
 		},
 	)
+	assert.Nil(t, err)
 	assert.Equal(
 		t,
 		[]byte{

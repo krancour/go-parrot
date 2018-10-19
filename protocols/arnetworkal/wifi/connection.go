@@ -22,7 +22,7 @@ var (
 	// These are vars instead of a consts so that they can be overridden by unit
 	// tests. They're not exported, so there is no danger of anyone else
 	// tampering with these.
-	deviceIP      = "192.168.42.1"
+	deviceIP      = net.ParseIP("192.168.42.1")
 	discoveryPort = 44444
 )
 
@@ -38,13 +38,10 @@ type connectionNegotiationResponse struct {
 }
 
 type connection struct {
-	c2dPort int
-	c2dAddr *net.UDPAddr
 	c2dConn *net.UDPConn
-	d2cPort int
 	d2cConn *net.UDPConn
 	// This function is overridable by unit tests
-	encodeFrame func(frame arnetworkal.Frame) []byte
+	encodeFrame func(frame arnetworkal.Frame) ([]byte, error)
 	// This function is overridable by unit tests
 	decodePacket func(data []byte) ([]arnetworkal.Frame, error)
 }
@@ -65,31 +62,63 @@ func NewConnection() (arnetworkal.Connection, error) {
 		"port", d2cPort,
 	).Debug("selected port for d2c communication")
 
-	// Negotiate the connection. This is how the client informs the device
-	// of the UDP port it will listen on. In response, the device informs
-	// the client of which UDP port it will listen on.
-	// TODO: Should this be moved into its own protocol packages?
+	// Negotiate the connection
+	c2dPort, err := negotiate(deviceIP, d2cPort)
+	if err != nil {
+		return nil, fmt.Errorf("error negotiating connection: %s", err)
+	}
+
+	// Establish the c2d connection...
+	c2dConn, err := establishC2DConnection(deviceIP, c2dPort)
+	if err != nil {
+		return nil, fmt.Errorf("error establishing c2d connection: %s", err)
+	}
+
+	// Establish the d2c connection...
+	d2cConn, err := establishD2CConnection(d2cPort)
+	if err != nil {
+		return nil, fmt.Errorf("error establishing d2c connection: %s", err)
+	}
+
+	log.WithField(
+		"deviceIP", deviceIP,
+	).WithField(
+		"c2dPort", c2dPort,
+	).WithField(
+		"d2cPort", d2cPort,
+	).Debug("c2d and d2c connections ready for use")
+	return &connection{
+		c2dConn:      c2dConn,
+		d2cConn:      d2cConn,
+		encodeFrame:  defaultEncodeFrame,
+		decodePacket: defaultDecodePacket,
+	}, nil
+}
+
+// negotiate negotiates the connection. This is how the client informs the
+// device of the UDP port it will listen on. In response, the device informs the
+// client of which UDP port it will listen on.
+// TODO: Should this be moved into its own protocol packages?
+func negotiate(deviceIP net.IP, d2cPort int) (int, error) {
 	log.WithField(
 		"deviceIP", deviceIP,
 	).WithField(
 		"discoveryPort", discoveryPort,
 	).Debug("negotiating connection")
-	negAddr, err := net.ResolveTCPAddr(
+
+	conn, err := net.DialTCP(
 		"tcp",
-		fmt.Sprintf("%s:%d", deviceIP, discoveryPort),
+		nil,
+		&net.TCPAddr{
+			IP:   deviceIP,
+			Port: discoveryPort,
+		},
 	)
 	if err != nil {
-		return nil,
-			fmt.Errorf(
-				"error resolving address for connection negotiation: %s",
-				err,
-			)
+		return 0, fmt.Errorf("error negotiating connection: %s", err)
 	}
-	negConn, err := net.DialTCP("tcp", nil, negAddr)
-	if err != nil {
-		return nil, fmt.Errorf("error negotiating connection: %s", err)
-	}
-	defer negConn.Close()
+	defer conn.Close() // nolint: errcheck
+
 	log.Debug("marshaling connection negotiation request")
 	jsonBytes, err := json.Marshal(
 		connectionNegotiationRequest{
@@ -99,42 +128,46 @@ func NewConnection() (arnetworkal.Connection, error) {
 		},
 	)
 	if err != nil {
-		return nil,
+		return 0,
 			fmt.Errorf(
 				"error marshaling connection negotiation request: %s",
 				err,
 			)
 	}
 	log.Debug("marshaled connection negotiation request")
+	// Use a null character to terminate the request
 	jsonBytes = append(jsonBytes, 0x00)
+
 	log.Debug("sending connection negotiation request")
-	if _, err := negConn.Write(jsonBytes); err != nil {
-		return nil,
+	if _, err = conn.Write(jsonBytes); err != nil {
+		return 0,
 			fmt.Errorf(
 				"error sending connection negotiation request: %s",
 				err,
 			)
 	}
 	log.Debug("sent connection negotiation request")
+
 	log.Debug("waiting for connection negotiation response")
 	// Note: Since TCP is a stream-based protocol, we either need to know
 	// content length of the response in advance OR a delimiter we can look for.
 	// Since we know the remote end of the connection is implemented in C, it's
 	// pretty reasonable to use the null character 0x00 (which is used to
 	// terminate all strings in C) as a delimiter.
-	data, err := bufio.NewReader(negConn).ReadBytes(0x00)
+	data, err := bufio.NewReader(conn).ReadBytes(0x00)
 	if err != nil {
-		return nil,
+		return 0,
 			fmt.Errorf(
 				"error receiving connection negotiation response: %s",
 				err,
 			)
 	}
 	log.Debug("got connection negotiation response")
-	var negRes connectionNegotiationResponse
+
+	var res connectionNegotiationResponse
 	log.Debug("unmarshaling connection negotiation response")
-	if err := json.Unmarshal(data[:len(data)-1], &negRes); err != nil {
-		return nil,
+	if err := json.Unmarshal(data[:len(data)-1], &res); err != nil {
+		return 0,
 			fmt.Errorf(
 				"error unmarshaling connection negotiation response: %s",
 				err,
@@ -142,8 +175,8 @@ func NewConnection() (arnetworkal.Connection, error) {
 	}
 	log.Debug("unmarshaled connection negotiation response")
 	// Any non-zero status is a refused connection.
-	if negRes.Status != 0 {
-		return nil,
+	if res.Status != 0 {
+		return 0,
 			errors.New(
 				"connection negotiation failed; connection refused by device",
 			)
@@ -152,78 +185,62 @@ func NewConnection() (arnetworkal.Connection, error) {
 	log.WithField(
 		"deviceIP", deviceIP,
 	).WithField(
-		"c2dPort", negRes.C2DPort,
+		"c2dPort", res.C2DPort,
 	).WithField(
 		"d2cPort", d2cPort,
 	).Debug("connection negotiation complete")
 
-	// Establish an outbound connection...
+	return res.C2DPort, nil
+}
+
+// establishC2DConnection establishes the client to device UDP connection.
+func establishC2DConnection(
+	deviceIP net.IP,
+	c2dPort int,
+) (*net.UDPConn, error) {
 	log.WithField(
 		"deviceIP", deviceIP,
 	).WithField(
-		"c2dPort", negRes.C2DPort,
+		"c2dPort", c2dPort,
 	).Debug("establishing c2d connection")
-	c2dAddr, err := net.ResolveUDPAddr(
+
+	conn, err := net.DialUDP(
 		"udp",
-		fmt.Sprintf("%s:%d", deviceIP, negRes.C2DPort),
+		nil,
+		&net.UDPAddr{
+			IP:   deviceIP,
+			Port: c2dPort,
+		},
 	)
 	if err != nil {
-		return nil,
-			fmt.Errorf(
-				"error resolving address for outbound connection: %s",
-				err,
-			)
+		return nil, fmt.Errorf("error establishing c2d connection: %s", err)
 	}
-	c2dConn, err := net.DialUDP("udp", nil, c2dAddr)
-	if err != nil {
-		return nil,
-			fmt.Errorf("error establishing outbound connection: %s", err)
-	}
+
 	log.WithField(
 		"deviceIP", deviceIP,
 	).WithField(
-		"c2dPort", negRes.C2DPort,
+		"c2dPort", c2dPort,
 	).Debug("established c2d connection")
 
-	// Establish an inbound connection...
+	return conn, nil
+}
+
+// establishD2CConnection establishes the device to client UDP connection.
+func establishD2CConnection(d2cPort int) (*net.UDPConn, error) {
 	log.WithField(
 		"d2cPort", d2cPort,
 	).Debug("establishing d2c connection")
-	d2cAddr, err := net.ResolveUDPAddr(
-		"udp",
-		fmt.Sprintf(":%d", d2cPort),
-	)
+
+	conn, err := net.ListenUDP("udp", &net.UDPAddr{Port: d2cPort})
 	if err != nil {
-		return nil,
-			fmt.Errorf(
-				"error resolving address for inbound connection: %s",
-				err,
-			)
+		return nil, fmt.Errorf("error establishing d2c connection: %s", err)
 	}
-	d2cConn, err := net.ListenUDP("udp", d2cAddr)
-	if err != nil {
-		return nil, fmt.Errorf("error establishing inbound connection: %s", err)
-	}
+
 	log.WithField(
 		"d2cPort", d2cPort,
 	).Debug("established d2c connection")
 
-	log.WithField(
-		"deviceIP", deviceIP,
-	).WithField(
-		"c2dPort", negRes.C2DPort,
-	).WithField(
-		"d2cPort", d2cPort,
-	).Debug("c2d and d2c connections ready for use")
-	return &connection{
-		c2dPort:      negRes.C2DPort,
-		c2dAddr:      c2dAddr,
-		c2dConn:      c2dConn,
-		d2cPort:      d2cPort,
-		d2cConn:      d2cConn,
-		encodeFrame:  defaultEncodeFrame,
-		decodePacket: defaultDecodePacket,
-	}, nil
+	return conn, nil
 }
 
 func (c *connection) Send(frame arnetworkal.Frame) error {
@@ -234,8 +251,12 @@ func (c *connection) Send(frame arnetworkal.Frame) error {
 	).WithField(
 		"seq", frame.Seq,
 	)
+	frameBytes, err := c.encodeFrame(frame)
+	if err != nil {
+		return fmt.Errorf("error encoding arnetworkal frame: %s", err)
+	}
 	log.Debug("sending arnetworkal frame")
-	if _, err := c.c2dConn.Write(c.encodeFrame(frame)); err != nil {
+	if _, err := c.c2dConn.Write(frameBytes); err != nil {
 		return fmt.Errorf("error writing frame to outbound connection: %s", err)
 	}
 	log.Debug("sent arnetworkal frame")

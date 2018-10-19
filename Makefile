@@ -41,23 +41,6 @@ DOCKER_CMD := docker run \
 dev:
 	$(DOCKER_CMD) bash
 
-# Install/update dependencies
-.PHONY: dep
-dep:
-ifdef SKIP_DOCKER
-	scripts/dep.sh
-else
-	$(DOCKER_CMD) scripts/dep.sh
-endif
-
-.PHONY: verify
-verify:
-ifdef SKIP_DOCKER
-	scripts/verify.sh
-else
-	$(DOCKER_CMD) scripts/verify.sh
-endif
-
 .PHONY: linux-stream
 linux-stream:
 	vlc live-stream.sdp

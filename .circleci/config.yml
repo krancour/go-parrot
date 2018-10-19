@@ -23,13 +23,6 @@ log-into-docker-hub-step: &log-into-docker-hub-step
   command: docker login -u "${DOCKER_HUB_USERNAME}" -p "${DOCKER_HUB_PASSWORD}"
 
 jobs:
-  verify:
-    <<: *base-go-job
-    steps:
-      - checkout
-      - run:
-          name: Verify
-          command: make verify
   lint:
     <<: *base-go-job
     steps:
@@ -104,8 +97,6 @@ workflows:
   version: 2
   build-and-test-pr:
     jobs:
-      - verify:
-          <<: *base-pr-step
       - lint:
           <<: *base-pr-step
       - test:
@@ -114,8 +105,6 @@ workflows:
           <<: *base-pr-step
   build-and-test-master:
     jobs:
-      - verify:
-          <<: *base-master-step
       - lint:
           <<: *base-master-step
       - test:
@@ -125,7 +114,6 @@ workflows:
       - publish-rc-images:
           <<: *base-master-step
           requires:
-            - verify
             - lint
             - test
             - build

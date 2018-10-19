@@ -4,9 +4,8 @@
 
 set -euxo pipefail
 
-export GO111MODULE=off
-
-go test -v \
+GO111MODULE=on \
+    go test -v \
     ./devices/... \
     ./examples/... \
     ./features/... \

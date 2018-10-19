@@ -5,10 +5,6 @@ package arnetworkal
 type FrameType uint8
 
 const (
-	// frameTypeUninitialized is the zero value for type FrameType and
-	// represents an unspecified frame type. This should not be deliberately
-	// used!
-	frameTypeUninitialized FrameType = 0
 	// FrameTypeAck represents a frame that acknowledges receipt of another
 	// frame.
 	FrameTypeAck FrameType = 1

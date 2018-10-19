@@ -7,6 +7,7 @@ import (
 )
 
 // InBufferConfig represents the configuration of a buffer for inbound frames.
+// nolint: lll
 type InBufferConfig struct {
 	ID            uint8                 // Buffer ID 0 - 255
 	FrameType     arnetworkal.FrameType // Type of data
