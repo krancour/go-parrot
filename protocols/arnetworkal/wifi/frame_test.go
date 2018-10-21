@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEncodeFrame(t *testing.T) {
@@ -16,8 +16,8 @@ func TestEncodeFrame(t *testing.T) {
 			Data: []byte{0x42},
 		},
 	)
-	assert.Nil(t, err)
-	assert.Equal(
+	require.NoError(t, err)
+	require.Equal(
 		t,
 		[]byte{
 			0x01,                   // Type
@@ -45,8 +45,8 @@ func TestDecodePacket(t *testing.T) {
 				// Size header missing
 			},
 			assert: func(t *testing.T, frames []arnetworkal.Frame, err error) {
-				assert.NotNil(t, err)
-				assert.Empty(t, frames)
+				require.Error(t, err)
+				require.Empty(t, frames)
 			},
 		},
 		{
@@ -66,16 +66,16 @@ func TestDecodePacket(t *testing.T) {
 				0x12, 0x34, 0x56, // Data (with one byte missing)
 			},
 			assert: func(t *testing.T, frames []arnetworkal.Frame, err error) {
-				assert.NotNil(t, err)
-				assert.Empty(t, frames)
+				require.Error(t, err)
+				require.Empty(t, frames)
 			},
 		},
 		{
 			name:   "empty packet",
 			packet: []byte{},
 			assert: func(t *testing.T, frames []arnetworkal.Frame, err error) {
-				assert.Nil(t, err)
-				assert.Empty(t, frames)
+				require.NoError(t, err)
+				require.Empty(t, frames)
 			},
 		},
 		{
@@ -88,8 +88,8 @@ func TestDecodePacket(t *testing.T) {
 				0x42, // Data
 			},
 			assert: func(t *testing.T, frames []arnetworkal.Frame, err error) {
-				assert.Nil(t, err)
-				assert.Equal(t, 1, len(frames))
+				require.NoError(t, err)
+				require.Equal(t, 1, len(frames))
 			},
 		},
 		{
@@ -109,8 +109,8 @@ func TestDecodePacket(t *testing.T) {
 				0x12, 0x34, 0x56, 0x78, // Data
 			},
 			assert: func(t *testing.T, frames []arnetworkal.Frame, err error) {
-				assert.Nil(t, err)
-				assert.Equal(t, 2, len(frames))
+				require.NoError(t, err)
+				require.Equal(t, 2, len(frames))
 			},
 		},
 	}

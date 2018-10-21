@@ -16,7 +16,6 @@ GO111MODULE=off \
 	./features/... \
 	./protocols/... \
 	./version/... \
-	--concurrency=1 \
 	--disable-all \
 	--enable gofmt \
 	--enable vet \

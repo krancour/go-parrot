@@ -5,7 +5,7 @@
 set -euxo pipefail
 
 GO111MODULE=on \
-    go test -v \
+    go test -v --cover \
     ./devices/... \
     ./examples/... \
     ./features/... \

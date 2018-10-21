@@ -32,8 +32,8 @@ func NewClient() (Client, error) {
 	}
 	bufMan, err := arnetwork.NewBufferManager(
 		conn,
-		[]arnetwork.InBufferConfig{},
-		[]arnetwork.OutBufferConfig{},
+		[]arnetwork.C2DBufferConfig{},
+		[]arnetwork.D2CBufferConfig{},
 		// TODO: Add device-specific buffers here
 	)
 	if err != nil {

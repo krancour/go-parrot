@@ -4,19 +4,19 @@ import (
 	"fmt"
 )
 
-type inBuffer struct {
-	InBufferConfig
+type d2cBuffer struct {
+	D2CBufferConfig
 	*buffer
 	inCh  chan Frame
 	seq   *uint8
 	ackCh chan Frame
 }
 
-func newInBuffer(bufCfg InBufferConfig) *inBuffer {
-	buf := &inBuffer{
-		InBufferConfig: bufCfg,
-		buffer:         newBuffer(bufCfg.Size, bufCfg.IsOverwriting),
-		inCh:           make(chan Frame),
+func newD2CBuffer(bufCfg D2CBufferConfig) *d2cBuffer {
+	buf := &d2cBuffer{
+		D2CBufferConfig: bufCfg,
+		buffer:          newBuffer(bufCfg.Size, bufCfg.IsOverwriting),
+		inCh:            make(chan Frame),
 	}
 
 	go buf.receiveFrames()
@@ -24,11 +24,11 @@ func newInBuffer(bufCfg InBufferConfig) *inBuffer {
 	return buf
 }
 
-func (i *inBuffer) receiveFrames() {
-	for frame := range i.inCh {
+func (d *d2cBuffer) receiveFrames() {
+	for frame := range d.inCh {
 		// If acknowledgement was requested, send it...
-		if i.ackCh != nil {
-			i.ackCh <- Frame{
+		if d.ackCh != nil {
+			d.ackCh <- Frame{
 				Data: []byte(fmt.Sprintf("%d", frame.seq)),
 			}
 		}
@@ -45,10 +45,10 @@ func (i *inBuffer) receiveFrames() {
 		//
 		// Otherwise, we're dealing with a frame that has arrived out of order.
 		// We'll drop such frames.
-		if i.seq == nil || frame.seq > *i.seq || *i.seq-frame.seq >= 10 {
-			i.seq = &frame.seq
-			i.buffer.inCh <- frame
+		if d.seq == nil || frame.seq > *d.seq || *d.seq-frame.seq >= 10 {
+			d.seq = &frame.seq
+			d.buffer.inCh <- frame
 		}
 	}
-	close(i.buffer.inCh)
+	close(d.buffer.inCh)
 }

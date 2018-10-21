@@ -9,20 +9,20 @@ import (
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
 )
 
-type outBuffer struct {
-	OutBufferConfig
+type c2dBuffer struct {
+	C2DBufferConfig
 	*buffer
 	conn  arnetworkal.Connection
 	seq   uint8
 	ackCh chan Frame
 }
 
-func newOutBuffer(
-	bufCfg OutBufferConfig,
+func newC2DBuffer(
+	bufCfg C2DBufferConfig,
 	conn arnetworkal.Connection,
-) *outBuffer {
-	buf := &outBuffer{
-		OutBufferConfig: bufCfg,
+) *c2dBuffer {
+	buf := &c2dBuffer{
+		C2DBufferConfig: bufCfg,
 		buffer:          newBuffer(bufCfg.Size, bufCfg.IsOverwriting),
 		conn:            conn,
 	}
@@ -32,34 +32,34 @@ func newOutBuffer(
 	return buf
 }
 
-func (o *outBuffer) writeFrames() {
-	for frame := range o.outCh {
-		o.writeFrame(frame)
+func (c *c2dBuffer) writeFrames() {
+	for frame := range c.outCh {
+		c.writeFrame(frame)
 	}
 }
 
-func (o *outBuffer) writeFrame(frame Frame) {
-	for attempts := 0; attempts <= o.MaxRetries || o.MaxRetries == -1; attempts++ {
+func (c *c2dBuffer) writeFrame(frame Frame) {
+	for attempts := 0; attempts <= c.MaxRetries || c.MaxRetries == -1; attempts++ {
 		netFrame := arnetworkal.Frame{
-			ID:   o.ID,
-			Type: o.FrameType,
-			Seq:  o.seq,
+			ID:   c.ID,
+			Type: c.FrameType,
+			Seq:  c.seq,
 			Data: frame.Data,
 		}
-		o.seq++
-		if err := o.conn.Send(netFrame); err != nil {
+		c.seq++
+		if err := c.conn.Send(netFrame); err != nil {
 			log.Printf("error sending frame: %s\n", err)
 		}
 		if netFrame.Type == arnetworkal.FrameTypeDataWithAck {
 			select {
-			case ack := <-o.ackCh:
+			case ack := <-c.ackCh:
 				if bytes.Equal(
 					[]byte(fmt.Sprintf("%d", netFrame.Seq)),
 					ack.Data,
 				) {
 					return
 				}
-			case <-time.After(o.AckTimeout):
+			case <-time.After(c.AckTimeout):
 			}
 		}
 	}

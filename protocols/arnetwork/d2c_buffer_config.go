@@ -6,9 +6,10 @@ import (
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
 )
 
-// InBufferConfig represents the configuration of a buffer for inbound frames.
+// D2CBufferConfig represents the configuration of a buffer for frame sent from
+// the device to the client.
 // nolint: lll
-type InBufferConfig struct {
+type D2CBufferConfig struct {
 	ID            uint8                 // Buffer ID 0 - 255
 	FrameType     arnetworkal.FrameType // Type of data
 	Size          int32                 // Size of the internal fifo
@@ -19,15 +20,15 @@ type InBufferConfig struct {
 // validate validates buffer configuration. This is used internally to
 // assert the reasonability of a configuration before attempting to use
 // it to initialize a new buffer.
-func (i InBufferConfig) validate() error {
-	if i.FrameType != arnetworkal.FrameTypeAck &&
-		i.FrameType != arnetworkal.FrameTypeData &&
-		i.FrameType != arnetworkal.FrameTypeLowLatencyData &&
-		i.FrameType != arnetworkal.FrameTypeDataWithAck {
+func (d D2CBufferConfig) validate() error {
+	if d.FrameType != arnetworkal.FrameTypeAck &&
+		d.FrameType != arnetworkal.FrameTypeData &&
+		d.FrameType != arnetworkal.FrameTypeLowLatencyData &&
+		d.FrameType != arnetworkal.FrameTypeDataWithAck {
 		return fmt.Errorf(
 			"input buffer %d defined with invalid frame type %d",
-			i.ID,
-			i.FrameType,
+			d.ID,
+			d.FrameType,
 		)
 	}
 	return nil

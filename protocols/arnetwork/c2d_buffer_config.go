@@ -7,9 +7,10 @@ import (
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
 )
 
-// OutBufferConfig represents the configuration of a buffer for outbound frames.
+// C2DBufferConfig represents the configuration of a buffer for frames being
+// sent from the client to the device.
 // nolint: lll
-type OutBufferConfig struct {
+type C2DBufferConfig struct {
 	ID            uint8                 // Buffer ID 0 - 255
 	FrameType     arnetworkal.FrameType // Type of data
 	Size          int32                 // Size of the internal fifo
@@ -22,15 +23,15 @@ type OutBufferConfig struct {
 // validate validates buffer configuration. This is used internally to
 // assert the reasonability of a configuration before attempting to use
 // it to initialize a new buffer.
-func (o OutBufferConfig) validate() error {
-	if o.FrameType != arnetworkal.FrameTypeAck &&
-		o.FrameType != arnetworkal.FrameTypeData &&
-		o.FrameType != arnetworkal.FrameTypeLowLatencyData &&
-		o.FrameType != arnetworkal.FrameTypeDataWithAck {
+func (c C2DBufferConfig) validate() error {
+	if c.FrameType != arnetworkal.FrameTypeAck &&
+		c.FrameType != arnetworkal.FrameTypeData &&
+		c.FrameType != arnetworkal.FrameTypeLowLatencyData &&
+		c.FrameType != arnetworkal.FrameTypeDataWithAck {
 		return fmt.Errorf(
-			"output buffer %d defined with invalid frame type %d",
-			o.ID,
-			o.FrameType,
+			"c2d buffer %d defined with invalid frame type %d",
+			c.ID,
+			c.FrameType,
 		)
 	}
 	return nil
