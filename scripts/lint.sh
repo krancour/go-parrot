@@ -15,7 +15,6 @@ GO111MODULE=off \
 	./examples/... \
 	./features/... \
 	./protocols/... \
-	./version/... \
 	--disable-all \
 	--enable gofmt \
 	--enable vet \

@@ -9,5 +9,4 @@ GO111MODULE=on \
     ./devices/... \
     ./examples/... \
     ./features/... \
-    ./protocols/... \
-    ./version/...
+    ./protocols/...
