@@ -5,7 +5,7 @@
 set -euxo pipefail
 
 GO111MODULE=on \
-    go test -v --cover \
+    go test -v -coverprofile=coverage.txt -covermode=atomic \
     ./devices/... \
     ./examples/... \
     ./features/... \
