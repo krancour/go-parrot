@@ -27,6 +27,7 @@ func TestD2CBufferReceiveFrames(t *testing.T) {
 			bufCfg: D2CBufferConfig{
 				ID:        1,
 				FrameType: arnetworkal.FrameTypeData,
+				Size:      1,
 			},
 			initialBufRefSeq: nil,
 			frame: Frame{
@@ -50,6 +51,7 @@ func TestD2CBufferReceiveFrames(t *testing.T) {
 			bufCfg: D2CBufferConfig{
 				ID:        1,
 				FrameType: arnetworkal.FrameTypeData,
+				Size:      1,
 			},
 			initialBufRefSeq: func() *uint8 { i := uint8(5); return &i }(),
 			frame: Frame{
@@ -73,6 +75,7 @@ func TestD2CBufferReceiveFrames(t *testing.T) {
 			bufCfg: D2CBufferConfig{
 				ID:        1,
 				FrameType: arnetworkal.FrameTypeData,
+				Size:      1,
 			},
 			initialBufRefSeq: func() *uint8 { i := uint8(10); return &i }(),
 			frame: Frame{
@@ -96,6 +99,7 @@ func TestD2CBufferReceiveFrames(t *testing.T) {
 			bufCfg: D2CBufferConfig{
 				ID:        1,
 				FrameType: arnetworkal.FrameTypeData,
+				Size:      1,
 			},
 			initialBufRefSeq: func() *uint8 { i := uint8(25); return &i }(),
 			frame: Frame{
@@ -118,6 +122,7 @@ func TestD2CBufferReceiveFrames(t *testing.T) {
 			bufCfg: D2CBufferConfig{
 				ID:        1,
 				FrameType: arnetworkal.FrameTypeDataWithAck,
+				Size:      1,
 			},
 			initialBufRefSeq: func() *uint8 { i := uint8(5); return &i }(),
 			frame: Frame{
@@ -132,6 +137,7 @@ func TestD2CBufferReceiveFrames(t *testing.T) {
 			) {
 				_, ok := <-ackCh
 				require.True(t, ok, "frame was not acknowledged, but should have been")
+				// TODO: Make some assertions on the ack frame
 				_, ok = <-frameCh
 				require.True(t, ok, "frame was not accepted, but should have been")
 			},
@@ -152,15 +158,9 @@ func TestD2CBufferReceiveFrames(t *testing.T) {
 				buf.inCh <- testCase.frame
 				close(buf.inCh)
 			}()
-			// This isn't ideal, but because the buffer uses a goroutine to internally
-			// copy from the input channel to the output channel, we need to wait for
-			// a little while here to be sure that the frame that is accepted onto
-			// the input channel has made it through to the output channel. If we
-			// don't, we can't make reliable assertions about the state of the output
-			// channel. We're expecting to find certain frame there, but it simply may
-			// not be there yet.
-			// <-time.After(5 * time.Second)
 			testCase.assertions(t, testCase.frame, buf.buffer.outCh, buf.ackCh)
+			// TODO: Assert that the buffer's reference sequence number has been
+			// updated
 		})
 	}
 }
