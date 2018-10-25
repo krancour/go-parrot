@@ -25,7 +25,6 @@ DEV_IMAGE := quay.io/deis/lightweight-docker-go:v0.3.0
 DOCKER_CMD := docker run \
 	-it \
 	--rm \
-	-e CGO_ENABLED=0 \
 	-e SKIP_DOCKER=true \
 	-v $$(pwd):/go/src/$(BASE_PACKAGE_NAME) \
 	-v $$(pwd)/.modcache:/go/pkg/mod \

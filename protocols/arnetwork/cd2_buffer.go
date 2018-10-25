@@ -34,33 +34,39 @@ func newC2DBuffer(
 
 func (c *c2dBuffer) writeFrames() {
 	for frame := range c.outCh {
-		c.writeFrame(frame)
+		if err := c.writeFrame(frame); err != nil {
+			log.Println(err)
+		}
 	}
 }
 
-func (c *c2dBuffer) writeFrame(frame Frame) {
+func (c *c2dBuffer) writeFrame(frame Frame) error {
+	c.seq++ // Only increment seq once, no matter how many tries it takes
 	for attempts := 0; attempts <= c.MaxRetries || c.MaxRetries == -1; attempts++ {
+		log.Printf("attempt %d to send frame", attempts)
 		netFrame := arnetworkal.Frame{
 			ID:   c.ID,
 			Type: c.FrameType,
 			Seq:  c.seq,
 			Data: frame.Data,
 		}
-		c.seq++
 		if err := c.conn.Send(netFrame); err != nil {
-			log.Printf("error sending frame: %s\n", err)
+			return fmt.Errorf("error sending frame: %s", err)
 		}
-		if netFrame.Type == arnetworkal.FrameTypeDataWithAck {
-			select {
-			case ack := <-c.ackCh:
-				if bytes.Equal(
-					[]byte(fmt.Sprintf("%d", netFrame.Seq)),
-					ack.Data,
-				) {
-					return
-				}
-			case <-time.After(c.AckTimeout):
+		if netFrame.Type != arnetworkal.FrameTypeDataWithAck {
+			return nil
+		}
+		select {
+		case ack := <-c.ackCh:
+			if bytes.Equal(
+				[]byte(fmt.Sprintf("%d", netFrame.Seq)),
+				ack.Data,
+			) {
+				return nil
 			}
+		case <-time.After(c.AckTimeout):
+			log.Println("timed out waiting for acknowledgment of frame receipt")
 		}
 	}
+	return fmt.Errorf("exhausted %d retries sending frame", c.MaxRetries)
 }
