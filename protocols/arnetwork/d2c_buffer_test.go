@@ -146,6 +146,8 @@ func TestD2CBufferReceiveFrames(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
+			err := testCase.bufCfg.validate()
+			require.NoError(t, err)
 			// Remember that a new buffer will automatically begin receiving frame.
 			// There's no need to explicitly call buf.receiveFrames()
 			buf := newD2CBuffer(testCase.bufCfg)

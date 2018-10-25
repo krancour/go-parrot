@@ -138,6 +138,8 @@ func TestWriteFrame(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			conn := &fake.Connection{}
+			err := testCase.bufCfg.validate()
+			require.NoError(t, err)
 			buf := newC2DBuffer(testCase.bufCfg, conn)
 			buf.ackCh = make(chan Frame)
 			initialSeq := buf.seq
@@ -153,7 +155,7 @@ func TestWriteFrame(t *testing.T) {
 				require.Equal(t, frame.Data, netFrame.Data)
 				return testCase.sendBehavior(netFrame, sendCallCount, buf.ackCh)
 			}
-			err := buf.writeFrame(frame)
+			err = buf.writeFrame(frame)
 			require.Equal(t, initialSeq+1, buf.seq)
 			testCase.assertions(t, err, sendCallCount)
 		})

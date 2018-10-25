@@ -34,5 +34,12 @@ func (c C2DBufferConfig) validate() error {
 			c.FrameType,
 		)
 	}
+	if c.Size < 1 {
+		return fmt.Errorf(
+			"c2d buffer %d defined with invalid size %d",
+			c.ID,
+			c.Size,
+		)
+	}
 	return nil
 }

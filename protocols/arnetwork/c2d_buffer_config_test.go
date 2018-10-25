@@ -7,18 +7,53 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestInvalidC2DBufferConfig(t *testing.T) {
-	bufCfg := C2DBufferConfig{
-		FrameType: 5, // This is an invalid frame type
-	}
-	err := bufCfg.validate()
-	require.Error(t, err)
-}
+func TestValidateC2DBufferConfig(t *testing.T) {
+	testCases := []struct {
+		name       string
+		bufCfg     C2DBufferConfig
+		assertions func(*testing.T, error)
+	}{
 
-func TestValidC2DBufferConfig(t *testing.T) {
-	bufCfg := C2DBufferConfig{
-		FrameType: arnetworkal.FrameTypeData,
+		{
+			name: "invalid frame type",
+			bufCfg: C2DBufferConfig{
+				FrameType: 0, // This frame type is undefined
+				Size:      1,
+			},
+			assertions: func(t *testing.T, err error) {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), "invalid frame type")
+			},
+		},
+
+		{
+			name: "invalid size",
+			bufCfg: C2DBufferConfig{
+				FrameType: arnetworkal.FrameTypeData,
+				Size:      0,
+			},
+			assertions: func(t *testing.T, err error) {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), "invalid size")
+			},
+		},
+
+		{
+			name: "valid config",
+			bufCfg: C2DBufferConfig{
+				FrameType: arnetworkal.FrameTypeData,
+				Size:      1,
+			},
+			assertions: func(t *testing.T, err error) {
+				require.NoError(t, err)
+			},
+		},
 	}
-	err := bufCfg.validate()
-	require.NoError(t, err)
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			err := testCase.bufCfg.validate()
+			testCase.assertions(t, err)
+		})
+	}
 }

@@ -26,9 +26,16 @@ func (d D2CBufferConfig) validate() error {
 		d.FrameType != arnetworkal.FrameTypeLowLatencyData &&
 		d.FrameType != arnetworkal.FrameTypeDataWithAck {
 		return fmt.Errorf(
-			"input buffer %d defined with invalid frame type %d",
+			"d2c buffer %d defined with invalid frame type %d",
 			d.ID,
 			d.FrameType,
+		)
+	}
+	if d.Size < 1 {
+		return fmt.Errorf(
+			"d2c buffer %d defined with invalid size %d",
+			d.ID,
+			d.Size,
 		)
 	}
 	return nil
