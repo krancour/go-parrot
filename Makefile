@@ -1,16 +1,4 @@
 ################################################################################
-# Version details                                                              #
-################################################################################
-
-GIT_VERSION = $(shell git describe --always --abbrev=7 --dirty)
-
-ifeq ($(REL_VERSION),)
-	EXAMPLES_VERSION := devel
-else
-	EXAMPLES_VERSION := $(REL_VERSION)
-endif
-
-################################################################################
 # Go build details                                                             #
 ################################################################################
 
@@ -40,13 +28,13 @@ DOCKER_CMD := docker run \
 dev:
 	$(DOCKER_CMD) bash
 
-.PHONY: linux-stream
-linux-stream:
-	vlc live-stream.sdp
+# .PHONY: linux-stream
+# linux-stream:
+# 	vlc live-stream.sdp
 
-.PHONY: mac-stream
-mac-stream:
-	/Applications/VLC.app/Contents/MacOS/VLC live-stream.sdp
+# .PHONY: mac-stream
+# mac-stream:
+# 	/Applications/VLC.app/Contents/MacOS/VLC live-stream.sdp
 
 ################################################################################
 # Tests                                                                        #
@@ -56,7 +44,7 @@ mac-stream:
 .PHONY: test
 test:
 ifdef SKIP_DOCKER
-	$(UNIT_TEST_CMD) scripts/test.sh
+	scripts/test.sh
 else
 	$(DOCKER_CMD) scripts/test.sh
 endif
@@ -65,7 +53,7 @@ endif
 .PHONY: lint
 lint:
 ifdef SKIP_DOCKER
-	$(LINT_CMD) scripts/lint.sh
+	scripts/lint.sh
 else
 	$(DOCKER_CMD) scripts/lint.sh
 endif
