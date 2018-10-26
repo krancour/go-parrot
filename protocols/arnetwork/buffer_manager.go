@@ -26,7 +26,9 @@ func NewBufferManager(
 	d2cBufCfgs []D2CBufferConfig,
 ) (BufferManager, error) {
 	b := &bufferManager{
-		conn: conn,
+		conn:       conn,
+		c2dBuffers: map[uint8]*c2dBuffer{},
+		d2cBuffers: map[uint8]*d2cBuffer{},
 	}
 
 	for _, bufCfg := range c2dBufCfgs {
