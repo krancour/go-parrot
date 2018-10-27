@@ -133,26 +133,23 @@ func TestSuccessfulConnectionNegotiation(t *testing.T) {
 	// we can move on to trying to talk to it.
 	listeningCh := make(chan struct{})
 	go func() {
-		var listener *net.TCPListener
-		listener, err = net.ListenTCP("tcp", &net.TCPAddr{Port: discoveryPort})
+		// nolint: vetshadow
+		listener, err := net.ListenTCP("tcp", &net.TCPAddr{Port: discoveryPort})
 		require.NoError(t, err)
 		defer listener.Close()
 		close(listeningCh) // Signal the test to continue
 		// Wait for a connection
-		var conn *net.TCPConn
-		conn, err = listener.AcceptTCP()
+		conn, err := listener.AcceptTCP()
 		require.NoError(t, err)
 		defer conn.Close()
 		// Wait for the request
-		var data []byte
-		data, err = bufio.NewReader(conn).ReadBytes(0x00)
+		data, err := bufio.NewReader(conn).ReadBytes(0x00)
 		require.NoError(t, err)
 		var negReq connectionNegotiationRequest
 		err = json.Unmarshal(data[:len(data)-1], &negReq)
 		require.NoError(t, err)
 		// Send a response
-		var jsonBytes []byte
-		jsonBytes, err = json.Marshal(
+		jsonBytes, err := json.Marshal(
 			connectionNegotiationResponse{
 				Status:  0,
 				C2DPort: c2dPort,
