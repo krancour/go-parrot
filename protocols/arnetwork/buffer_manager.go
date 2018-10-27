@@ -1,7 +1,7 @@
 package arnetwork
 
 import (
-	"log"
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
 )

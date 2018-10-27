@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
 )
 
@@ -41,5 +42,6 @@ func (c C2DBufferConfig) validate() error {
 			c.Size,
 		)
 	}
+	log.WithField("id", c.ID).Debug("c2d buffer config is valid")
 	return nil
 }

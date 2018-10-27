@@ -257,7 +257,7 @@ func (c *connection) Send(frame arnetworkal.Frame) error {
 	}
 	log.Debug("sending arnetworkal frame")
 	if _, err := c.c2dConn.Write(frameBytes); err != nil {
-		return fmt.Errorf("error writing frame to outbound connection: %s", err)
+		return fmt.Errorf("error writing frame to c2d connection: %s", err)
 	}
 	log.Debug("sent arnetworkal frame")
 	return nil
@@ -272,7 +272,7 @@ func (c *connection) Receive() ([]arnetworkal.Frame, error) {
 	if err != nil {
 		return nil,
 			fmt.Errorf(
-				"error receiving frames from inbound connection: %s",
+				"error receiving frames from d2c connection: %s",
 				err,
 			)
 	}
@@ -285,12 +285,12 @@ func (c *connection) Receive() ([]arnetworkal.Frame, error) {
 func (c *connection) Close() {
 	log.Debug("closing c2d connection")
 	if err := c.c2dConn.Close(); err != nil {
-		log.Printf("error closing outbound connection: %s\n", err)
+		log.Printf("error closing c2d connection: %s\n", err)
 	}
 	log.Debug("closed c2d connection")
 	log.Debug("closing d2c connection")
 	if err := c.d2cConn.Close(); err != nil {
-		log.Printf("error closing inbound connection: %s\n", err)
+		log.Printf("error closing d2c connection: %s\n", err)
 	}
 	log.Debug("closed d2c connection")
 }

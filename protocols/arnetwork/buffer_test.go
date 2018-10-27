@@ -83,7 +83,7 @@ func TestBuffer(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			buf := newBuffer(testCase.size, testCase.isOverwriting)
+			buf := newBuffer(1, testCase.size, testCase.isOverwriting)
 			for _, frame := range testCase.testFrames {
 				select {
 				case buf.inCh <- frame:
@@ -91,22 +91,18 @@ func TestBuffer(t *testing.T) {
 					require.Fail(t, "write to buffer unexpectedly timed out")
 				}
 			}
-			// This isn't ideal, but because the buffer uses a goroutine to internally
-			// copy from the input channel to the output channel, we need to wait for
-			// a little while here to be sure that everything we put on the input
-			// channel has made it through to the output channel. If we don't, we
-			// can't make reliable assertions about the things on the output channel.
-			// We're expecting to find certain frames there, but they simply may not
-			// be there yet.
-			<-time.After(2 * time.Second)
+			close(buf.inCh)
 			frames := []Frame{}
 		loop:
 			for {
 				select {
-				case frame := <-buf.outCh:
+				case frame, ok := <-buf.outCh:
+					if !ok {
+						break loop
+					}
 					frames = append(frames, frame)
-				default:
-					break loop
+				case <-time.After(time.Second):
+					require.Fail(t, "read from buffer unexpectedly timed out")
 				}
 			}
 			require.Equal(t, testCase.expectedFrames, frames)
@@ -116,7 +112,7 @@ func TestBuffer(t *testing.T) {
 
 func TestEmptyBuffer(t *testing.T) {
 	const bufSize = 5
-	buf := newBuffer(bufSize, false)
+	buf := newBuffer(1, bufSize, false)
 	testFrames := []Frame{
 		{Data: []byte("a")},
 		{Data: []byte("b")},

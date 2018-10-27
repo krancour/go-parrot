@@ -3,6 +3,7 @@ package arnetwork
 import (
 	"fmt"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
 )
 
@@ -38,5 +39,6 @@ func (d D2CBufferConfig) validate() error {
 			d.Size,
 		)
 	}
+	log.WithField("id", d.ID).Debug("d2c buffer config is valid")
 	return nil
 }
