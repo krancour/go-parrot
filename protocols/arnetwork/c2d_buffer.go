@@ -67,17 +67,17 @@ func (c *c2dBuffer) writeFrame(frame Frame) error { // nolint: unparam
 		netFrame.Seq,
 	)
 	var attempts int
-	for attempts = 0; attempts <= c.MaxRetries || c.MaxRetries == -1; attempts++ {
+	for attempts = 0; attempts <= c.MaxRetries || c.MaxRetries == -1; attempts++ { // nolint: lll
 		log.WithField(
 			"attempt",
 			attempts,
-		).Debug("attempting to send frame")
+		).Debug("attempting to send arnetworkal frame")
 		if err := c.conn.Send(netFrame); err != nil {
 			log.WithField(
 				"attempt",
 				attempts,
-			).Errorf("error sending frame: %s", err)
-			return errors.Wrap(err, "error sending frame")
+			).Errorf("error sending arnetworkal frame: %s", err)
+			return errors.Wrap(err, "error sending arnetworkal frame")
 		}
 		if netFrame.Type != arnetworkal.FrameTypeDataWithAck {
 			return nil
@@ -94,7 +94,10 @@ func (c *c2dBuffer) writeFrame(frame Frame) error { // nolint: unparam
 			log.WithField(
 				"attempt",
 				attempts,
-			).Debug("timed out waiting for acknowledgment of frame receipt")
+			).Debug(
+				"timed out waiting for acknowledgment of arnetworkal frame " +
+					"receipt",
+			)
 		}
 	}
 	log.WithField(
@@ -103,6 +106,9 @@ func (c *c2dBuffer) writeFrame(frame Frame) error { // nolint: unparam
 	).WithField(
 		"retries",
 		c.MaxRetries,
-	).Error("exhausted retries sending frame")
-	return errors.Errorf("exhausted %d retries sending frame", c.MaxRetries)
+	).Error("exhausted retries sending arnetworkal frame")
+	return errors.Errorf(
+		"exhausted %d retries sending arnetworkal frame",
+		c.MaxRetries,
+	)
 }

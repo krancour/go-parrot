@@ -13,7 +13,7 @@ import (
 
 const (
 	// maxUDPDataBytes represents the practical maximum numbers of data bytes in
-	// a UDP packet.
+	// a UDP datagram.
 	maxUDPDataBytes = 65507
 	discoveryPort   = 44444
 )
@@ -39,7 +39,7 @@ type connection struct {
 	// This function is overridable by unit tests
 	encodeFrame func(frame arnetworkal.Frame) ([]byte, error)
 	// This function is overridable by unit tests
-	decodePacket func(data []byte) ([]arnetworkal.Frame, error)
+	decodeDatagram func(data []byte) ([]arnetworkal.Frame, error)
 }
 
 // NewConnection returns a UDP/IP based implementation of the
@@ -61,7 +61,7 @@ func NewConnection() (arnetworkal.Connection, error) {
 	// Negotiate the connection
 	c2dPort, err := negotiateConnection(deviceIP, discoveryPort, d2cPort)
 	if err != nil {
-		return nil, errors.Wrap(err, "error negotiating connection")
+		return nil, errors.Wrap(err, "connection negotiation failed")
 	}
 
 	// Establish the c2d connection...
@@ -84,10 +84,10 @@ func NewConnection() (arnetworkal.Connection, error) {
 		"d2cPort", d2cPort,
 	).Debug("c2d and d2c connections ready for use")
 	return &connection{
-		c2dConn:      c2dConn,
-		d2cConn:      d2cConn,
-		encodeFrame:  defaultEncodeFrame,
-		decodePacket: defaultDecodePacket,
+		c2dConn:        c2dConn,
+		d2cConn:        d2cConn,
+		encodeFrame:    defaultEncodeFrame,
+		decodeDatagram: defaultDecodeDatagram,
 	}, nil
 }
 
@@ -115,7 +115,7 @@ var defaultNegotiateConnection = func(
 		},
 	)
 	if err != nil {
-		return 0, errors.Wrap(err, "error negotiating connection")
+		return 0, err
 	}
 	defer conn.Close() // nolint: errcheck
 
@@ -203,7 +203,7 @@ var defaultEstablishC2DConnection = func(
 		},
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "error establishing c2d connection")
+		return nil, err
 	}
 
 	log.WithField(
@@ -225,7 +225,7 @@ var defaultEstablishD2CConnection = func(d2cPort int) (*net.UDPConn, error) {
 
 	conn, err := net.ListenUDP("udp", &net.UDPAddr{Port: d2cPort})
 	if err != nil {
-		return nil, errors.Wrap(err, "error establishing d2c connection")
+		return nil, err
 	}
 
 	log.WithField(
@@ -249,7 +249,10 @@ func (c *connection) Send(frame arnetworkal.Frame) error {
 	}
 	log.Debug("sending arnetworkal frame")
 	if _, err := c.c2dConn.Write(frameBytes); err != nil {
-		return errors.Wrap(err, "error writing frame to c2d connection")
+		return errors.Wrap(
+			err,
+			"error writing datagram to c2d connection",
+		)
 	}
 	log.Debug("sent arnetworkal frame")
 	return nil
@@ -257,19 +260,19 @@ func (c *connection) Send(frame arnetworkal.Frame) error {
 
 var establishD2CConnection = defaultEstablishD2CConnection
 
-var packet = make([]byte, maxUDPDataBytes)
+var datagram = make([]byte, maxUDPDataBytes)
 
 func (c *connection) Receive() ([]arnetworkal.Frame, error) {
 	log.Debug("reading / waiting for datagram from d2c connection")
-	bytesRead, _, err := c.d2cConn.ReadFromUDP(packet)
+	bytesRead, _, err := c.d2cConn.ReadFromUDP(datagram)
 	if err != nil {
 		return nil,
-			errors.Wrap(err, "error receiving frames from d2c connection")
+			errors.Wrap(err, "error receiving datagram from d2c connection")
 	}
 	log.WithField(
 		"bytesRead", bytesRead,
 	).Debug("got datagram from d2c connection")
-	return c.decodePacket(packet[0:bytesRead])
+	return c.decodeDatagram(datagram[0:bytesRead])
 }
 
 func (c *connection) Close() {
@@ -281,7 +284,7 @@ func (c *connection) closeC2DConnection() {
 	if c.c2dConn != nil {
 		log.Debug("closing c2d connection")
 		if err := c.c2dConn.Close(); err != nil {
-			log.Printf("error closing c2d connection: %s\n", err)
+			log.Errorf("error closing c2d connection: %s", err)
 		}
 		log.Debug("closed c2d connection")
 	}
@@ -291,7 +294,7 @@ func (c *connection) closeD2CConnection() {
 	if c.d2cConn != nil {
 		log.Debug("closing d2c connection")
 		if err := c.d2cConn.Close(); err != nil {
-			log.Printf("error closing d2c connection: %s\n", err)
+			log.Errorf("error closing d2c connection: %s", err)
 		}
 		log.Debug("closed d2c connection")
 	}

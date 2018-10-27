@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	arnetworkal "github.com/krancour/go-parrot/protocols/arnetworkal/wifi"
 )
 

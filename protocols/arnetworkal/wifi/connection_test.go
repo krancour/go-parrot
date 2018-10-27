@@ -37,7 +37,7 @@ func TestNewConnection(t *testing.T) {
 			},
 			assertions: func(t *testing.T, _ arnetworkal.Connection, err error) {
 				assert.Error(t, err)
-				assert.Contains(t, err.Error(), "error negotiating connection")
+				assert.Contains(t, err.Error(), "connection negotiation failed")
 				assert.Contains(t, err.Error(), "foo")
 			},
 		},
@@ -280,10 +280,10 @@ func TestC2DConnection(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify the mock device received the data
-	packet := make([]byte, maxUDPDataBytes)
-	bytesRead, _, err := mockDeviceC2DConn.ReadFromUDP(packet)
+	datagram := make([]byte, maxUDPDataBytes)
+	bytesRead, _, err := mockDeviceC2DConn.ReadFromUDP(datagram)
 	require.NoError(t, err)
-	require.Equal(t, "foo", string(packet[:bytesRead]))
+	require.Equal(t, "foo", string(datagram[:bytesRead]))
 }
 
 func TestD2CConnection(t *testing.T) {
@@ -293,10 +293,10 @@ func TestD2CConnection(t *testing.T) {
 	conn.d2cConn, err = defaultEstablishD2CConnection(d2cPort)
 	require.NoError(t, err)
 	defer conn.closeD2CConnection()
-	// Override packet decoding to make some assertions
-	conn.decodePacket = func(packet []byte) ([]arnetworkal.Frame, error) {
+	// Override datagram decoding to make some assertions
+	conn.decodeDatagram = func(datagram []byte) ([]arnetworkal.Frame, error) {
 		// Expect to receive "bar"
-		require.Equal(t, "bar", string(packet))
+		require.Equal(t, "bar", string(datagram))
 		return nil, nil
 	}
 

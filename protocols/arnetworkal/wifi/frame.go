@@ -22,10 +22,10 @@ func defaultEncodeFrame(frame arnetworkal.Frame) ([]byte, error) {
 		"seq", frame.Seq,
 	)
 	log.Debug("encoding arnetworkal frame as datagram")
-	var packetBuf bytes.Buffer
-	packetBuf.WriteByte(byte(frame.Type)) // 1 byte
-	packetBuf.WriteByte(frame.ID)         // 1 byte
-	packetBuf.WriteByte(frame.Seq)        // 1 byte
+	var datagramBuf bytes.Buffer
+	datagramBuf.WriteByte(byte(frame.Type)) // 1 byte
+	datagramBuf.WriteByte(frame.ID)         // 1 byte
+	datagramBuf.WriteByte(frame.Seq)        // 1 byte
 	var sizeBuf bytes.Buffer
 	if err := binary.Write(
 		&sizeBuf,
@@ -35,15 +35,15 @@ func defaultEncodeFrame(frame arnetworkal.Frame) ([]byte, error) {
 		return nil,
 			errors.Wrap(err, "error encoding arnetworkal frame as datagram")
 	}
-	packetBuf.Write(sizeBuf.Bytes()) // 4 bytes
-	packetBuf.Write(frame.Data)
+	datagramBuf.Write(sizeBuf.Bytes()) // 4 bytes
+	datagramBuf.Write(frame.Data)
 	log.Debug("encoded arnetworkal frame as datagram")
-	return packetBuf.Bytes(), nil
+	return datagramBuf.Bytes(), nil
 }
 
-func defaultDecodePacket(packet []byte) ([]arnetworkal.Frame, error) {
+func defaultDecodeDatagram(datagram []byte) ([]arnetworkal.Frame, error) {
 	log.Debug("decoding datagram")
-	data := packet
+	data := datagram
 	frames := []arnetworkal.Frame{}
 	for {
 		if len(data) == 0 {
@@ -53,9 +53,9 @@ func defaultDecodePacket(packet []byte) ([]arnetworkal.Frame, error) {
 			return frames, nil
 		}
 		if len(data) < headerBytesLength {
-			// We are clearly dealing with a malformed packet. We can't trust
+			// We are clearly dealing with a malformed datagram. We can't trust
 			// ANY of these frames. Discard them all and return an error.
-			return nil, errors.New("error decoding malformed packet")
+			return nil, errors.New("error decoding malformed datagram")
 		}
 		frame := arnetworkal.Frame{
 			Type: arnetworkal.FrameType(data[0]), // 1 byte
@@ -71,12 +71,15 @@ func defaultDecodePacket(packet []byte) ([]arnetworkal.Frame, error) {
 			binary.LittleEndian,
 			&frameSize,
 		); err != nil {
-			return nil, errors.Wrap(err, "error determining frame data length")
+			return nil, errors.Wrap(
+				err,
+				"error determining arnetworkal frame data length",
+			)
 		}
 		if uint32(len(data)) < frameSize {
-			// We are clearly dealing with a malformed packet. We can't trust
+			// We are clearly dealing with a malformed datagram. We can't trust
 			// ANY of these frames. Discard them all and return an error.
-			return nil, errors.New("error decoding malformed packet")
+			return nil, errors.New("error decoding malformed datagram")
 		}
 		frame.Data = data[7:frameSize]
 		log.WithField(

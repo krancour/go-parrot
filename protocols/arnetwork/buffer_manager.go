@@ -89,26 +89,26 @@ func (b *bufferManager) receiveFrames() {
 	for {
 		netFrames, err := b.conn.Receive()
 		if err != nil {
-			log.Printf("error receiving frame: %s\n", err)
+			log.Errorf("error receiving arnetworkal frames: %s", err)
 			continue
 		}
 		for _, netFrame := range netFrames {
-			// Unpack the arnetworkal frame into an arnetwork frame...
-			frame := Frame{
-				seq:  netFrame.Seq,
-				Data: netFrame.Data,
-			}
-			// Put the frame on the correct buffer...
+			// Find correct buffer for this frame...
 			buf, ok := b.d2cBuffers[netFrame.ID]
 			if !ok {
 				// No buffer found to receive this frame.
-				log.Printf(
-					"received frame for unknown buffer %d\n",
+				log.WithField(
+					"buffer",
 					netFrame.ID,
-				)
+				).Error("received arnetworkal frame for unknown buffer")
 				continue
 			}
-			buf.inCh <- frame
+			// Unpack the arnetworkal frame into an arnetwork frame and put it
+			// in the buffer...
+			buf.inCh <- Frame{
+				seq:  netFrame.Seq,
+				Data: netFrame.Data,
+			}
 		}
 	}
 }

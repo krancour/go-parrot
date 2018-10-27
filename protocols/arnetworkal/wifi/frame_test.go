@@ -8,7 +8,7 @@ import (
 )
 
 func TestEncodeFrame(t *testing.T) {
-	packet, err := defaultEncodeFrame(
+	datagram, err := defaultEncodeFrame(
 		arnetworkal.Frame{
 			Type: arnetworkal.FrameTypeAck,
 			ID:   186,
@@ -26,19 +26,19 @@ func TestEncodeFrame(t *testing.T) {
 			0x08, 0x00, 0x00, 0x00, // Frame size (little endian)
 			0x42, // Data
 		},
-		packet,
+		datagram,
 	)
 }
 
-func TestDecodePacket(t *testing.T) {
+func TestDecodeDatagram(t *testing.T) {
 	testCases := []struct {
-		name   string
-		packet []byte
-		assert func(t *testing.T, frames []arnetworkal.Frame, err error)
+		name     string
+		datagram []byte
+		assert   func(t *testing.T, frames []arnetworkal.Frame, err error)
 	}{
 		{
 			name: "single, incomplete frame",
-			packet: []byte{
+			datagram: []byte{
 				0x01, // Type
 				0xba, // ID
 				0x27, // Seq
@@ -51,7 +51,7 @@ func TestDecodePacket(t *testing.T) {
 		},
 		{
 			name: "one good frame, one with a missing byte",
-			packet: []byte{
+			datagram: []byte{
 				// Start first frame
 				0x01,                   // Type
 				0xba,                   // ID
@@ -71,8 +71,8 @@ func TestDecodePacket(t *testing.T) {
 			},
 		},
 		{
-			name:   "empty packet",
-			packet: []byte{},
+			name:     "empty datagram",
+			datagram: []byte{},
 			assert: func(t *testing.T, frames []arnetworkal.Frame, err error) {
 				require.NoError(t, err)
 				require.Empty(t, frames)
@@ -80,7 +80,7 @@ func TestDecodePacket(t *testing.T) {
 		},
 		{
 			name: "single frame",
-			packet: []byte{
+			datagram: []byte{
 				0x01,                   // Type
 				0xba,                   // ID
 				0x27,                   // Seq
@@ -94,7 +94,7 @@ func TestDecodePacket(t *testing.T) {
 		},
 		{
 			name: "multiple frames",
-			packet: []byte{
+			datagram: []byte{
 				// Start first frame
 				0x01,                   // Type
 				0xba,                   // ID
@@ -116,7 +116,7 @@ func TestDecodePacket(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			frames, err := defaultDecodePacket(testCase.packet)
+			frames, err := defaultDecodeDatagram(testCase.datagram)
 			testCase.assert(t, frames, err)
 		})
 	}
