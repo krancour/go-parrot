@@ -115,7 +115,7 @@ func TestNewConnection(t *testing.T) {
 	}
 }
 
-func TestCannotNegotiate(t *testing.T) {
+func TestCannotConnectToNegotiate(t *testing.T) {
 	// Pick a port where we're sure nothing else is listening
 	discoveryPort, err := freeport.GetFreePort()
 	require.NoError(t, err)
@@ -125,6 +125,68 @@ func TestCannotNegotiate(t *testing.T) {
 		12345, // Dummy port number-- we'll never connect to this, so it's ok
 	)
 	require.Error(t, err)
+}
+
+func TestRefusedConnectionNegotiation(t *testing.T) {
+	discoveryPort, err := freeport.GetFreePort()
+	require.NoError(t, err)
+	// Dummy port number-- we'll never connect to this, so it's ok
+	c2dPort := 12345
+	// Mock out the device's connection negotiation. Run it in its on goroutine so
+	// we can move on to trying to talk to it.
+	listeningCh := make(chan struct{})
+	go func() {
+		// nolint: vetshadow
+		listener, err := net.ListenTCP("tcp", &net.TCPAddr{Port: discoveryPort})
+		require.NoError(t, err)
+		defer listener.Close()
+		close(listeningCh) // Signal the test to continue
+		// Wait for a connection
+		conn, err := listener.AcceptTCP()
+		require.NoError(t, err)
+		defer conn.Close()
+		// Wait for the request
+		data, err := bufio.NewReader(conn).ReadBytes(0x00)
+		require.NoError(t, err)
+		var negReq connectionNegotiationRequest
+		err = json.Unmarshal(data[:len(data)-1], &negReq)
+		require.NoError(t, err)
+		// Send a response
+		jsonBytes, err := json.Marshal(
+			connectionNegotiationResponse{
+				Status:  1, // Non-zero == connection refused
+				C2DPort: c2dPort,
+			},
+		)
+		require.NoError(t, err)
+		jsonBytes = append(jsonBytes, 0x00)
+		_, err = conn.Write(jsonBytes)
+		require.NoError(t, err)
+	}()
+
+	// Block until mock device's connection negotiation server is listening, or
+	// give up after 2 seconds. This prevents us from racing to connect to a
+	// server that isn't listening yet. The timeout is to avoid the possibility of
+	// blocking indefinitely if something goes wrong.
+	select {
+	case <-listeningCh:
+	case <-time.After(2 * time.Second):
+		require.Fail(
+			t,
+			"timed out waiting for mock device connection negotiation server to "+
+				"start listening",
+		)
+	}
+
+	_, err = defaultNegotiateConnection(
+		net.ParseIP("127.0.0.1"),
+		discoveryPort,
+		// Dummy port number-- this is ok since the mock server won't do anything
+		// with it
+		54321,
+	)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "refused")
 }
 
 func TestSuccessfulConnectionNegotiation(t *testing.T) {
@@ -165,12 +227,12 @@ func TestSuccessfulConnectionNegotiation(t *testing.T) {
 	}()
 
 	// Block until mock device's connection negotiation server is listening, or
-	// give up after 5 seconds. This prevents us from racing to connect to a
+	// give up after 2 seconds. This prevents us from racing to connect to a
 	// server that isn't listening yet. The timeout is to avoid the possibility of
 	// blocking indefinitely if something goes wrong.
 	select {
 	case <-listeningCh:
-	case <-time.After(5 * time.Second):
+	case <-time.After(2 * time.Second):
 		require.Fail(
 			t,
 			"timed out waiting for mock device connection negotiation server to "+
