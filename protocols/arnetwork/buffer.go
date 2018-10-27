@@ -8,6 +8,7 @@ type buffer struct {
 	id            uint8
 	inCh          chan Frame
 	outCh         chan Frame
+	doneCh        chan struct{}
 	isOverwriting bool
 }
 
@@ -16,6 +17,7 @@ func newBuffer(id uint8, size int32, isOverwriting bool) *buffer {
 		id:            id,
 		inCh:          make(chan Frame),
 		outCh:         make(chan Frame, size),
+		doneCh:        make(chan struct{}),
 		isOverwriting: isOverwriting,
 	}
 
@@ -71,6 +73,10 @@ func (b *buffer) bufferFrames() {
 			b.outCh <- frame
 		}
 	}
+	// Signal that we're done buffering. This is really only used in testing.
+	// We want to know that all data that was going to be buffered has been
+	// before we start reading from that buffer and making assertions.
+	close(b.doneCh)
 	// Signal anyone listening to the outCh that there's no more data coming!
 	close(b.outCh)
 }

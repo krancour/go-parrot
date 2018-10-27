@@ -92,6 +92,11 @@ func TestBuffer(t *testing.T) {
 				}
 			}
 			close(buf.inCh)
+			select {
+			case <-buf.doneCh:
+			case <-time.After(2 * time.Second):
+				require.Fail(t, "timed out waiting for buffer to fill")
+			}
 			frames := []Frame{}
 		loop:
 			for {
