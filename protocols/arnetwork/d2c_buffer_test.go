@@ -39,7 +39,7 @@ func TestD2CBufferReceiveFrames(t *testing.T) {
 				expectedFrame Frame,
 				buf *d2cBuffer,
 			) {
-				_, ok := <-buf.outCh
+				_, ok := <-buf.buffer.outCh
 				require.True(t, ok, "frame was not accepted, but should have been")
 				require.Equal(t, expectedFrame.seq, *buf.seq)
 			},
@@ -63,7 +63,7 @@ func TestD2CBufferReceiveFrames(t *testing.T) {
 				expectedFrame Frame,
 				buf *d2cBuffer,
 			) {
-				_, ok := <-buf.outCh
+				_, ok := <-buf.buffer.outCh
 				require.True(t, ok, "frame was not accepted, but should have been")
 				require.Equal(t, expectedFrame.seq, *buf.seq)
 			},
@@ -87,7 +87,7 @@ func TestD2CBufferReceiveFrames(t *testing.T) {
 				expectedFrame Frame,
 				buf *d2cBuffer,
 			) {
-				_, ok := <-buf.outCh
+				_, ok := <-buf.buffer.outCh
 				require.False(t, ok, "frame was accepted and should not have been")
 				require.Equal(t, uint8(10), *buf.seq)
 			},
@@ -111,7 +111,7 @@ func TestD2CBufferReceiveFrames(t *testing.T) {
 				expectedFrame Frame,
 				buf *d2cBuffer,
 			) {
-				_, ok := <-buf.outCh
+				_, ok := <-buf.buffer.outCh
 				require.False(t, ok, "frame was accepted and should not have been")
 				require.Equal(t, uint8(10), *buf.seq)
 			},
@@ -135,7 +135,7 @@ func TestD2CBufferReceiveFrames(t *testing.T) {
 				expectedFrame Frame,
 				buf *d2cBuffer,
 			) {
-				_, ok := <-buf.outCh
+				_, ok := <-buf.buffer.outCh
 				require.True(t, ok, "frame was not accepted, but should have been")
 				require.Equal(t, expectedFrame.seq, *buf.seq)
 			},
@@ -165,7 +165,7 @@ func TestD2CBufferReceiveFrames(t *testing.T) {
 					[]byte(fmt.Sprintf("%d", expectedFrame.seq)),
 					ackFrame.Data,
 				)
-				_, ok = <-buf.outCh
+				_, ok = <-buf.buffer.outCh
 				require.True(t, ok, "frame was not accepted, but should have been")
 				require.Equal(t, expectedFrame.seq, *buf.seq)
 			},

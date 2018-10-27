@@ -237,6 +237,8 @@ var defaultEstablishD2CConnection = func(d2cPort int) (*net.UDPConn, error) {
 
 func (c *connection) Send(frame arnetworkal.Frame) error {
 	log := log.WithField(
+		"uuid", frame.UUID,
+	).WithField(
 		"buffer", frame.ID,
 	).WithField(
 		"type", frame.Type,

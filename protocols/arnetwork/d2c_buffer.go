@@ -9,10 +9,10 @@ import (
 
 type d2cBuffer struct {
 	D2CBufferConfig
-	*buffer
-	inCh  chan Frame
-	seq   *uint8
-	ackCh chan Frame
+	buffer *buffer
+	inCh   chan Frame
+	seq    *uint8
+	ackCh  chan Frame
 }
 
 func newD2CBuffer(bufCfg D2CBufferConfig) *d2cBuffer {
@@ -33,9 +33,9 @@ func newD2CBuffer(bufCfg D2CBufferConfig) *d2cBuffer {
 }
 
 func (d *d2cBuffer) receiveFrames() {
-	log := log.WithField("id", d.id)
+	log := log.WithField("id", d.buffer.id)
 	for frame := range d.inCh {
-		log = log.WithField("seq", frame.seq)
+		log = log.WithField("uuid", frame.uuid).WithField("seq", frame.seq)
 		// If acknowledgement was requested, send it...
 		if d.FrameType == arnetworkal.FrameTypeDataWithAck && d.ackCh != nil {
 			log.Debug("acknowledging receipt of frame")

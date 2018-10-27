@@ -50,7 +50,7 @@ func NewBufferManager(
 					IsOverwriting: false, // Useless by design: there is only one ack waiting at a time
 				},
 			)
-			buf.ackCh = ackBuf.outCh
+			buf.ackCh = ackBuf.buffer.outCh
 		}
 	}
 
@@ -76,7 +76,7 @@ func NewBufferManager(
 				},
 				conn,
 			)
-			buf.ackCh = ackBuf.inCh
+			buf.ackCh = ackBuf.buffer.inCh
 		}
 	}
 
@@ -106,6 +106,7 @@ func (b *bufferManager) receiveFrames() {
 			// Unpack the arnetworkal frame into an arnetwork frame and put it
 			// in the buffer...
 			buf.inCh <- Frame{
+				uuid: netFrame.UUID,
 				seq:  netFrame.Seq,
 				Data: netFrame.Data,
 			}
@@ -126,5 +127,5 @@ func (b *bufferManager) D2CCh(bufID uint8) <-chan Frame {
 	if !ok {
 		return nil
 	}
-	return buf.outCh
+	return buf.buffer.outCh
 }

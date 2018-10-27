@@ -7,6 +7,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
 	"github.com/pkg/errors"
+	uuid "github.com/satori/go.uuid"
 )
 
 // headerBytesLength is the combined length of all ARNetworkAL frame headers
@@ -15,6 +16,8 @@ const headerBytesLength = 7
 
 func defaultEncodeFrame(frame arnetworkal.Frame) ([]byte, error) {
 	log := log.WithField(
+		"uuid", frame.UUID,
+	).WithField(
 		"buffer", frame.ID,
 	).WithField(
 		"type", frame.Type,
@@ -57,7 +60,12 @@ func defaultDecodeDatagram(datagram []byte) ([]arnetworkal.Frame, error) {
 			// ANY of these frames. Discard them all and return an error.
 			return nil, errors.New("error decoding malformed datagram")
 		}
+		var frameUUID string
+		if log.GetLevel() == log.DebugLevel {
+			frameUUID = uuid.NewV4().String()
+		}
 		frame := arnetworkal.Frame{
+			UUID: frameUUID,
 			Type: arnetworkal.FrameType(data[0]), // 1 byte
 			ID:   data[1],                        // 1 byte
 			Seq:  data[2],                        // 1 byte
@@ -83,12 +91,14 @@ func defaultDecodeDatagram(datagram []byte) ([]arnetworkal.Frame, error) {
 		}
 		frame.Data = data[7:frameSize]
 		log.WithField(
+			"uuid", frame.UUID,
+		).WithField(
 			"buffer", frame.ID,
 		).WithField(
 			"type", frame.Type,
 		).WithField(
 			"seq", frame.Seq,
-		).Debug("extracted arnetworkal frame datagram")
+		).Debug("extracted arnetworkal frame from datagram")
 		frames = append(frames, frame)
 		data = data[frameSize:]
 	}

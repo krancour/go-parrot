@@ -8,14 +8,16 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
 	"github.com/pkg/errors"
+	uuid "github.com/satori/go.uuid"
 )
 
 type c2dBuffer struct {
 	C2DBufferConfig
-	*buffer
-	conn  arnetworkal.Connection
-	seq   uint8
-	ackCh chan Frame
+	buffer *buffer
+	inCh   chan Frame
+	conn   arnetworkal.Connection
+	seq    uint8
+	ackCh  chan Frame
 }
 
 func newC2DBuffer(
@@ -33,15 +35,27 @@ func newC2DBuffer(
 		bufCfg.ID,
 	).Debug("created new c2d frame buffer")
 
+	go buf.receiveFrames()
+
 	go buf.writeFrames()
 
 	return buf
 }
 
+func (c *c2dBuffer) receiveFrames() {
+	for frame := range c.inCh {
+		if log.GetLevel() == log.DebugLevel {
+			frame.uuid = uuid.NewV4().String()
+		}
+		c.buffer.inCh <- frame
+	}
+	close(c.buffer.inCh)
+}
+
 func (c *c2dBuffer) writeFrames() {
-	log := log.WithField("id", c.id)
+	log := log.WithField("id", c.buffer.id)
 	log.Debug("c2d buffer is now buffering frames")
-	for frame := range c.outCh {
+	for frame := range c.buffer.outCh {
 		// Note that there's nothing we could do with the error here other than
 		// log it, and we don't bother because writeFrame() already logs any
 		// error that occurs since it's able to provide greater context than
@@ -54,14 +68,18 @@ func (c *c2dBuffer) writeFrames() {
 func (c *c2dBuffer) writeFrame(frame Frame) error { // nolint: unparam
 	c.seq++ // Only increment seq once, no matter how many tries it takes
 	netFrame := arnetworkal.Frame{
+		UUID: frame.uuid,
 		ID:   c.ID,
 		Type: c.FrameType,
 		Seq:  c.seq,
 		Data: frame.Data,
 	}
 	log := log.WithField(
+		"uuid",
+		netFrame.UUID,
+	).WithField(
 		"id",
-		c.id,
+		c.buffer.id,
 	).WithField(
 		"seq",
 		netFrame.Seq,

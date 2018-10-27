@@ -168,9 +168,7 @@ func TestC2DCh(t *testing.T) {
 			bufMgr: &bufferManager{
 				c2dBuffers: map[uint8]*c2dBuffer{
 					10: {
-						buffer: &buffer{
-							inCh: testCh,
-						},
+						inCh: testCh,
 					},
 				},
 			},

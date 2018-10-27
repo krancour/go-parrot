@@ -28,6 +28,7 @@ const (
 // implemented in this package, as it is specific to the Connection
 // implementation used for Frame delivery and receipt.
 type Frame struct {
+	UUID string // Used only for debugging
 	Type FrameType
 	ID   uint8
 	Seq  uint8
