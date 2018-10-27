@@ -108,6 +108,9 @@ func TestNewConnection(t *testing.T) {
 			}
 			conn, err := NewConnection()
 			testCase.assertions(t, conn, err)
+			if conn != nil {
+				conn.Close()
+			}
 		})
 	}
 }
