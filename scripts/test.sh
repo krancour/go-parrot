@@ -6,7 +6,7 @@ set -euxo pipefail
 
 GO111MODULE=on \
     go test -timeout 30s -race -coverprofile=coverage.txt -covermode=atomic \
-    ./devices/... \
+    ./controllers/... \
     ./examples/... \
     ./features/... \
     ./protocols/...

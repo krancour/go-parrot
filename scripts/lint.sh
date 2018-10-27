@@ -11,7 +11,7 @@ set -euxo pipefail
 GO111MODULE=on go mod vendor
 
 GO111MODULE=off \
-	gometalinter ./devices/... \
+	gometalinter ./controllers/... \
 	./examples/... \
 	./features/... \
 	./protocols/... \
