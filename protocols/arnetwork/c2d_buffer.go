@@ -7,6 +7,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
+	"github.com/pkg/errors"
 )
 
 type c2dBuffer struct {
@@ -41,6 +42,11 @@ func (c *c2dBuffer) writeFrames() {
 	log := log.WithField("id", c.id)
 	log.Debug("c2d buffer is now buffering frames")
 	for frame := range c.outCh {
+		// Note that there's nothing we could do with the error here other than
+		// log it, and we don't bother because writeFrame() already logs any
+		// error that occurs since it's able to provide greater context than
+		// this functions could-- i.e. how many attempt were made to deliver
+		// the frame, etc.
 		c.writeFrame(frame) // nolint: errcheck
 	}
 }
@@ -71,7 +77,7 @@ func (c *c2dBuffer) writeFrame(frame Frame) error { // nolint: unparam
 				"attempt",
 				attempts,
 			).Errorf("error sending frame: %s", err)
-			return fmt.Errorf("error sending frame: %s", err)
+			return errors.Wrap(err, "error sending frame")
 		}
 		if netFrame.Type != arnetworkal.FrameTypeDataWithAck {
 			return nil
@@ -98,5 +104,5 @@ func (c *c2dBuffer) writeFrame(frame Frame) error { // nolint: unparam
 		"retries",
 		c.MaxRetries,
 	).Error("exhausted retries sending frame")
-	return fmt.Errorf("exhausted %d retries sending frame", c.MaxRetries)
+	return errors.Errorf("exhausted %d retries sending frame", c.MaxRetries)
 }

@@ -3,10 +3,10 @@ package wifi
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
+	"github.com/pkg/errors"
 )
 
 // headerBytesLength is the combined length of all ARNetworkAL frame headers
@@ -33,7 +33,7 @@ func defaultEncodeFrame(frame arnetworkal.Frame) ([]byte, error) {
 		uint32(headerBytesLength+len(frame.Data)),
 	); err != nil {
 		return nil,
-			fmt.Errorf("error encoding arnetworkal frame as datagram: %s", err)
+			errors.Wrap(err, "error encoding arnetworkal frame as datagram")
 	}
 	packetBuf.Write(sizeBuf.Bytes()) // 4 bytes
 	packetBuf.Write(frame.Data)
@@ -55,7 +55,7 @@ func defaultDecodePacket(packet []byte) ([]arnetworkal.Frame, error) {
 		if len(data) < headerBytesLength {
 			// We are clearly dealing with a malformed packet. We can't trust
 			// ANY of these frames. Discard them all and return an error.
-			return nil, fmt.Errorf("error decoding malformed packet")
+			return nil, errors.New("error decoding malformed packet")
 		}
 		frame := arnetworkal.Frame{
 			Type: arnetworkal.FrameType(data[0]), // 1 byte
@@ -71,12 +71,12 @@ func defaultDecodePacket(packet []byte) ([]arnetworkal.Frame, error) {
 			binary.LittleEndian,
 			&frameSize,
 		); err != nil {
-			return nil, fmt.Errorf("error determining frame data length: %s", err)
+			return nil, errors.Wrap(err, "error determining frame data length")
 		}
 		if uint32(len(data)) < frameSize {
 			// We are clearly dealing with a malformed packet. We can't trust
 			// ANY of these frames. Discard them all and return an error.
-			return nil, fmt.Errorf("error decoding malformed packet")
+			return nil, errors.New("error decoding malformed packet")
 		}
 		frame.Data = data[7:frameSize]
 		log.WithField(

@@ -3,13 +3,12 @@ package wifi
 import (
 	"bufio"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"net"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
 	"github.com/phayes/freeport"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -53,7 +52,7 @@ func NewConnection() (arnetworkal.Connection, error) {
 	d2cPort, err := freeport.GetFreePort()
 	if err != nil {
 		return nil,
-			fmt.Errorf("error selecting available client-side port: %s", err)
+			errors.Wrap(err, "error selecting available client-side port")
 	}
 	log.WithField(
 		"port", d2cPort,
@@ -62,19 +61,19 @@ func NewConnection() (arnetworkal.Connection, error) {
 	// Negotiate the connection
 	c2dPort, err := negotiateConnection(deviceIP, discoveryPort, d2cPort)
 	if err != nil {
-		return nil, fmt.Errorf("error negotiating connection: %s", err)
+		return nil, errors.Wrap(err, "error negotiating connection")
 	}
 
 	// Establish the c2d connection...
 	c2dConn, err := establishC2DConnection(deviceIP, c2dPort)
 	if err != nil {
-		return nil, fmt.Errorf("error establishing c2d connection: %s", err)
+		return nil, errors.Wrap(err, "error establishing c2d connection")
 	}
 
 	// Establish the d2c connection...
 	d2cConn, err := establishD2CConnection(d2cPort)
 	if err != nil {
-		return nil, fmt.Errorf("error establishing d2c connection: %s", err)
+		return nil, errors.Wrap(err, "error establishing d2c connection")
 	}
 
 	log.WithField(
@@ -116,7 +115,7 @@ var defaultNegotiateConnection = func(
 		},
 	)
 	if err != nil {
-		return 0, fmt.Errorf("error negotiating connection: %s", err)
+		return 0, errors.Wrap(err, "error negotiating connection")
 	}
 	defer conn.Close() // nolint: errcheck
 
@@ -130,10 +129,7 @@ var defaultNegotiateConnection = func(
 	)
 	if err != nil {
 		return 0,
-			fmt.Errorf(
-				"error marshaling connection negotiation request: %s",
-				err,
-			)
+			errors.Wrap(err, "error marshaling connection negotiation request")
 	}
 	log.Debug("marshaled connection negotiation request")
 	// Use a null character to terminate the request
@@ -142,10 +138,7 @@ var defaultNegotiateConnection = func(
 	log.Debug("sending connection negotiation request")
 	if _, err = conn.Write(jsonBytes); err != nil {
 		return 0,
-			fmt.Errorf(
-				"error sending connection negotiation request: %s",
-				err,
-			)
+			errors.Wrap(err, "error sending connection negotiation request")
 	}
 	log.Debug("sent connection negotiation request")
 
@@ -158,10 +151,7 @@ var defaultNegotiateConnection = func(
 	data, err := bufio.NewReader(conn).ReadBytes(0x00)
 	if err != nil {
 		return 0,
-			fmt.Errorf(
-				"error receiving connection negotiation response: %s",
-				err,
-			)
+			errors.Wrap(err, "error receiving connection negotiation response")
 	}
 	log.Debug("got connection negotiation response")
 
@@ -169,18 +159,15 @@ var defaultNegotiateConnection = func(
 	log.Debug("unmarshaling connection negotiation response")
 	if err := json.Unmarshal(data[:len(data)-1], &res); err != nil {
 		return 0,
-			fmt.Errorf(
-				"error unmarshaling connection negotiation response: %s",
+			errors.Wrap(
 				err,
+				"error unmarshaling connection negotiation response",
 			)
 	}
 	log.Debug("unmarshaled connection negotiation response")
 	// Any non-zero status is a refused connection.
 	if res.Status != 0 {
-		return 0,
-			errors.New(
-				"connection negotiation failed; connection refused by device",
-			)
+		return 0, errors.New("connection refused by device")
 	}
 
 	log.WithField(
@@ -216,7 +203,7 @@ var defaultEstablishC2DConnection = func(
 		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("error establishing c2d connection: %s", err)
+		return nil, errors.Wrap(err, "error establishing c2d connection")
 	}
 
 	log.WithField(
@@ -238,7 +225,7 @@ var defaultEstablishD2CConnection = func(d2cPort int) (*net.UDPConn, error) {
 
 	conn, err := net.ListenUDP("udp", &net.UDPAddr{Port: d2cPort})
 	if err != nil {
-		return nil, fmt.Errorf("error establishing d2c connection: %s", err)
+		return nil, errors.Wrap(err, "error establishing d2c connection")
 	}
 
 	log.WithField(
@@ -258,11 +245,11 @@ func (c *connection) Send(frame arnetworkal.Frame) error {
 	)
 	frameBytes, err := c.encodeFrame(frame)
 	if err != nil {
-		return fmt.Errorf("error encoding arnetworkal frame: %s", err)
+		return errors.Wrap(err, "error encoding arnetworkal frame")
 	}
 	log.Debug("sending arnetworkal frame")
 	if _, err := c.c2dConn.Write(frameBytes); err != nil {
-		return fmt.Errorf("error writing frame to c2d connection: %s", err)
+		return errors.Wrap(err, "error writing frame to c2d connection")
 	}
 	log.Debug("sent arnetworkal frame")
 	return nil
@@ -277,10 +264,7 @@ func (c *connection) Receive() ([]arnetworkal.Frame, error) {
 	bytesRead, _, err := c.d2cConn.ReadFromUDP(packet)
 	if err != nil {
 		return nil,
-			fmt.Errorf(
-				"error receiving frames from d2c connection: %s",
-				err,
-			)
+			errors.Wrap(err, "error receiving frames from d2c connection")
 	}
 	log.WithField(
 		"bytesRead", bytesRead,

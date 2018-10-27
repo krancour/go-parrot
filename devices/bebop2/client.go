@@ -1,12 +1,11 @@
 package bebop2
 
 import (
-	"fmt"
-
 	"github.com/krancour/go-parrot/features/ardrone3"
 	"github.com/krancour/go-parrot/features/common"
 	"github.com/krancour/go-parrot/protocols/arnetwork"
 	"github.com/krancour/go-parrot/protocols/arnetworkal/wifi"
+	"github.com/pkg/errors"
 )
 
 // Client ...
@@ -28,7 +27,7 @@ type client struct {
 func NewClient() (Client, error) {
 	conn, err := wifi.NewConnection()
 	if err != nil {
-		return nil, fmt.Errorf("error creating wifi connection: %s", err)
+		return nil, errors.Wrap(err, "connection error")
 	}
 	bufMan, err := arnetwork.NewBufferManager(
 		conn,
@@ -37,7 +36,7 @@ func NewClient() (Client, error) {
 		// TODO: Add device-specific buffers here
 	)
 	if err != nil {
-		return nil, fmt.Errorf("error creating buffer manager: %s", err)
+		return nil, errors.Wrap(err, "error creating buffer manager")
 	}
 	return &client{
 		common:   common.NewFeature(bufMan),

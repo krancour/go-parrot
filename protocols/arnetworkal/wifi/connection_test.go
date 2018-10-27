@@ -3,13 +3,13 @@ package wifi
 import (
 	"bufio"
 	"encoding/json"
-	"errors"
 	"net"
 	"testing"
 	"time"
 
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
 	"github.com/phayes/freeport"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

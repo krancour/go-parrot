@@ -1,11 +1,11 @@
 package arnetwork
 
 import (
-	"fmt"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
+	"github.com/pkg/errors"
 )
 
 // C2DBufferConfig represents the configuration of a buffer for frames being
@@ -29,14 +29,14 @@ func (c C2DBufferConfig) validate() error {
 		c.FrameType != arnetworkal.FrameTypeData &&
 		c.FrameType != arnetworkal.FrameTypeLowLatencyData &&
 		c.FrameType != arnetworkal.FrameTypeDataWithAck {
-		return fmt.Errorf(
+		return errors.Errorf(
 			"c2d buffer %d defined with invalid frame type %d",
 			c.ID,
 			c.FrameType,
 		)
 	}
 	if c.Size < 1 {
-		return fmt.Errorf(
+		return errors.Errorf(
 			"c2d buffer %d defined with invalid size %d",
 			c.ID,
 			c.Size,

@@ -1,10 +1,9 @@
 package arnetwork
 
 import (
-	"fmt"
-
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
+	"github.com/pkg/errors"
 )
 
 // D2CBufferConfig represents the configuration of a buffer for frame sent from
@@ -26,14 +25,14 @@ func (d D2CBufferConfig) validate() error {
 		d.FrameType != arnetworkal.FrameTypeData &&
 		d.FrameType != arnetworkal.FrameTypeLowLatencyData &&
 		d.FrameType != arnetworkal.FrameTypeDataWithAck {
-		return fmt.Errorf(
+		return errors.Errorf(
 			"d2c buffer %d defined with invalid frame type %d",
 			d.ID,
 			d.FrameType,
 		)
 	}
 	if d.Size < 1 {
-		return fmt.Errorf(
+		return errors.Errorf(
 			"d2c buffer %d defined with invalid size %d",
 			d.ID,
 			d.Size,

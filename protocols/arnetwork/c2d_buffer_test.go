@@ -1,13 +1,13 @@
 package arnetwork
 
 import (
-	"errors"
 	"fmt"
 	"testing"
 	"time"
 
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
 	"github.com/krancour/go-parrot/protocols/arnetworkal/fake"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 
