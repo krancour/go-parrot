@@ -16,14 +16,11 @@ const (
 	// maxUDPDataBytes represents the practical maximum numbers of data bytes in
 	// a UDP packet.
 	maxUDPDataBytes = 65507
+	discoveryPort   = 44444
 )
 
 var (
-	// These are vars instead of a consts so that they can be overridden by unit
-	// tests. They're not exported, so there is no danger of anyone else
-	// tampering with these.
-	deviceIP      = net.ParseIP("192.168.42.1")
-	discoveryPort = 44444
+	deviceIP = net.ParseIP("192.168.42.1")
 )
 
 type connectionNegotiationRequest struct {
@@ -63,7 +60,7 @@ func NewConnection() (arnetworkal.Connection, error) {
 	).Debug("selected port for d2c communication")
 
 	// Negotiate the connection
-	c2dPort, err := negotiate(deviceIP, d2cPort)
+	c2dPort, err := negotiateConnection(deviceIP, discoveryPort, d2cPort)
 	if err != nil {
 		return nil, fmt.Errorf("error negotiating connection: %s", err)
 	}
@@ -95,11 +92,15 @@ func NewConnection() (arnetworkal.Connection, error) {
 	}, nil
 }
 
-// negotiate negotiates the connection. This is how the client informs the
-// device of the UDP port it will listen on. In response, the device informs the
-// client of which UDP port it will listen on.
+// negotiateConnection negotiates the connection. This is how the client informs
+// the device of the UDP port it will listen on. In response, the device informs
+// the client of which UDP port it will listen on.
 // TODO: Should this be moved into its own protocol packages?
-func negotiate(deviceIP net.IP, d2cPort int) (int, error) {
+var defaultNegotiateConnection = func(
+	deviceIP net.IP,
+	discoveryPort,
+	d2cPort int,
+) (int, error) {
 	log.WithField(
 		"deviceIP", deviceIP,
 	).WithField(
@@ -193,8 +194,10 @@ func negotiate(deviceIP net.IP, d2cPort int) (int, error) {
 	return res.C2DPort, nil
 }
 
+var negotiateConnection = defaultNegotiateConnection
+
 // establishC2DConnection establishes the client to device UDP connection.
-func establishC2DConnection(
+var defaultEstablishC2DConnection = func(
 	deviceIP net.IP,
 	c2dPort int,
 ) (*net.UDPConn, error) {
@@ -225,8 +228,10 @@ func establishC2DConnection(
 	return conn, nil
 }
 
+var establishC2DConnection = defaultEstablishC2DConnection
+
 // establishD2CConnection establishes the device to client UDP connection.
-func establishD2CConnection(d2cPort int) (*net.UDPConn, error) {
+var defaultEstablishD2CConnection = func(d2cPort int) (*net.UDPConn, error) {
 	log.WithField(
 		"d2cPort", d2cPort,
 	).Debug("establishing d2c connection")
@@ -263,11 +268,12 @@ func (c *connection) Send(frame arnetworkal.Frame) error {
 	return nil
 }
 
+var establishD2CConnection = defaultEstablishD2CConnection
+
+var packet = make([]byte, maxUDPDataBytes)
+
 func (c *connection) Receive() ([]arnetworkal.Frame, error) {
 	log.Debug("reading / waiting for datagram from d2c connection")
-	// TODO: We should be able to use this slice over and over again for
-	// efficiency
-	packet := make([]byte, maxUDPDataBytes)
 	bytesRead, _, err := c.d2cConn.ReadFromUDP(packet)
 	if err != nil {
 		return nil,
@@ -283,14 +289,26 @@ func (c *connection) Receive() ([]arnetworkal.Frame, error) {
 }
 
 func (c *connection) Close() {
-	log.Debug("closing c2d connection")
-	if err := c.c2dConn.Close(); err != nil {
-		log.Printf("error closing c2d connection: %s\n", err)
+	c.closeC2DConnection()
+	c.closeD2CConnection()
+}
+
+func (c *connection) closeC2DConnection() {
+	if c.c2dConn != nil {
+		log.Debug("closing c2d connection")
+		if err := c.c2dConn.Close(); err != nil {
+			log.Printf("error closing c2d connection: %s\n", err)
+		}
+		log.Debug("closed c2d connection")
 	}
-	log.Debug("closed c2d connection")
-	log.Debug("closing d2c connection")
-	if err := c.d2cConn.Close(); err != nil {
-		log.Printf("error closing d2c connection: %s\n", err)
+}
+
+func (c *connection) closeD2CConnection() {
+	if c.d2cConn != nil {
+		log.Debug("closing d2c connection")
+		if err := c.d2cConn.Close(); err != nil {
+			log.Printf("error closing d2c connection: %s\n", err)
+		}
+		log.Debug("closed d2c connection")
 	}
-	log.Debug("closed d2c connection")
 }
