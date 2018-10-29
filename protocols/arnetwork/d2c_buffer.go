@@ -1,8 +1,6 @@
 package arnetwork
 
 import (
-	"fmt"
-
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
 )
@@ -11,7 +9,7 @@ type d2cBuffer struct {
 	D2CBufferConfig
 	buffer *buffer
 	inCh   chan Frame
-	seq    *uint8
+	seq    uint8
 	ackCh  chan Frame
 }
 
@@ -35,12 +33,11 @@ func newD2CBuffer(bufCfg D2CBufferConfig) *d2cBuffer {
 func (d *d2cBuffer) receiveFrames() {
 	log := log.WithField("id", d.buffer.id)
 	for frame := range d.inCh {
-		log = log.WithField("uuid", frame.uuid).WithField("seq", frame.seq)
 		// If acknowledgement was requested, send it...
 		if d.FrameType == arnetworkal.FrameTypeDataWithAck && d.ackCh != nil {
 			log.Debug("acknowledging receipt of frame")
 			d.ackCh <- Frame{
-				Data: []byte(fmt.Sprintf("%d", frame.seq)),
+				Data: []byte{frame.seq},
 			}
 		}
 		// If this buffer doesn't yet have a reference sequence number or...
@@ -56,12 +53,16 @@ func (d *d2cBuffer) receiveFrames() {
 		//
 		// Otherwise, we're dealing with a frame that has arrived out of order.
 		// We'll drop such frames.
-		if d.seq == nil || frame.seq > *d.seq || *d.seq-frame.seq >= 10 {
-			log.Debug("accepting frame")
-			d.seq = &frame.seq
+		if frame.seq > d.seq || d.seq-frame.seq >= 10 {
+			log.WithField(
+				"refSeq", d.seq,
+			).Debug("accepting frame")
+			d.seq = frame.seq
 			d.buffer.inCh <- frame
 		} else {
-			log.Debug("frame appears to be a duplicate or out of sequence; " +
+			log.WithField(
+				"refSeq", d.seq,
+			).Debug("frame appears to be a duplicate or out of sequence; " +
 				"dropping it")
 		}
 	}
