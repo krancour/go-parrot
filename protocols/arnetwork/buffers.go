@@ -92,7 +92,7 @@ func receiveFrames(
 				log.WithField(
 					"buffer",
 					netFrame.ID,
-				).Error("received arnetworkal frame for unknown buffer")
+				).Warn("received arnetworkal frame for unknown buffer")
 				continue
 			}
 			// Unpack the arnetworkal frame into an arnetwork frame and put it

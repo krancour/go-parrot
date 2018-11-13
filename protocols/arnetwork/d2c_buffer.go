@@ -35,7 +35,9 @@ func (d *d2cBuffer) receiveFrames() {
 	for frame := range d.inCh {
 		// If acknowledgement was requested, send it...
 		if d.FrameType == arnetworkal.FrameTypeDataWithAck && d.ackCh != nil {
-			log.Debug("acknowledging receipt of frame")
+			log.WithField(
+				"seq", frame.seq,
+			).Debug("acknowledging receipt of frame")
 			d.ackCh <- Frame{
 				Data: []byte{frame.seq},
 			}
