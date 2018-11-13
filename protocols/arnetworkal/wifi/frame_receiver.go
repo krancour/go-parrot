@@ -3,6 +3,7 @@ package wifi
 import (
 	"net"
 	"sync"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
@@ -21,8 +22,13 @@ func (f *frameReceiver) Receive() ([]arnetworkal.Frame, error) {
 	f.datagramBufferLock.Lock()
 	defer f.datagramBufferLock.Unlock()
 	log.Debug("reading / waiting for datagram from d2c connection")
+	f.conn.SetReadDeadline(time.Now().Add(5 * time.Second))
 	bytesRead, _, err := f.conn.ReadFromUDP(f.datagramBuffer)
 	if err != nil {
+		if err, ok := err.(net.Error); ok && err.Timeout() {
+			// TODO: Fix this-- handle more elegantly and reconnect, if possible!
+			log.Fatal("detected a probable disconnection")
+		}
 		return nil,
 			errors.Wrap(err, "error receiving datagram from d2c connection")
 	}
