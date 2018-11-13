@@ -27,6 +27,7 @@ func newC2DBuffer(
 	buf := &c2dBuffer{
 		C2DBufferConfig: bufCfg,
 		buffer:          newBuffer(bufCfg.ID, bufCfg.Size, bufCfg.IsOverwriting),
+		inCh:            make(chan Frame),
 		frameSender:     frameSender,
 	}
 
