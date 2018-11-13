@@ -32,7 +32,7 @@ func NewController() (Controller, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "connection error")
 	}
-	bufMan, err := arnetwork.NewBufferManager(
+	c2dChs, d2cChs, err := arnetwork.NewBuffers(
 		frameSender,
 		frameReceiver,
 		[]arnetwork.C2DBufferConfig{
@@ -127,7 +127,7 @@ func NewController() (Controller, error) {
 		return nil, errors.Wrap(err, "error creating buffer manager")
 	}
 	return &controller{
-		common:   common.NewFeature(bufMan),
-		ardrone3: ardrone3.NewFeature(bufMan),
+		common:   common.NewFeature(c2dChs, d2cChs),
+		ardrone3: ardrone3.NewFeature(c2dChs, d2cChs),
 	}, nil
 }

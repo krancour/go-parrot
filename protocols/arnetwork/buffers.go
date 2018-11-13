@@ -6,40 +6,25 @@ import (
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
 )
 
-// BufferManager sends and receives arnetwork frames via a series of c2d and d2c
-// buffers.
-type BufferManager interface {
-	C2DCh(uint8) chan<- Frame
-	D2CCh(uint8) <-chan Frame
-}
-
-type bufferManager struct {
-	frameSender   arnetworkal.FrameSender
-	frameReceiver arnetworkal.FrameReceiver
-	c2dBuffers    map[uint8]*c2dBuffer
-	d2cBuffers    map[uint8]*d2cBuffer
-}
-
-// NewBufferManager returns a new BufferManager.
-func NewBufferManager(
+// NewBuffers returns maps of write-only channels for placing frames onto c2d
+// buffers and read-only channels for receiving frames from d2c buffers. All
+// channels are indexed by buffer ID.
+func NewBuffers(
 	frameSender arnetworkal.FrameSender,
 	frameReceiver arnetworkal.FrameReceiver,
 	c2dBufCfgs []C2DBufferConfig,
 	d2cBufCfgs []D2CBufferConfig,
-) (BufferManager, error) {
-	b := &bufferManager{
-		frameSender:   frameSender,
-		frameReceiver: frameReceiver,
-		c2dBuffers:    map[uint8]*c2dBuffer{},
-		d2cBuffers:    map[uint8]*d2cBuffer{},
-	}
+) (map[uint8]chan<- Frame, map[uint8]<-chan Frame, error) {
+	c2dInChs := map[uint8]chan<- Frame{}
+	d2cInChs := map[uint8]chan<- Frame{}
+	d2cOutChs := map[uint8]<-chan Frame{}
 
 	for _, bufCfg := range c2dBufCfgs {
 		if err := bufCfg.validate(); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		buf := newC2DBuffer(bufCfg, frameSender)
-		b.c2dBuffers[bufCfg.ID] = buf
+		c2dInChs[bufCfg.ID] = buf.inCh
 		if bufCfg.FrameType == arnetworkal.FrameTypeDataWithAck {
 			// Automatically create an ack buffer...
 			ackBufID := bufCfg.ID + ackBufferOffset
@@ -59,10 +44,11 @@ func NewBufferManager(
 
 	for _, bufCfg := range d2cBufCfgs {
 		if err := bufCfg.validate(); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		buf := newD2CBuffer(bufCfg)
-		b.d2cBuffers[bufCfg.ID] = buf
+		d2cInChs[bufCfg.ID] = buf.inCh
+		d2cOutChs[bufCfg.ID] = buf.buffer.outCh
 		if bufCfg.FrameType == arnetworkal.FrameTypeDataWithAck {
 			// Automatically create an ack buffer...
 			ackBufID := bufCfg.ID + ackBufferOffset
@@ -83,21 +69,24 @@ func NewBufferManager(
 		}
 	}
 
-	go b.receiveFrames()
+	go receiveFrames(frameReceiver, d2cInChs)
 
-	return b, nil
+	return c2dInChs, d2cOutChs, nil
 }
 
-func (b *bufferManager) receiveFrames() {
+func receiveFrames(
+	frameReceiver arnetworkal.FrameReceiver,
+	d2cInChs map[uint8]chan<- Frame,
+) {
 	for {
-		netFrames, err := b.frameReceiver.Receive()
+		netFrames, err := frameReceiver.Receive()
 		if err != nil {
 			log.Errorf("error receiving arnetworkal frames: %s", err)
 			continue
 		}
 		for _, netFrame := range netFrames {
 			// Find correct buffer for this frame...
-			buf, ok := b.d2cBuffers[netFrame.ID]
+			d2cInCh, ok := d2cInChs[netFrame.ID]
 			if !ok {
 				// No buffer found to receive this frame.
 				log.WithField(
@@ -108,27 +97,11 @@ func (b *bufferManager) receiveFrames() {
 			}
 			// Unpack the arnetworkal frame into an arnetwork frame and put it
 			// in the buffer...
-			buf.inCh <- Frame{
+			d2cInCh <- Frame{
 				uuid: netFrame.UUID,
 				seq:  netFrame.Seq,
 				Data: netFrame.Data,
 			}
 		}
 	}
-}
-
-func (b *bufferManager) C2DCh(bufID uint8) chan<- Frame {
-	buf, ok := b.c2dBuffers[bufID]
-	if !ok {
-		return nil
-	}
-	return buf.inCh
-}
-
-func (b *bufferManager) D2CCh(bufID uint8) <-chan Frame {
-	buf, ok := b.d2cBuffers[bufID]
-	if !ok {
-		return nil
-	}
-	return buf.buffer.outCh
 }
