@@ -81,7 +81,8 @@ func TestNewBufferManager(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			bufMgrIface, err := NewBufferManager(
-				&fake.Connection{},
+				&fake.FrameSender{},
+				&fake.FrameReceiver{},
 				testCase.c2dBufCfgs,
 				testCase.d2cBufCfgs,
 			)
@@ -104,7 +105,7 @@ func TestReceiveFrames(t *testing.T) {
 		Seq:  2,
 		Data: []byte("foo"),
 	}
-	conn := &fake.Connection{
+	frameReceiver := &fake.FrameReceiver{
 		ReceiveBehavior: func() ([]arnetworkal.Frame, error) {
 			if callCount > 0 {
 				return nil, nil
@@ -119,7 +120,7 @@ func TestReceiveFrames(t *testing.T) {
 	}
 	testCh := make(chan Frame)
 	bufMgr := &bufferManager{
-		conn: conn,
+		frameReceiver: frameReceiver,
 		d2cBuffers: map[uint8]*d2cBuffer{
 			1: {
 				inCh: testCh,

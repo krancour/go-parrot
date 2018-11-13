@@ -137,17 +137,17 @@ func TestWriteFrame(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			conn := &fake.Connection{}
+			frameSender := &fake.FrameSender{}
 			err := testCase.bufCfg.validate()
 			require.NoError(t, err)
-			buf := newC2DBuffer(testCase.bufCfg, conn)
+			buf := newC2DBuffer(testCase.bufCfg, frameSender)
 			buf.ackCh = make(chan Frame)
 			initialSeq := buf.seq
 			frame := Frame{
 				Data: []byte("foo"),
 			}
 			sendCallCount := 0
-			conn.SendBehavior = func(netFrame arnetworkal.Frame) error {
+			frameSender.SendBehavior = func(netFrame arnetworkal.Frame) error {
 				sendCallCount++
 				require.Equal(t, buf.ID, netFrame.ID)
 				require.Equal(t, buf.FrameType, netFrame.Type)

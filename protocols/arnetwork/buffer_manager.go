@@ -14,28 +14,31 @@ type BufferManager interface {
 }
 
 type bufferManager struct {
-	conn       arnetworkal.Connection
-	c2dBuffers map[uint8]*c2dBuffer
-	d2cBuffers map[uint8]*d2cBuffer
+	frameSender   arnetworkal.FrameSender
+	frameReceiver arnetworkal.FrameReceiver
+	c2dBuffers    map[uint8]*c2dBuffer
+	d2cBuffers    map[uint8]*d2cBuffer
 }
 
 // NewBufferManager returns a new BufferManager.
 func NewBufferManager(
-	conn arnetworkal.Connection,
+	frameSender arnetworkal.FrameSender,
+	frameReceiver arnetworkal.FrameReceiver,
 	c2dBufCfgs []C2DBufferConfig,
 	d2cBufCfgs []D2CBufferConfig,
 ) (BufferManager, error) {
 	b := &bufferManager{
-		conn:       conn,
-		c2dBuffers: map[uint8]*c2dBuffer{},
-		d2cBuffers: map[uint8]*d2cBuffer{},
+		frameSender:   frameSender,
+		frameReceiver: frameReceiver,
+		c2dBuffers:    map[uint8]*c2dBuffer{},
+		d2cBuffers:    map[uint8]*d2cBuffer{},
 	}
 
 	for _, bufCfg := range c2dBufCfgs {
 		if err := bufCfg.validate(); err != nil {
 			return nil, err
 		}
-		buf := newC2DBuffer(bufCfg, conn)
+		buf := newC2DBuffer(bufCfg, frameSender)
 		b.c2dBuffers[bufCfg.ID] = buf
 		if bufCfg.FrameType == arnetworkal.FrameTypeDataWithAck {
 			// Automatically create an ack buffer...
@@ -74,7 +77,7 @@ func NewBufferManager(
 					AckTimeout:    0,     // Unused
 					MaxRetries:    0,     // Unused
 				},
-				conn,
+				frameSender,
 			)
 			buf.ackCh = ackBuf.buffer.inCh
 		}
@@ -87,7 +90,7 @@ func NewBufferManager(
 
 func (b *bufferManager) receiveFrames() {
 	for {
-		netFrames, err := b.conn.Receive()
+		netFrames, err := b.frameReceiver.Receive()
 		if err != nil {
 			log.Errorf("error receiving arnetworkal frames: %s", err)
 			continue

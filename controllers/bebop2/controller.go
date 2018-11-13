@@ -28,12 +28,13 @@ type controller struct {
 // NewController ...
 // TODO: Document this
 func NewController() (Controller, error) {
-	conn, err := wifi.NewConnection()
+	frameSender, frameReceiver, err := wifi.Connect()
 	if err != nil {
 		return nil, errors.Wrap(err, "connection error")
 	}
 	bufMan, err := arnetwork.NewBufferManager(
-		conn,
+		frameSender,
+		frameReceiver,
 		[]arnetwork.C2DBufferConfig{
 			// Non ack data (periodic commands for piloting and camera orientation)
 			// This buffer transports arcommands

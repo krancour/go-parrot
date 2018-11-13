@@ -13,21 +13,21 @@ import (
 
 type c2dBuffer struct {
 	C2DBufferConfig
-	buffer *buffer
-	inCh   chan Frame
-	conn   arnetworkal.Connection
-	seq    uint8
-	ackCh  chan Frame
+	buffer      *buffer
+	inCh        chan Frame
+	frameSender arnetworkal.FrameSender
+	seq         uint8
+	ackCh       chan Frame
 }
 
 func newC2DBuffer(
 	bufCfg C2DBufferConfig,
-	conn arnetworkal.Connection,
+	frameSender arnetworkal.FrameSender,
 ) *c2dBuffer {
 	buf := &c2dBuffer{
 		C2DBufferConfig: bufCfg,
 		buffer:          newBuffer(bufCfg.ID, bufCfg.Size, bufCfg.IsOverwriting),
-		conn:            conn,
+		frameSender:     frameSender,
 	}
 
 	log.WithField(
@@ -90,7 +90,7 @@ func (c *c2dBuffer) writeFrame(frame Frame) error { // nolint: unparam
 			"attempt",
 			attempts,
 		).Debug("attempting to send arnetworkal frame")
-		if err := c.conn.Send(netFrame); err != nil {
+		if err := c.frameSender.Send(netFrame); err != nil {
 			log.WithField(
 				"attempt",
 				attempts,

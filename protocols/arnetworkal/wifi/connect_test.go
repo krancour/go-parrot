@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewConnection(t *testing.T) {
+func TestConnect(t *testing.T) {
 	testCases := []struct {
 		name                        string
 		negotiateConnectionBehavior func(
@@ -27,7 +27,12 @@ func TestNewConnection(t *testing.T) {
 			c2dPort int,
 		) (*net.UDPConn, error)
 		establishD2CConnectionBehavior func(d2cPort int) (*net.UDPConn, error)
-		assertions                     func(*testing.T, arnetworkal.Connection, error)
+		assertions                     func(
+			*testing.T,
+			arnetworkal.FrameSender,
+			arnetworkal.FrameReceiver,
+			error,
+		)
 	}{
 
 		{
@@ -35,7 +40,12 @@ func TestNewConnection(t *testing.T) {
 			negotiateConnectionBehavior: func(net.IP, int, int) (int, error) {
 				return 0, errors.New("foo")
 			},
-			assertions: func(t *testing.T, _ arnetworkal.Connection, err error) {
+			assertions: func(
+				t *testing.T,
+				_ arnetworkal.FrameSender,
+				_ arnetworkal.FrameReceiver,
+				err error,
+			) {
 				assert.Error(t, err)
 				assert.Contains(t, err.Error(), "connection negotiation failed")
 				assert.Contains(t, err.Error(), "foo")
@@ -50,7 +60,12 @@ func TestNewConnection(t *testing.T) {
 			establishC2DConnectionBehavior: func(net.IP, int) (*net.UDPConn, error) {
 				return nil, errors.New("bar")
 			},
-			assertions: func(t *testing.T, _ arnetworkal.Connection, err error) {
+			assertions: func(
+				t *testing.T,
+				_ arnetworkal.FrameSender,
+				_ arnetworkal.FrameReceiver,
+				err error,
+			) {
 				assert.Error(t, err)
 				assert.Contains(t, err.Error(), "error establishing c2d connection")
 				assert.Contains(t, err.Error(), "bar")
@@ -68,7 +83,12 @@ func TestNewConnection(t *testing.T) {
 			establishD2CConnectionBehavior: func(int) (*net.UDPConn, error) {
 				return nil, errors.New("bat")
 			},
-			assertions: func(t *testing.T, _ arnetworkal.Connection, err error) {
+			assertions: func(
+				t *testing.T,
+				_ arnetworkal.FrameSender,
+				_ arnetworkal.FrameReceiver,
+				err error,
+			) {
 				assert.Error(t, err)
 				assert.Contains(t, err.Error(), "error establishing d2c connection")
 				assert.Contains(t, err.Error(), "bat")
@@ -86,7 +106,12 @@ func TestNewConnection(t *testing.T) {
 			establishD2CConnectionBehavior: func(int) (*net.UDPConn, error) {
 				return nil, nil
 			},
-			assertions: func(t *testing.T, _ arnetworkal.Connection, err error) {
+			assertions: func(
+				t *testing.T,
+				_ arnetworkal.FrameSender,
+				_ arnetworkal.FrameReceiver,
+				err error,
+			) {
 				assert.NoError(t, err)
 			},
 		},
@@ -106,10 +131,13 @@ func TestNewConnection(t *testing.T) {
 			if testCase.establishD2CConnectionBehavior != nil {
 				establishD2CConnection = testCase.establishD2CConnectionBehavior
 			}
-			conn, err := NewConnection()
-			testCase.assertions(t, conn, err)
-			if conn != nil {
-				conn.Close()
+			frameSender, frameReceiver, err := Connect()
+			testCase.assertions(t, frameSender, frameReceiver, err)
+			if frameSender != nil {
+				frameSender.Close()
+			}
+			if frameReceiver != nil {
+				frameReceiver.Close()
 			}
 		})
 	}
@@ -249,71 +277,4 @@ func TestSuccessfulConnectionNegotiation(t *testing.T) {
 	)
 	require.NoError(t, err)
 	require.Equal(t, c2dPort, negotiatedC2DPort)
-}
-
-func TestC2DConnection(t *testing.T) {
-	c2dPort, err := freeport.GetFreePort() // nolint: vetshadow
-	require.NoError(t, err)
-	conn := &connection{}
-	conn.c2dConn, err = defaultEstablishC2DConnection(
-		net.ParseIP("127.0.0.1"),
-		c2dPort,
-	)
-	require.NoError(t, err)
-	defer conn.closeC2DConnection()
-	// Override frame encoding scheme to keep things simple-- we'll always
-	// send "foo"
-	conn.encodeFrame = func(arnetworkal.Frame) ([]byte, error) {
-		return []byte("foo"), nil
-	}
-
-	// Set up a mock device c2d connection as a destination for c2d traffic
-	mockDeviceC2DConn, err := net.ListenUDP(
-		"udp",
-		&net.UDPAddr{Port: conn.c2dConn.RemoteAddr().(*net.UDPAddr).Port},
-	)
-	require.NoError(t, err)
-	defer mockDeviceC2DConn.Close()
-
-	// Send some data to the mock device
-	err = conn.Send(arnetworkal.Frame{})
-	require.NoError(t, err)
-
-	// Verify the mock device received the data
-	datagram := make([]byte, maxUDPDataBytes)
-	bytesRead, _, err := mockDeviceC2DConn.ReadFromUDP(datagram)
-	require.NoError(t, err)
-	require.Equal(t, "foo", string(datagram[:bytesRead]))
-}
-
-func TestD2CConnection(t *testing.T) {
-	d2cPort, err := freeport.GetFreePort() // nolint: vetshadows
-	require.NoError(t, err)
-	conn := &connection{}
-	conn.d2cConn, err = defaultEstablishD2CConnection(d2cPort)
-	require.NoError(t, err)
-	defer conn.closeD2CConnection()
-	// Override datagram decoding to make some assertions
-	conn.decodeDatagram = func(datagram []byte) ([]arnetworkal.Frame, error) {
-		// Expect to receive "bar"
-		require.Equal(t, "bar", string(datagram))
-		return nil, nil
-	}
-
-	// Set up a mock device d2c connection as source of d2c traffic
-	mockDeviceD2CConn, err := net.DialUDP(
-		"udp",
-		nil,
-		&net.UDPAddr{Port: conn.d2cConn.LocalAddr().(*net.UDPAddr).Port},
-	)
-	require.NoError(t, err)
-	defer mockDeviceD2CConn.Close()
-
-	// Make the mock device send some data
-	_, err = mockDeviceD2CConn.Write([]byte("bar"))
-	require.NoError(t, err)
-
-	// Receive some data from the mock device
-	_, err = conn.Receive()
-	require.NoError(t, err)
 }

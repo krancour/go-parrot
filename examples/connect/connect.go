@@ -9,13 +9,14 @@ import (
 )
 
 func main() {
-	conn, err := arnetworkal.NewConnection()
+	frameSender, frameReceiver, err := arnetworkal.Connect()
 	if err != nil {
 		log.Fatal(err)
 	}
 	<-time.After(5 * time.Second)
 	defer func() {
-		conn.Close()
+		frameSender.Close()
+		frameReceiver.Close()
 		fmt.Println("Done")
 	}()
 }
