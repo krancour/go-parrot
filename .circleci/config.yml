@@ -1,6 +1,6 @@
 version: 2
 
-go-image: &go-image quay.io/deis/lightweight-docker-go:v0.3.0
+go-image: &go-image quay.io/deis/lightweight-docker-go:v0.5.0
 
 base-go-job: &base-go-job
   docker:

@@ -11,28 +11,8 @@ set -euxo pipefail
 GO111MODULE=on go mod vendor
 
 GO111MODULE=off \
-	gometalinter ./controllers/... \
+  golangci-lint run \
+  ./controllers/... \
 	./examples/... \
 	./features/... \
-	./protocols/... \
-	--disable-all \
-	--enable gofmt \
-	--enable vet \
-	--enable vetshadow \
-	--enable gotype \
-	--enable deadcode \
-	--enable golint \
-	--enable varcheck \
-	--enable structcheck \
-	--enable errcheck \
-	--enable megacheck \
-	--enable ineffassign \
-	--enable interfacer \
-	--enable unconvert \
-	--enable goconst \
-	--enable goimports \
-	--enable misspell \
-	--enable unparam \
-	--enable lll \
-	--line-length 80 \
-	--deadline 240s
+  ./protocols/...

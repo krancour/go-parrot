@@ -8,7 +8,7 @@ BASE_PACKAGE_NAME := github.com/krancour/go-parrot
 # Containerized development environment                                        #
 ################################################################################
 
-DEV_IMAGE := quay.io/deis/lightweight-docker-go:v0.3.0
+DEV_IMAGE := quay.io/deis/lightweight-docker-go:v0.5.0
 
 DOCKER_CMD := docker run \
 	-it \
