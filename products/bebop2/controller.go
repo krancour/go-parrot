@@ -5,6 +5,7 @@ import (
 
 	"github.com/krancour/go-parrot/features/ardrone3"
 	"github.com/krancour/go-parrot/features/common"
+	"github.com/krancour/go-parrot/protocols/arcommands"
 	"github.com/krancour/go-parrot/protocols/arnetwork"
 	"github.com/krancour/go-parrot/protocols/arnetworkal"
 	"github.com/krancour/go-parrot/protocols/arnetworkal/wifi"
@@ -126,8 +127,12 @@ func NewController() (Controller, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating buffer manager")
 	}
-	return &controller{
-		common:   common.NewFeature(c2dChs, d2cChs),
-		ardrone3: ardrone3.NewFeature(c2dChs, d2cChs),
-	}, nil
+	arcommands.NewD2CCommandServer(
+		d2cChs,
+		[]arcommands.D2CFeature{
+			common.NewFeature(c2dChs),
+			ardrone3.NewFeature(c2dChs),
+		},
+	).Start()
+	return &controller{}, nil
 }
