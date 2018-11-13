@@ -1,24 +1,43 @@
 package common
 
-import "github.com/krancour/go-parrot/protocols/arnetwork"
+import (
+	"github.com/krancour/go-parrot/protocols/arcommands"
+)
 
 // Feature ...
 // TODO: Document this
-type Feature interface{}
+type Feature interface {
+	arcommands.D2CFeature
+	CommonState() CommonState
+}
 
 type feature struct {
-	c2dChs map[uint8]chan<- arnetwork.Frame
-	d2cChs map[uint8]<-chan arnetwork.Frame
+	commonState *commonState
 }
 
 // NewFeature ...
 // TODO: Document this
-func NewFeature(
-	c2dChs map[uint8]chan<- arnetwork.Frame,
-	d2cChs map[uint8]<-chan arnetwork.Frame,
-) Feature {
+func NewFeature() Feature {
 	return &feature{
-		c2dChs: c2dChs,
-		d2cChs: d2cChs,
+		commonState: &commonState{},
 	}
+}
+
+func (f *feature) ID() uint8 {
+	return 0
+}
+
+func (f *feature) Name() string {
+	return "common"
+}
+
+// TODO: Add stuff!
+func (f *feature) D2CClasses() []arcommands.D2CClass {
+	return []arcommands.D2CClass{
+		f.commonState,
+	}
+}
+
+func (f *feature) CommonState() CommonState {
+	return f.commonState
 }

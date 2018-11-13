@@ -12,7 +12,7 @@ GO111MODULE=on go mod vendor
 
 GO111MODULE=off \
   golangci-lint run \
-  ./controllers/... \
 	./examples/... \
 	./features/... \
+  ./products/... \
   ./protocols/...
