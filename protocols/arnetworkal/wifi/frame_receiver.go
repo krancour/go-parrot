@@ -22,8 +22,11 @@ func (f *frameReceiver) Receive() ([]arnetworkal.Frame, error) {
 	f.datagramBufferLock.Lock()
 	defer f.datagramBufferLock.Unlock()
 	log.Debug("reading / waiting for datagram from d2c connection")
-	f.conn.SetReadDeadline(time.Now().Add(5 * time.Second))
-	bytesRead, _, err := f.conn.ReadFromUDP(f.datagramBuffer)
+	if err :=
+		f.conn.SetReadDeadline(time.Now().Add(5 * time.Second)); err != nil {
+		return nil, errors.Wrap(err, "error setting read deadline for datagram")
+	}
+	bytesRead, _, err := f.conn.ReadFromUDP(f.datagramBuffer) // nolint: errcheck
 	if err != nil {
 		if err, ok := err.(net.Error); ok && err.Timeout() {
 			// TODO: Fix this-- handle more elegantly and reconnect, if possible!

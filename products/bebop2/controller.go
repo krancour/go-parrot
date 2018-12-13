@@ -22,8 +22,8 @@ type Controller interface {
 }
 
 type controller struct {
-	common   common.Feature
-	ardrone3 ardrone3.Feature
+	// common   common.Feature
+	// ardrone3 ardrone3.Feature
 }
 
 // NewController ...

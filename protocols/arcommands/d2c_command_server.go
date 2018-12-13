@@ -7,6 +7,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arnetwork"
+	"github.com/pkg/errors"
 )
 
 // D2CCommandServer ...
@@ -64,20 +65,21 @@ func (d *d2cCommandServer) receiveCommands(
 			log.Error(err)
 			continue
 		}
+		l := log.WithField(
+			"featureID", featureID,
+		).WithField(
+			"classID", classID,
+		).WithField(
+			"commandID", commandID,
+		)
 		key := getCommandKey(featureID, classID, commandID)
 		command, ok := d.d2cCommands[key]
 		if !ok {
-			log.WithField(
-				"featureID", featureID,
-			).WithField(
-				"classID", classID,
-			).WithField(
-				"commandID", commandID,
-			).Warn("command not found")
+			l.Warn("command not found")
 			continue
 		}
 		if err := command.execute(frame.Data); err != nil {
-			log.Error(err)
+			l.Error(err)
 		}
 	}
 }
@@ -90,12 +92,16 @@ func parseIDS(data []byte) (
 ) {
 	buf := bytes.NewBuffer(data)
 	if err = binary.Read(buf, binary.LittleEndian, &featureID); err != nil {
+		err = errors.Wrap(err, "error parsing featureID from command")
 		return
 	}
 	if err = binary.Read(buf, binary.LittleEndian, &classID); err != nil {
+		err = errors.Wrap(err, "error parsing classID from command")
 		return
 	}
-	err = binary.Read(buf, binary.LittleEndian, &commandID)
+	if err = binary.Read(buf, binary.LittleEndian, &commandID); err != nil {
+		err = errors.Wrap(err, "error parsing commandID from command")
+	}
 	return
 }
 
