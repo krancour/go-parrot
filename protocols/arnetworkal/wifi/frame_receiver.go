@@ -38,7 +38,11 @@ func (f *frameReceiver) Receive() ([]arnetworkal.Frame, error) {
 	log.WithField(
 		"bytesRead", bytesRead,
 	).Debug("got datagram from d2c connection")
-	return f.decodeDatagram(f.datagramBuffer[0:bytesRead])
+	// Very imporant-- make a COPY of the data since the datagramBuffer is reused
+	// and slices are REFERENCES to a subset of an array or another slice.
+	data := make([]byte, bytesRead)
+	copy(data, f.datagramBuffer[0:bytesRead])
+	return f.decodeDatagram(data)
 }
 
 func (f *frameReceiver) Close() {
