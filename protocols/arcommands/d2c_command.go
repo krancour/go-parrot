@@ -49,9 +49,9 @@ func (d *d2cCommand) Name() string {
 }
 
 func (d *d2cCommand) execute(data []byte) error {
-	// TODO: Make sure this is full of zero values!
-	// TODO: We need to make and use a COPY of the argTemplate
-	args := d.argTemplate
+	// Super important-- make a COPY of the argument template!
+	args := make([]interface{}, len(d.argTemplate))
+	copy(args, d.argTemplate)
 	if err := decodeArgs(data, args); err != nil {
 		return errors.Wrap(err, "error decoding command arguments")
 	}
@@ -107,8 +107,9 @@ func decodeArgs(data []byte, args []interface{}) error {
 		if err != nil {
 			return errors.Wrapf(
 				err,
-				"error decoding command arguments; data: %v",
+				"error decoding command arguments; data: %v: args: %v",
 				data,
+				args,
 			)
 		}
 	}
