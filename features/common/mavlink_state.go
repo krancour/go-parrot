@@ -33,14 +33,14 @@ func (m *mavlinkState) D2CCommands() []arcommands.D2CCommand {
 			},
 			m.mavlinkFilePlayingStateChanged,
 		),
-		arcommands.NewD2CCommand(
-			1,
-			"MavlinkPlayErrorStateChanged",
-			[]interface{}{
-				int32(0), // error,
-			},
-			m.mavlinkPlayErrorStateChanged,
-		),
+		// arcommands.NewD2CCommand(
+		// 	1,
+		// 	"MavlinkPlayErrorStateChanged",
+		// 	[]interface{}{
+		// 		int32(0), // error,
+		// 	},
+		// 	m.mavlinkPlayErrorStateChanged,
+		// ),
 		arcommands.NewD2CCommand(
 			2,
 			"MissionItemExecuted",
@@ -77,23 +77,23 @@ func (m *mavlinkState) mavlinkFilePlayingStateChanged(args []interface{}) error 
 	return nil
 }
 
-// TODO: Implement this
-// Title: FlightPlan error
-// Description: FlightPlan error.
-// Support: 0901:2.0.29;090c;090e
-// Triggered: by [StartFlightPlan](#0-11-0) if an error occurs.
-// Result:
-// WARNING: Deprecated
-func (m *mavlinkState) mavlinkPlayErrorStateChanged(args []interface{}) error {
-	// error := args[0].(int32)
-	//   State of play error
-	//   0: none: There is no error
-	//   1: notInOutDoorMode: The drone is not in outdoor mode
-	//   2: gpsNotFixed: The gps is not fixed
-	//   3: notCalibrated: The magnetometer of the drone is not calibrated
-	log.Info("common.mavlinkPlayErrorStateChanged() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: FlightPlan error
+// // Description: FlightPlan error.
+// // Support: 0901:2.0.29;090c;090e
+// // Triggered: by [StartFlightPlan](#0-11-0) if an error occurs.
+// // Result:
+// // WARNING: Deprecated
+// func (m *mavlinkState) mavlinkPlayErrorStateChanged(args []interface{}) error {
+// 	// error := args[0].(int32)
+// 	//   State of play error
+// 	//   0: none: There is no error
+// 	//   1: notInOutDoorMode: The drone is not in outdoor mode
+// 	//   2: gpsNotFixed: The gps is not fixed
+// 	//   3: notCalibrated: The magnetometer of the drone is not calibrated
+// 	log.Info("common.mavlinkPlayErrorStateChanged() called")
+// 	return nil
+// }
 
 // TODO: Implement this
 // Title: Mission item executed

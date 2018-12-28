@@ -75,16 +75,16 @@ func (c *commonState) D2CCommands() []arcommands.D2CCommand {
 			},
 			c.currentTimeChanged,
 		),
-		arcommands.NewD2CCommand(
-			6,
-			"MassStorageInfoRemainingListChanged",
-			[]interface{}{
-				uint32(0), // free_space,
-				uint16(0), // rec_time,
-				uint32(0), // photo_remaining,
-			},
-			c.massStorageInfoRemainingListChanged,
-		),
+		// arcommands.NewD2CCommand(
+		// 	6,
+		// 	"MassStorageInfoRemainingListChanged",
+		// 	[]interface{}{
+		// 		uint32(0), // free_space,
+		// 		uint16(0), // rec_time,
+		// 		uint32(0), // photo_remaining,
+		// 	},
+		// 	c.massStorageInfoRemainingListChanged,
+		// ),
 		arcommands.NewD2CCommand(
 			7,
 			"WifiSignalChanged",
@@ -110,27 +110,27 @@ func (c *commonState) D2CCommands() []arcommands.D2CCommand {
 			},
 			c.productModel,
 		),
-		arcommands.NewD2CCommand(
-			10,
-			"CountryListKnown",
-			[]interface{}{
-				uint8(0),  // listFlags,
-				string(0), // countryCodes,
-			},
-			c.countryListKnown,
-		),
-		arcommands.NewD2CCommand(
-			11,
-			"DeprecatedMassStorageContentChanged",
-			[]interface{}{
-				uint8(0),  // mass_storage_id,
-				uint16(0), // nbPhotos,
-				uint16(0), // nbVideos,
-				uint16(0), // nbPuds,
-				uint16(0), // nbCrashLogs,
-			},
-			c.deprecatedMassStorageContentChanged,
-		),
+		// arcommands.NewD2CCommand(
+		// 	10,
+		// 	"CountryListKnown",
+		// 	[]interface{}{
+		// 		uint8(0),  // listFlags,
+		// 		string(0), // countryCodes,
+		// 	},
+		// 	c.countryListKnown,
+		// ),
+		// arcommands.NewD2CCommand(
+		// 	11,
+		// 	"DeprecatedMassStorageContentChanged",
+		// 	[]interface{}{
+		// 		uint8(0),  // mass_storage_id,
+		// 		uint16(0), // nbPhotos,
+		// 		uint16(0), // nbVideos,
+		// 		uint16(0), // nbPuds,
+		// 		uint16(0), // nbCrashLogs,
+		// 	},
+		// 	c.deprecatedMassStorageContentChanged,
+		// ),
 		arcommands.NewD2CCommand(
 			12,
 			"MassStorageContent",
@@ -265,25 +265,25 @@ func (c *commonState) currentTimeChanged(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Mass storage remaining data list
-// Description: Mass storage remaining data list.
-// Support:
-// Triggered:
-// Result:
-// WARNING: Deprecated
-func (c *commonState) massStorageInfoRemainingListChanged(
-	args []interface{},
-) error {
-	// free_space := args[0].(uint32)
-	//   Mass storage free space in MBytes
-	// rec_time := args[1].(uint16)
-	//   Mass storage record time reamining in minute
-	// photo_remaining := args[2].(uint32)
-	//   Mass storage photo remaining
-	log.Info("common.massStorageInfoRemainingListChanged() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Mass storage remaining data list
+// // Description: Mass storage remaining data list.
+// // Support:
+// // Triggered:
+// // Result:
+// // WARNING: Deprecated
+// func (c *commonState) massStorageInfoRemainingListChanged(
+// 	args []interface{},
+// ) error {
+// 	// free_space := args[0].(uint32)
+// 	//   Mass storage free space in MBytes
+// 	// rec_time := args[1].(uint16)
+// 	//   Mass storage record time reamining in minute
+// 	// photo_remaining := args[2].(uint32)
+// 	//   Mass storage photo remaining
+// 	log.Info("common.massStorageInfoRemainingListChanged() called")
+// 	return nil
+// }
 
 // TODO: Implement this
 // Title: Rssi changed
@@ -348,50 +348,50 @@ func (c *commonState) productModel(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Country list
-// Description: List of countries known by the drone.
-// Support:
-// Triggered:
-// Result:
-// WARNING: Deprecated
-func (c *commonState) countryListKnown(args []interface{}) error {
-	// listFlags := args[0].(uint8)
-	//   List entry attribute Bitfield. 0x01: First: indicate it&#39;s the first
-	//   element of the list. 0x02: Last: indicate it&#39;s the last element of
-	//   the list. 0x04: Empty: indicate the list is empty (implies First/Last).
-	//   All other arguments should be ignored.
-	// countryCodes := args[1].(string)
-	//   Following of country code with ISO 3166 format, separated by &#34;;&#34;.
-	//   Be careful of the command size allowed by the network used. If necessary,
-	//   split the list in several commands.
-	log.Info("common.countryListKnown() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Country list
+// // Description: List of countries known by the drone.
+// // Support:
+// // Triggered:
+// // Result:
+// // WARNING: Deprecated
+// func (c *commonState) countryListKnown(args []interface{}) error {
+// 	// listFlags := args[0].(uint8)
+// 	//   List entry attribute Bitfield. 0x01: First: indicate it&#39;s the first
+// 	//   element of the list. 0x02: Last: indicate it&#39;s the last element of
+// 	//   the list. 0x04: Empty: indicate the list is empty (implies First/Last).
+// 	//   All other arguments should be ignored.
+// 	// countryCodes := args[1].(string)
+// 	//   Following of country code with ISO 3166 format, separated by &#34;;&#34;.
+// 	//   Be careful of the command size allowed by the network used. If necessary,
+// 	//   split the list in several commands.
+// 	log.Info("common.countryListKnown() called")
+// 	return nil
+// }
 
-// TODO: Implement this
-// Title: Mass storage content changed
-// Description: Mass storage content changed.
-// Support:
-// Triggered:
-// Result:
-// WARNING: Deprecated
-func (c *commonState) deprecatedMassStorageContentChanged(
-	args []interface{},
-) error {
-	// mass_storage_id := args[0].(uint8)
-	//   Mass storage id (unique)
-	// nbPhotos := args[1].(uint16)
-	//   Number of photos (does not include raw photos)
-	// nbVideos := args[2].(uint16)
-	//   Number of videos
-	// nbPuds := args[3].(uint16)
-	//   Number of puds
-	// nbCrashLogs := args[4].(uint16)
-	//   Number of crash logs
-	log.Info("common.deprecatedMassStorageContentChanged() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Mass storage content changed
+// // Description: Mass storage content changed.
+// // Support:
+// // Triggered:
+// // Result:
+// // WARNING: Deprecated
+// func (c *commonState) deprecatedMassStorageContentChanged(
+// 	args []interface{},
+// ) error {
+// 	// mass_storage_id := args[0].(uint8)
+// 	//   Mass storage id (unique)
+// 	// nbPhotos := args[1].(uint16)
+// 	//   Number of photos (does not include raw photos)
+// 	// nbVideos := args[2].(uint16)
+// 	//   Number of videos
+// 	// nbPuds := args[3].(uint16)
+// 	//   Number of puds
+// 	// nbCrashLogs := args[4].(uint16)
+// 	//   Number of crash logs
+// 	log.Info("common.deprecatedMassStorageContentChanged() called")
+// 	return nil
+// }
 
 // TODO: Implement this
 // Title: Mass storage content

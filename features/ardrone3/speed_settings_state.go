@@ -51,14 +51,14 @@ func (s *speedSettingsState) D2CCommands() []arcommands.D2CCommand {
 			},
 			s.hullProtectionChanged,
 		),
-		arcommands.NewD2CCommand(
-			3,
-			"OutdoorChanged",
-			[]interface{}{
-				uint8(0), // outdoor,
-			},
-			s.outdoorChanged,
-		),
+		// arcommands.NewD2CCommand(
+		// 	3,
+		// 	"OutdoorChanged",
+		// 	[]interface{}{
+		// 		uint8(0), // outdoor,
+		// 	},
+		// 	s.outdoorChanged,
+		// ),
 		arcommands.NewD2CCommand(
 			4,
 			"MaxPitchRollRotationSpeedChanged",
@@ -119,19 +119,19 @@ func (s *speedSettingsState) hullProtectionChanged(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Outdoor mode
-// Description: Outdoor mode.
-// Support:
-// Triggered:
-// Result:
-// WARNING: Deprecated
-func (s *speedSettingsState) outdoorChanged(args []interface{}) error {
-	// outdoor := args[0].(uint8)
-	//   1 if outdoor flight, 0 if indoor flight
-	log.Info("ardrone3.outdoorChanged() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Outdoor mode
+// // Description: Outdoor mode.
+// // Support:
+// // Triggered:
+// // Result:
+// // WARNING: Deprecated
+// func (s *speedSettingsState) outdoorChanged(args []interface{}) error {
+// 	// outdoor := args[0].(uint8)
+// 	//   1 if outdoor flight, 0 if indoor flight
+// 	log.Info("ardrone3.outdoorChanged() called")
+// 	return nil
+// }
 
 // TODO: Implement this
 // Title: Max pitch/roll rotation speed

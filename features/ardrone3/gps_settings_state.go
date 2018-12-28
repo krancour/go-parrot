@@ -33,16 +33,16 @@ func (g *gpsSettingsState) D2CCommands() []arcommands.D2CCommand {
 			},
 			g.homeChanged,
 		),
-		arcommands.NewD2CCommand(
-			1,
-			"ResetHomeChanged",
-			[]interface{}{
-				float64(0), // latitude,
-				float64(0), // longitude,
-				float64(0), // altitude,
-			},
-			g.resetHomeChanged,
-		),
+		// arcommands.NewD2CCommand(
+		// 	1,
+		// 	"ResetHomeChanged",
+		// 	[]interface{}{
+		// 		float64(0), // latitude,
+		// 		float64(0), // longitude,
+		// 		float64(0), // altitude,
+		// 	},
+		// 	g.resetHomeChanged,
+		// ),
 		arcommands.NewD2CCommand(
 			2,
 			"GPSFixStateChanged",
@@ -51,14 +51,14 @@ func (g *gpsSettingsState) D2CCommands() []arcommands.D2CCommand {
 			},
 			g.gPSFixStateChanged,
 		),
-		arcommands.NewD2CCommand(
-			3,
-			"GPSUpdateStateChanged",
-			[]interface{}{
-				int32(0), // state,
-			},
-			g.gPSUpdateStateChanged,
-		),
+		// arcommands.NewD2CCommand(
+		// 	3,
+		// 	"GPSUpdateStateChanged",
+		// 	[]interface{}{
+		// 		int32(0), // state,
+		// 	},
+		// 	g.gpsUpdateStateChanged,
+		// ),
 		arcommands.NewD2CCommand(
 			4,
 			"HomeTypeChanged",
@@ -108,23 +108,23 @@ func (g *gpsSettingsState) homeChanged(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Home location has been reset
-// Description: Home location has been reset.
-// Support: 0901;090c
-// Triggered: by [ResetHomeLocation](#1-23-1).
-// Result:
-// WARNING: Deprecated
-func (g *gpsSettingsState) resetHomeChanged(args []interface{}) error {
-	// latitude := args[0].(float64)
-	//   Home latitude in decimal degrees
-	// longitude := args[1].(float64)
-	//   Home longitude in decimal degrees
-	// altitude := args[2].(float64)
-	//   Home altitude in meters
-	log.Info("ardrone3.resetHomeChanged() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Home location has been reset
+// // Description: Home location has been reset.
+// // Support: 0901;090c
+// // Triggered: by [ResetHomeLocation](#1-23-1).
+// // Result:
+// // WARNING: Deprecated
+// func (g *gpsSettingsState) resetHomeChanged(args []interface{}) error {
+// 	// latitude := args[0].(float64)
+// 	//   Home latitude in decimal degrees
+// 	// longitude := args[1].(float64)
+// 	//   Home longitude in decimal degrees
+// 	// altitude := args[2].(float64)
+// 	//   Home altitude in meters
+// 	log.Info("ardrone3.resetHomeChanged() called")
+// 	return nil
+// }
 
 // TODO: Implement this
 // Title: Gps fix info
@@ -139,22 +139,22 @@ func (g *gpsSettingsState) gPSFixStateChanged(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Gps update state
-// Description: Gps update state.
-// Support: 0901;090c;090e
-// Triggered: on change.
-// Result:
-// WARNING: Deprecated
-func (g *gpsSettingsState) gPSUpdateStateChanged(args []interface{}) error {
-	// state := args[0].(int32)
-	//   The state of the gps update
-	//   0: updated: Drone GPS update succeed
-	//   1: inProgress: Drone GPS update In progress
-	//   2: failed: Drone GPS update failed
-	log.Info("ardrone3.gPSUpdateStateChanged() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Gps update state
+// // Description: Gps update state.
+// // Support: 0901;090c;090e
+// // Triggered: on change.
+// // Result:
+// // WARNING: Deprecated
+// func (g *gpsSettingsState) gpsUpdateStateChanged(args []interface{}) error {
+// 	// state := args[0].(int32)
+// 	//   The state of the gps update
+// 	//   0: updated: Drone GPS update succeed
+// 	//   1: inProgress: Drone GPS update In progress
+// 	//   2: failed: Drone GPS update failed
+// 	log.Info("ardrone3.gpsUpdateStateChanged() called")
+// 	return nil
+// }
 
 // TODO: Implement this
 // Title: Preferred home type

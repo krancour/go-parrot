@@ -23,17 +23,17 @@ func (s *settingsState) Name() string {
 
 func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
-		arcommands.NewD2CCommand(
-			0,
-			"ProductMotorVersionListChanged",
-			[]interface{}{
-				uint8(0),  // motor_number,
-				string(0), // type,
-				string(0), // software,
-				string(0), // hardware,
-			},
-			s.productMotorVersionListChanged,
-		),
+		// arcommands.NewD2CCommand(
+		// 	0,
+		// 	"ProductMotorVersionListChanged",
+		// 	[]interface{}{
+		// 		uint8(0),  // motor_number,
+		// 		string(0), // type,
+		// 		string(0), // software,
+		// 		string(0), // hardware,
+		// 	},
+		// 	s.productMotorVersionListChanged,
+		// ),
 		arcommands.NewD2CCommand(
 			1,
 			"ProductGPSVersionChanged",
@@ -52,14 +52,14 @@ func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 			},
 			s.motorErrorStateChanged,
 		),
-		arcommands.NewD2CCommand(
-			3,
-			"MotorSoftwareVersionChanged",
-			[]interface{}{
-				string(0), // version,
-			},
-			s.motorSoftwareVersionChanged,
-		),
+		// arcommands.NewD2CCommand(
+		// 	3,
+		// 	"MotorSoftwareVersionChanged",
+		// 	[]interface{}{
+		// 		string(0), // version,
+		// 	},
+		// 	s.motorSoftwareVersionChanged,
+		// ),
 		arcommands.NewD2CCommand(
 			4,
 			"MotorFlightsStatusChanged",
@@ -78,14 +78,14 @@ func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 			},
 			s.motorErrorLastErrorChanged,
 		),
-		arcommands.NewD2CCommand(
-			6,
-			"P7ID",
-			[]interface{}{
-				string(0), // serialID,
-			},
-			s.p7ID,
-		),
+		// arcommands.NewD2CCommand(
+		// 	6,
+		// 	"P7ID",
+		// 	[]interface{}{
+		// 		string(0), // serialID,
+		// 	},
+		// 	s.p7ID,
+		// ),
 		arcommands.NewD2CCommand(
 			7,
 			"CPUID",
@@ -97,27 +97,27 @@ func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 	}
 }
 
-// TODO: Implement this
-// Title: Motor version
-// Description: Motor version.
-// Support:
-// Triggered:
-// Result:
-// WARNING: Deprecated
-func (s *settingsState) productMotorVersionListChanged(
-	args []interface{},
-) error {
-	// motor_number := args[0].(uint8)
-	//   Product Motor number
-	// type := args[1].(string)
-	//   Product Motor type
-	// software := args[2].(string)
-	//   Product Motors software version
-	// hardware := args[3].(string)
-	//   Product Motors hardware version
-	log.Info("ardrone3.productMotorVersionListChanged() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Motor version
+// // Description: Motor version.
+// // Support:
+// // Triggered:
+// // Result:
+// // WARNING: Deprecated
+// func (s *settingsState) productMotorVersionListChanged(
+// 	args []interface{},
+// ) error {
+// 	// motor_number := args[0].(uint8)
+// 	//   Product Motor number
+// 	// type := args[1].(string)
+// 	//   Product Motor type
+// 	// software := args[2].(string)
+// 	//   Product Motors software version
+// 	// hardware := args[3].(string)
+// 	//   Product Motors hardware version
+// 	log.Info("ardrone3.productMotorVersionListChanged() called")
+// 	return nil
+// }
 
 // TODO: Implement this
 // Title: GPS version
@@ -167,21 +167,21 @@ func (s *settingsState) motorErrorStateChanged(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Motor version
-// Description: Motor version.
-// Support:
-// Triggered:
-// Result:
-// WARNING: Deprecated
-func (s *settingsState) motorSoftwareVersionChanged(args []interface{}) error {
-	// version := args[0].(string)
-	//   name of the version : dot separated fields (major version - minor version
-	//   - firmware type - nb motors handled). Firmware types : Release, Debug,
-	//   Alpha, Test-bench
-	log.Info("ardrone3.motorSoftwareVersionChanged() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Motor version
+// // Description: Motor version.
+// // Support:
+// // Triggered:
+// // Result:
+// // WARNING: Deprecated
+// func (s *settingsState) motorSoftwareVersionChanged(args []interface{}) error {
+// 	// version := args[0].(string)
+// 	//   name of the version : dot separated fields (major version - minor version
+// 	//   - firmware type - nb motors handled). Firmware types : Release, Debug,
+// 	//   Alpha, Test-bench
+// 	log.Info("ardrone3.motorSoftwareVersionChanged() called")
+// 	return nil
+// }
 
 // TODO: Implement this
 // Title: Motor flight status
@@ -228,19 +228,19 @@ func (s *settingsState) motorErrorLastErrorChanged(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: P7ID
-// Description: P7ID.
-// Support:
-// Triggered:
-// Result:
-// WARNING: Deprecated
-func (s *settingsState) p7ID(args []interface{}) error {
-	// serialID := args[0].(string)
-	//   Product P7ID
-	log.Info("ardrone3.p7ID() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: P7ID
+// // Description: P7ID.
+// // Support:
+// // Triggered:
+// // Result:
+// // WARNING: Deprecated
+// func (s *settingsState) p7ID(args []interface{}) error {
+// 	// serialID := args[0].(string)
+// 	//   Product P7ID
+// 	log.Info("ardrone3.p7ID() called")
+// 	return nil
+// }
 
 // TODO: Implement this
 func (s *settingsState) cPUID(args []interface{}) error {

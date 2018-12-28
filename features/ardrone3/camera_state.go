@@ -23,24 +23,24 @@ func (c *cameraState) Name() string {
 
 func (c *cameraState) D2CCommands() []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
-		arcommands.NewD2CCommand(
-			0,
-			"Orientation",
-			[]interface{}{
-				int8(0), // tilt,
-				int8(0), // pan,
-			},
-			c.orientation,
-		),
-		arcommands.NewD2CCommand(
-			1,
-			"defaultCameraOrientation",
-			[]interface{}{
-				int8(0), // tilt,
-				int8(0), // pan,
-			},
-			c.defaultCameraOrientation,
-		),
+		// arcommands.NewD2CCommand(
+		// 	0,
+		// 	"Orientation",
+		// 	[]interface{}{
+		// 		int8(0), // tilt,
+		// 		int8(0), // pan,
+		// 	},
+		// 	c.orientation,
+		// ),
+		// arcommands.NewD2CCommand(
+		// 	1,
+		// 	"defaultCameraOrientation",
+		// 	[]interface{}{
+		// 		int8(0), // tilt,
+		// 		int8(0), // pan,
+		// 	},
+		// 	c.defaultCameraOrientation,
+		// ),
 		arcommands.NewD2CCommand(
 			2,
 			"OrientationV2",
@@ -71,38 +71,38 @@ func (c *cameraState) D2CCommands() []arcommands.D2CCommand {
 	}
 }
 
-// TODO: Implement this
-// Title: Camera orientation
-// Description: Camera orientation.
-// Support: 0901;090c;090e
-// Triggered: by [SetCameraOrientation](#1-1-0).
-// Result:
-// WARNING: Deprecated
-func (c *cameraState) orientation(args []interface{}) error {
-	// tilt := args[0].(int8)
-	//   Tilt camera consign for the drone [-100;100]
-	// pan := args[1].(int8)
-	//   Pan camera consign for the drone [-100;100]
-	log.Info("ardrone3.orientation() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Camera orientation
+// // Description: Camera orientation.
+// // Support: 0901;090c;090e
+// // Triggered: by [SetCameraOrientation](#1-1-0).
+// // Result:
+// // WARNING: Deprecated
+// func (c *cameraState) orientation(args []interface{}) error {
+// 	// tilt := args[0].(int8)
+// 	//   Tilt camera consign for the drone [-100;100]
+// 	// pan := args[1].(int8)
+// 	//   Pan camera consign for the drone [-100;100]
+// 	log.Info("ardrone3.orientation() called")
+// 	return nil
+// }
 
-// TODO: Implement this
-// Title: Orientation of the camera center
-// Description: Orientation of the center of the camera.\n This is the value to
-//   send when you want to center the camera.
-// Support: 0901;090c;090e
-// Triggered: at connection.
-// Result:
-// WARNING: Deprecated
-func (c *cameraState) defaultCameraOrientation(args []interface{}) error {
-	// tilt := args[0].(int8)
-	//   Tilt value (in degree)
-	// pan := args[1].(int8)
-	//   Pan value (in degree)
-	log.Info("ardrone3.defaultCameraOrientation() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Orientation of the camera center
+// // Description: Orientation of the center of the camera.\n This is the value to
+// //   send when you want to center the camera.
+// // Support: 0901;090c;090e
+// // Triggered: at connection.
+// // Result:
+// // WARNING: Deprecated
+// func (c *cameraState) defaultCameraOrientation(args []interface{}) error {
+// 	// tilt := args[0].(int8)
+// 	//   Tilt value (in degree)
+// 	// pan := args[1].(int8)
+// 	//   Pan value (in degree)
+// 	log.Info("ardrone3.defaultCameraOrientation() called")
+// 	return nil
+// }
 
 // TODO: Implement this
 // Title: Camera orientation

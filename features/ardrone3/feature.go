@@ -22,7 +22,7 @@ type Feature interface {
 	PilotingEvent() PilotingEvent
 	PilotingSettingsState() PilotingSettingsState
 	PilotingState() PilotingState
-	PROState() PROState
+	// PROState() PROState
 	SettingsState() SettingsState
 	SoundState() SoundState
 	SpeedSettingsState() SpeedSettingsState
@@ -43,10 +43,10 @@ type feature struct {
 	pilotingEvent         *pilotingEvent
 	pilotingSettingsState *pilotingSettingsState
 	pilotingState         *pilotingState
-	proState              *proState
-	settingsState         *settingsState
-	soundState            *soundState
-	speedSettingsState    *speedSettingsState
+	// proState              *proState
+	settingsState      *settingsState
+	soundState         *soundState
+	speedSettingsState *speedSettingsState
 }
 
 // NewFeature ...
@@ -67,10 +67,10 @@ func NewFeature() Feature {
 		pilotingEvent:         &pilotingEvent{},
 		pilotingSettingsState: &pilotingSettingsState{},
 		pilotingState:         &pilotingState{},
-		proState:              &proState{},
-		settingsState:         &settingsState{},
-		soundState:            &soundState{},
-		speedSettingsState:    &speedSettingsState{},
+		// proState:              &proState{},
+		settingsState:      &settingsState{},
+		soundState:         &soundState{},
+		speedSettingsState: &speedSettingsState{},
 	}
 }
 
@@ -99,7 +99,7 @@ func (f *feature) D2CClasses() []arcommands.D2CClass {
 		f.pilotingEvent,
 		f.pilotingSettingsState,
 		f.pilotingState,
-		f.proState,
+		// f.proState,
 		f.settingsState,
 		f.soundState,
 		f.speedSettingsState,
@@ -162,9 +162,9 @@ func (f *feature) PilotingState() PilotingState {
 	return f.pilotingState
 }
 
-func (f *feature) PROState() PROState {
-	return f.proState
-}
+// func (f *feature) PROState() PROState {
+// 	return f.proState
+// }
 
 func (f *feature) SettingsState() SettingsState {
 	return f.settingsState

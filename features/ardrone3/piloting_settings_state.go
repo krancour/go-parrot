@@ -43,14 +43,14 @@ func (p *pilotingSettingsState) D2CCommands() []arcommands.D2CCommand {
 			},
 			p.maxTiltChanged,
 		),
-		arcommands.NewD2CCommand(
-			2,
-			"AbsolutControlChanged",
-			[]interface{}{
-				uint8(0), // on,
-			},
-			p.absolutControlChanged,
-		),
+		// arcommands.NewD2CCommand(
+		// 	2,
+		// 	"AbsolutControlChanged",
+		// 	[]interface{}{
+		// 		uint8(0), // on,
+		// 	},
+		// 	p.absolutControlChanged,
+		// ),
 		arcommands.NewD2CCommand(
 			3,
 			"MaxDistanceChanged",
@@ -135,16 +135,16 @@ func (p *pilotingSettingsState) D2CCommands() []arcommands.D2CCommand {
 			},
 			p.circlingDirectionChanged,
 		),
-		arcommands.NewD2CCommand(
-			13,
-			"CirclingRadiusChanged",
-			[]interface{}{
-				uint16(0), // current,
-				uint16(0), // min,
-				uint16(0), // max,
-			},
-			p.circlingRadiusChanged,
-		),
+		// arcommands.NewD2CCommand(
+		// 	13,
+		// 	"CirclingRadiusChanged",
+		// 	[]interface{}{
+		// 		uint16(0), // current,
+		// 		uint16(0), // min,
+		// 		uint16(0), // max,
+		// 	},
+		// 	p.circlingRadiusChanged,
+		// ),
 		arcommands.NewD2CCommand(
 			14,
 			"CirclingAltitudeChanged",
@@ -210,21 +210,21 @@ func (p *pilotingSettingsState) maxTiltChanged(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Absolut control
-// Description: Absolut control.
-// Support:
-// Triggered:
-// Result:
-// WARNING: Deprecated
-func (p *pilotingSettingsState) absolutControlChanged(
-	args []interface{},
-) error {
-	// on := args[0].(uint8)
-	//   1 if enabled, 0 if disabled
-	log.Info("ardrone3.absolutControlChanged() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Absolut control
+// // Description: Absolut control.
+// // Support:
+// // Triggered:
+// // Result:
+// // WARNING: Deprecated
+// func (p *pilotingSettingsState) absolutControlChanged(
+// 	args []interface{},
+// ) error {
+// 	// on := args[0].(uint8)
+// 	//   1 if enabled, 0 if disabled
+// 	log.Info("ardrone3.absolutControlChanged() called")
+// 	return nil
+// }
 
 // TODO: Implement this
 // Title: Max distance
@@ -384,25 +384,25 @@ func (p *pilotingSettingsState) circlingDirectionChanged(
 	return nil
 }
 
-// TODO: Implement this
-// Title: Circling radius
-// Description: Circling radius.\n Only sent by fixed wings.
-// Support: none
-// Triggered: by [SetCirclingRadius](#1-2-13).
-// Result:
-// WARNING: Deprecated
-func (p *pilotingSettingsState) circlingRadiusChanged(
-	args []interface{},
-) error {
-	// current := args[0].(uint16)
-	//   The current circling radius in meter
-	// min := args[1].(uint16)
-	//   Range min of circling radius in meter
-	// max := args[2].(uint16)
-	//   Range max of circling radius in meter
-	log.Info("ardrone3.circlingRadiusChanged() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Circling radius
+// // Description: Circling radius.\n Only sent by fixed wings.
+// // Support: none
+// // Triggered: by [SetCirclingRadius](#1-2-13).
+// // Result:
+// // WARNING: Deprecated
+// func (p *pilotingSettingsState) circlingRadiusChanged(
+// 	args []interface{},
+// ) error {
+// 	// current := args[0].(uint16)
+// 	//   The current circling radius in meter
+// 	// min := args[1].(uint16)
+// 	//   Range min of circling radius in meter
+// 	// max := args[2].(uint16)
+// 	//   Range max of circling radius in meter
+// 	log.Info("ardrone3.circlingRadiusChanged() called")
+// 	return nil
+// }
 
 // TODO: Implement this
 // Title: Circling altitude

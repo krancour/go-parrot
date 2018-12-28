@@ -23,12 +23,12 @@ func (o *overHeatState) Name() string {
 
 func (o *overHeatState) D2CCommands() []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
-		arcommands.NewD2CCommand(
-			0,
-			"OverHeatChanged",
-			[]interface{}{},
-			o.overHeatChanged,
-		),
+		// arcommands.NewD2CCommand(
+		// 	0,
+		// 	"OverHeatChanged",
+		// 	[]interface{}{},
+		// 	o.overHeatChanged,
+		// ),
 		arcommands.NewD2CCommand(
 			1,
 			"OverHeatRegulationChanged",
@@ -40,17 +40,17 @@ func (o *overHeatState) D2CCommands() []arcommands.D2CCommand {
 	}
 }
 
-// TODO: Implement this
-// Title: Overheat
-// Description: Overheat temperature reached.
-// Support:
-// Triggered:
-// Result:
-// WARNING: Deprecated
-func (o *overHeatState) overHeatChanged(args []interface{}) error {
-	log.Info("common.overHeatChanged() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Overheat
+// // Description: Overheat temperature reached.
+// // Support:
+// // Triggered:
+// // Result:
+// // WARNING: Deprecated
+// func (o *overHeatState) overHeatChanged(args []interface{}) error {
+// 	log.Info("common.overHeatChanged() called")
+// 	return nil
+// }
 
 // TODO: Implement this
 // Title: Overheat regulation type
