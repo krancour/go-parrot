@@ -24,7 +24,7 @@ type Feature interface {
 	PilotingState() PilotingState
 	// PROState() PROState
 	SettingsState() SettingsState
-	SoundState() SoundState
+	// SoundState() SoundState
 	SpeedSettingsState() SpeedSettingsState
 }
 
@@ -44,8 +44,8 @@ type feature struct {
 	pilotingSettingsState *pilotingSettingsState
 	pilotingState         *pilotingState
 	// proState              *proState
-	settingsState      *settingsState
-	soundState         *soundState
+	settingsState *settingsState
+	// soundState         *soundState
 	speedSettingsState *speedSettingsState
 }
 
@@ -68,8 +68,8 @@ func NewFeature() Feature {
 		pilotingSettingsState: &pilotingSettingsState{},
 		pilotingState:         &pilotingState{},
 		// proState:              &proState{},
-		settingsState:      &settingsState{},
-		soundState:         &soundState{},
+		settingsState: &settingsState{},
+		// soundState:         &soundState{},
 		speedSettingsState: &speedSettingsState{},
 	}
 }
@@ -101,7 +101,7 @@ func (f *feature) D2CClasses() []arcommands.D2CClass {
 		f.pilotingState,
 		// f.proState,
 		f.settingsState,
-		f.soundState,
+		// f.soundState,
 		f.speedSettingsState,
 	}
 }
@@ -170,9 +170,9 @@ func (f *feature) SettingsState() SettingsState {
 	return f.settingsState
 }
 
-func (f *feature) SoundState() SoundState {
-	return f.soundState
-}
+// func (f *feature) SoundState() SoundState {
+// 	return f.soundState
+// }
 
 func (f *feature) SpeedSettingsState() SpeedSettingsState {
 	return f.speedSettingsState

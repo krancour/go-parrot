@@ -35,16 +35,16 @@ func (a *accessoryState) D2CCommands() []arcommands.D2CCommand {
 			},
 			a.connectedAccessories,
 		),
-		arcommands.NewD2CCommand(
-			1,
-			"Battery",
-			[]interface{}{
-				uint8(0), // id,
-				uint8(0), // batteryLevel,
-				uint8(0), // list_flags,
-			},
-			a.battery,
-		),
+		// arcommands.NewD2CCommand(
+		// 	1,
+		// 	"Battery",
+		// 	[]interface{}{
+		// 		uint8(0), // id,
+		// 		uint8(0), // batteryLevel,
+		// 		uint8(0), // list_flags,
+		// 	},
+		// 	a.battery,
+		// ),
 	}
 }
 
@@ -77,23 +77,23 @@ func (a *accessoryState) connectedAccessories(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Connected accessories battery
-// Description: Connected accessories battery.
-// Support: none
-// Triggered:
-// Result:
-func (a *accessoryState) battery(args []interface{}) error {
-	// id := args[0].(uint8)
-	//   Id of the accessory for the session.
-	// batteryLevel := args[1].(uint8)
-	//   Battery level in percentage.
-	// list_flags := args[2].(uint8)
-	//   List entry attribute Bitfield. 0x01: First: indicate it&#39;s the first
-	//   element of the list. 0x02: Last: indicate it&#39;s the last element of
-	//   the list. 0x04: Empty: indicate the list is empty (implies First/Last).
-	//   All other arguments should be ignored. 0x08: Remove: This value should be
-	//   removed from the existing list.
-	log.Info("ardrone3.battery() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Connected accessories battery
+// // Description: Connected accessories battery.
+// // Support: none
+// // Triggered:
+// // Result:
+// func (a *accessoryState) battery(args []interface{}) error {
+// 	// id := args[0].(uint8)
+// 	//   Id of the accessory for the session.
+// 	// batteryLevel := args[1].(uint8)
+// 	//   Battery level in percentage.
+// 	// list_flags := args[2].(uint8)
+// 	//   List entry attribute Bitfield. 0x01: First: indicate it&#39;s the first
+// 	//   element of the list. 0x02: Last: indicate it&#39;s the last element of
+// 	//   the list. 0x04: Empty: indicate the list is empty (implies First/Last).
+// 	//   All other arguments should be ignored. 0x08: Remove: This value should be
+// 	//   removed from the existing list.
+// 	log.Info("ardrone3.battery() called")
+// 	return nil
+// }

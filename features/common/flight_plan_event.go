@@ -29,12 +29,12 @@ func (f *flightPlanEvent) D2CCommands() []arcommands.D2CCommand {
 			[]interface{}{},
 			f.startingErrorEvent,
 		),
-		arcommands.NewD2CCommand(
-			1,
-			"SpeedBridleEvent",
-			[]interface{}{},
-			f.speedBridleEvent,
-		),
+		// arcommands.NewD2CCommand(
+		// 	1,
+		// 	"SpeedBridleEvent",
+		// 	[]interface{}{},
+		// 	f.speedBridleEvent,
+		// ),
 	}
 }
 
@@ -50,16 +50,16 @@ func (f *flightPlanEvent) startingErrorEvent(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: FlightPlan speed clamping
-// Description: FlightPlan speed clamping.\n Sent when a speed specified in the
-//   FlightPlan file is considered too high by the drone.\n\n **This event is a
-//   notification, you can&#39;t retrieve it in the cache of the device
-//   controller.**
-// Support: none
-// Triggered: on an speed related clamping after a [StartFlightPlan](#0-11-0).
-// Result:
-func (f *flightPlanEvent) speedBridleEvent(args []interface{}) error {
-	log.Info("common.speedBridleEvent() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: FlightPlan speed clamping
+// // Description: FlightPlan speed clamping.\n Sent when a speed specified in the
+// //   FlightPlan file is considered too high by the drone.\n\n **This event is a
+// //   notification, you can&#39;t retrieve it in the cache of the device
+// //   controller.**
+// // Support: none
+// // Triggered: on an speed related clamping after a [StartFlightPlan](#0-11-0).
+// // Result:
+// func (f *flightPlanEvent) speedBridleEvent(args []interface{}) error {
+// 	log.Info("common.speedBridleEvent() called")
+// 	return nil
+// }
