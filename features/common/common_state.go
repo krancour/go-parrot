@@ -102,14 +102,14 @@ func (c *commonState) D2CCommands() []arcommands.D2CCommand {
 			},
 			c.sensorsStatesListChanged,
 		),
-		arcommands.NewD2CCommand(
-			9,
-			"ProductModel",
-			[]interface{}{
-				int32(0), // model,
-			},
-			c.productModel,
-		),
+		// arcommands.NewD2CCommand(
+		// 	9,
+		// 	"ProductModel",
+		// 	[]interface{}{
+		// 		int32(0), // model,
+		// 	},
+		// 	c.productModel,
+		// ),
 		// arcommands.NewD2CCommand(
 		// 	10,
 		// 	"CountryListKnown",
@@ -131,30 +131,30 @@ func (c *commonState) D2CCommands() []arcommands.D2CCommand {
 		// 	},
 		// 	c.deprecatedMassStorageContentChanged,
 		// ),
-		arcommands.NewD2CCommand(
-			12,
-			"MassStorageContent",
-			[]interface{}{
-				uint8(0),  // mass_storage_id,
-				uint16(0), // nbPhotos,
-				uint16(0), // nbVideos,
-				uint16(0), // nbPuds,
-				uint16(0), // nbCrashLogs,
-				uint16(0), // nbRawPhotos,
-			},
-			c.massStorageContent,
-		),
-		arcommands.NewD2CCommand(
-			13,
-			"MassStorageContentForCurrentRun",
-			[]interface{}{
-				uint8(0),  // mass_storage_id,
-				uint16(0), // nbPhotos,
-				uint16(0), // nbVideos,
-				uint16(0), // nbRawPhotos,
-			},
-			c.massStorageContentForCurrentRun,
-		),
+		// arcommands.NewD2CCommand(
+		// 	12,
+		// 	"MassStorageContent",
+		// 	[]interface{}{
+		// 		uint8(0),  // mass_storage_id,
+		// 		uint16(0), // nbPhotos,
+		// 		uint16(0), // nbVideos,
+		// 		uint16(0), // nbPuds,
+		// 		uint16(0), // nbCrashLogs,
+		// 		uint16(0), // nbRawPhotos,
+		// 	},
+		// 	c.massStorageContent,
+		// ),
+		// arcommands.NewD2CCommand(
+		// 	13,
+		// 	"MassStorageContentForCurrentRun",
+		// 	[]interface{}{
+		// 		uint8(0),  // mass_storage_id,
+		// 		uint16(0), // nbPhotos,
+		// 		uint16(0), // nbVideos,
+		// 		uint16(0), // nbRawPhotos,
+		// 	},
+		// 	c.massStorageContentForCurrentRun,
+		// ),
 		arcommands.NewD2CCommand(
 			14,
 			"VideoRecordingTimestamp",
@@ -319,34 +319,34 @@ func (c *commonState) sensorsStatesListChanged(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Product sub-model
-// Description: Product sub-model.\n This can be used to customize the UI
-//   depending on the product.
-// Support: 0905;0906;0907;0909
-// Triggered: at connection.
-// Result:
-func (c *commonState) productModel(args []interface{}) error {
-	// model := args[0].(int32)
-	//   The Model of the product.
-	//   0: RS_TRAVIS: Travis (RS taxi) model.
-	//   1: RS_MARS: Mars (RS space) model
-	//   2: RS_SWAT: SWAT (RS SWAT) model
-	//   3: RS_MCLANE: Mc Lane (RS police) model
-	//   4: RS_BLAZE: Blaze (RS fire) model
-	//   5: RS_ORAK: Orak (RS carbon hydrofoil) model
-	//   6: RS_NEWZ: New Z (RS wooden hydrofoil) model
-	//   7: JS_MARSHALL: Marshall (JS fire) model
-	//   8: JS_DIESEL: Diesel (JS SWAT) model
-	//   9: JS_BUZZ: Buzz (JS space) model
-	//   10: JS_MAX: Max (JS F1) model
-	//   11: JS_JETT: Jett (JS flames) model
-	//   12: JS_TUKTUK: Tuk-Tuk (JS taxi) model
-	//   13: SW_BLACK: Swing black model
-	//   14: SW_WHITE: Swing white model
-	log.Info("common.productModel() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Product sub-model
+// // Description: Product sub-model.\n This can be used to customize the UI
+// //   depending on the product.
+// // Support: 0905;0906;0907;0909
+// // Triggered: at connection.
+// // Result:
+// func (c *commonState) productModel(args []interface{}) error {
+// 	// model := args[0].(int32)
+// 	//   The Model of the product.
+// 	//   0: RS_TRAVIS: Travis (RS taxi) model.
+// 	//   1: RS_MARS: Mars (RS space) model
+// 	//   2: RS_SWAT: SWAT (RS SWAT) model
+// 	//   3: RS_MCLANE: Mc Lane (RS police) model
+// 	//   4: RS_BLAZE: Blaze (RS fire) model
+// 	//   5: RS_ORAK: Orak (RS carbon hydrofoil) model
+// 	//   6: RS_NEWZ: New Z (RS wooden hydrofoil) model
+// 	//   7: JS_MARSHALL: Marshall (JS fire) model
+// 	//   8: JS_DIESEL: Diesel (JS SWAT) model
+// 	//   9: JS_BUZZ: Buzz (JS space) model
+// 	//   10: JS_MAX: Max (JS F1) model
+// 	//   11: JS_JETT: Jett (JS flames) model
+// 	//   12: JS_TUKTUK: Tuk-Tuk (JS taxi) model
+// 	//   13: SW_BLACK: Swing black model
+// 	//   14: SW_WHITE: Swing white model
+// 	log.Info("common.productModel() called")
+// 	return nil
+// }
 
 // // TODO: Implement this
 // // Title: Country list
@@ -393,49 +393,49 @@ func (c *commonState) productModel(args []interface{}) error {
 // 	return nil
 // }
 
-// TODO: Implement this
-// Title: Mass storage content
-// Description: Mass storage content.
-// Support: 090c:4.0.0;090e:4.0.0
-// Triggered: when the content of the mass storage changes.
-// Result:
-func (c *commonState) massStorageContent(args []interface{}) error {
-	// mass_storage_id := args[0].(uint8)
-	//   Mass storage id (unique)
-	// nbPhotos := args[1].(uint16)
-	//   Number of photos (does not include raw photos)
-	// nbVideos := args[2].(uint16)
-	//   Number of videos
-	// nbPuds := args[3].(uint16)
-	//   Number of puds
-	// nbCrashLogs := args[4].(uint16)
-	//   Number of crash logs
-	// nbRawPhotos := args[5].(uint16)
-	//   Number of raw photos
-	log.Info("common.massStorageContent() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Mass storage content
+// // Description: Mass storage content.
+// // Support: 090c:4.0.0;090e:4.0.0
+// // Triggered: when the content of the mass storage changes.
+// // Result:
+// func (c *commonState) massStorageContent(args []interface{}) error {
+// 	// mass_storage_id := args[0].(uint8)
+// 	//   Mass storage id (unique)
+// 	// nbPhotos := args[1].(uint16)
+// 	//   Number of photos (does not include raw photos)
+// 	// nbVideos := args[2].(uint16)
+// 	//   Number of videos
+// 	// nbPuds := args[3].(uint16)
+// 	//   Number of puds
+// 	// nbCrashLogs := args[4].(uint16)
+// 	//   Number of crash logs
+// 	// nbRawPhotos := args[5].(uint16)
+// 	//   Number of raw photos
+// 	log.Info("common.massStorageContent() called")
+// 	return nil
+// }
 
-// TODO: Implement this
-// Title: Mass storage content for current run
-// Description: Mass storage content for current run.\n Only counts the files
-//   related to the current run (see [RunId](#0-30-0))
-// Support: 090c:4.0.0;090e:4.0.0
-// Triggered: when the content of the mass storage changes and this content is
-//   related to the current run.
-// Result:
-func (c *commonState) massStorageContentForCurrentRun(args []interface{}) error {
-	// mass_storage_id := args[0].(uint8)
-	//   Mass storage id (unique)
-	// nbPhotos := args[1].(uint16)
-	//   Number of photos (does not include raw photos)
-	// nbVideos := args[2].(uint16)
-	//   Number of videos
-	// nbRawPhotos := args[3].(uint16)
-	//   Number of raw photos
-	log.Info("common.massStorageContentForCurrentRun() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Mass storage content for current run
+// // Description: Mass storage content for current run.\n Only counts the files
+// //   related to the current run (see [RunId](#0-30-0))
+// // Support: 090c:4.0.0;090e:4.0.0
+// // Triggered: when the content of the mass storage changes and this content is
+// //   related to the current run.
+// // Result:
+// func (c *commonState) massStorageContentForCurrentRun(args []interface{}) error {
+// 	// mass_storage_id := args[0].(uint8)
+// 	//   Mass storage id (unique)
+// 	// nbPhotos := args[1].(uint16)
+// 	//   Number of photos (does not include raw photos)
+// 	// nbVideos := args[2].(uint16)
+// 	//   Number of videos
+// 	// nbRawPhotos := args[3].(uint16)
+// 	//   Number of raw photos
+// 	log.Info("common.massStorageContentForCurrentRun() called")
+// 	return nil
+// }
 
 // TODO: Implement this
 // Title: Video recording timestamp

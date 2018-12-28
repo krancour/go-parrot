@@ -113,62 +113,62 @@ func (p *pilotingState) D2CCommands() []arcommands.D2CCommand {
 			},
 			p.gpsLocationChanged,
 		),
-		arcommands.NewD2CCommand(
-			10,
-			"LandingStateChanged",
-			[]interface{}{
-				int32(0), // state,
-			},
-			p.landingStateChanged,
-		),
-		arcommands.NewD2CCommand(
-			11,
-			"AirSpeedChanged",
-			[]interface{}{
-				float32(0), // airSpeed,
-			},
-			p.airSpeedChanged,
-		),
-		arcommands.NewD2CCommand(
-			12,
-			"moveToChanged",
-			[]interface{}{
-				float64(0), // latitude,
-				float64(0), // longitude,
-				float64(0), // altitude,
-				int32(0),   // orientation_mode,
-				float32(0), // heading,
-				int32(0),   // status,
-			},
-			p.moveToChanged,
-		),
-		arcommands.NewD2CCommand(
-			13,
-			"MotionState",
-			[]interface{}{
-				int32(0), // state,
-			},
-			p.motionState,
-		),
-		arcommands.NewD2CCommand(
-			14,
-			"PilotedPOI",
-			[]interface{}{
-				float64(0), // latitude,
-				float64(0), // longitude,
-				float64(0), // altitude,
-				int32(0),   // status,
-			},
-			p.pilotedPOI,
-		),
-		arcommands.NewD2CCommand(
-			15,
-			"ReturnHomeBatteryCapacity",
-			[]interface{}{
-				int32(0), // status,
-			},
-			p.returnHomeBatteryCapacity,
-		),
+		// arcommands.NewD2CCommand(
+		// 	10,
+		// 	"LandingStateChanged",
+		// 	[]interface{}{
+		// 		int32(0), // state,
+		// 	},
+		// 	p.landingStateChanged,
+		// ),
+		// arcommands.NewD2CCommand(
+		// 	11,
+		// 	"AirSpeedChanged",
+		// 	[]interface{}{
+		// 		float32(0), // airSpeed,
+		// 	},
+		// 	p.airSpeedChanged,
+		// ),
+		// arcommands.NewD2CCommand(
+		// 	12,
+		// 	"moveToChanged",
+		// 	[]interface{}{
+		// 		float64(0), // latitude,
+		// 		float64(0), // longitude,
+		// 		float64(0), // altitude,
+		// 		int32(0),   // orientation_mode,
+		// 		float32(0), // heading,
+		// 		int32(0),   // status,
+		// 	},
+		// 	p.moveToChanged,
+		// ),
+		// arcommands.NewD2CCommand(
+		// 	13,
+		// 	"MotionState",
+		// 	[]interface{}{
+		// 		int32(0), // state,
+		// 	},
+		// 	p.motionState,
+		// ),
+		// arcommands.NewD2CCommand(
+		// 	14,
+		// 	"PilotedPOI",
+		// 	[]interface{}{
+		// 		float64(0), // latitude,
+		// 		float64(0), // longitude,
+		// 		float64(0), // altitude,
+		// 		int32(0),   // status,
+		// 	},
+		// 	p.pilotedPOI,
+		// ),
+		// arcommands.NewD2CCommand(
+		// 	15,
+		// 	"ReturnHomeBatteryCapacity",
+		// 	[]interface{}{
+		// 		int32(0), // status,
+		// 	},
+		// 	p.returnHomeBatteryCapacity,
+		// ),
 	}
 }
 
@@ -366,140 +366,140 @@ func (p *pilotingState) gpsLocationChanged(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Landing state
-// Description: Landing state.\n Only available for fixed wings (which have two
-//   landing modes).
-// Support: 090e
-// Triggered: when the landing state changes.
-// Result:
-func (p *pilotingState) landingStateChanged(args []interface{}) error {
-	// state := args[0].(int32)
-	//   Drone landing state
-	//   0: linear: Linear landing
-	//   1: spiral: Spiral landing
-	log.Info("ardrone3.landingStateChanged() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Landing state
+// // Description: Landing state.\n Only available for fixed wings (which have two
+// //   landing modes).
+// // Support: 090e
+// // Triggered: when the landing state changes.
+// // Result:
+// func (p *pilotingState) landingStateChanged(args []interface{}) error {
+// 	// state := args[0].(int32)
+// 	//   Drone landing state
+// 	//   0: linear: Linear landing
+// 	//   1: spiral: Spiral landing
+// 	log.Info("ardrone3.landingStateChanged() called")
+// 	return nil
+// }
 
-// TODO: Implement this
-// Title: Drone&#39;s air speed changed
-// Description: Drone&#39;s air speed changed\n Expressed in the drone&#39;s
-//   referential.
-// Support: 090e:1.2.0
-// Triggered: regularly.
-// Result:
-func (p *pilotingState) airSpeedChanged(args []interface{}) error {
-	// airSpeed := args[0].(float32)
-	//   Speed relative to air on x axis (speed is always &gt; 0) (in m/s)
-	log.Info("ardrone3.airSpeedChanged() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Drone&#39;s air speed changed
+// // Description: Drone&#39;s air speed changed\n Expressed in the drone&#39;s
+// //   referential.
+// // Support: 090e:1.2.0
+// // Triggered: regularly.
+// // Result:
+// func (p *pilotingState) airSpeedChanged(args []interface{}) error {
+// 	// airSpeed := args[0].(float32)
+// 	//   Speed relative to air on x axis (speed is always &gt; 0) (in m/s)
+// 	log.Info("ardrone3.airSpeedChanged() called")
+// 	return nil
+// }
 
-// TODO: Implement this
-// Title: Move to changed
-// Description: The drone moves or moved to a given location.
-// Support: 090c:4.3.0
-// Triggered: by [MoveTo](#1-0-10) or when the drone did reach the given
-//   position.
-// Result:
-func (p *pilotingState) moveToChanged(args []interface{}) error {
-	// latitude := args[0].(float64)
-	//   Latitude of the location (in degrees) to reach
-	// longitude := args[1].(float64)
-	//   Longitude of the location (in degrees) to reach
-	// altitude := args[2].(float64)
-	//   Altitude above sea level (in m) to reach
-	// orientation_mode := args[3].(int32)
-	//   Orientation mode of the move to
-	//   0: NONE: The drone won&#39;t change its orientation
-	//   1: TO_TARGET: The drone will make a rotation to look in direction of the
-	//      given location
-	//   2: HEADING_START: The drone will orientate itself to the given heading
-	//      before moving to the location
-	//   3: HEADING_DURING: The drone will orientate itself to the given heading
-	//      while moving to the location
-	// heading := args[4].(float32)
-	//   Heading (relative to the North in degrees). This value is only used if
-	//   the orientation mode is HEADING_START or HEADING_DURING
-	// status := args[5].(int32)
-	//   Status of the move to
-	//   0: RUNNING: The drone is actually flying to the given position
-	//   1: DONE: The drone has reached the target
-	//   2: CANCELED: The move to has been canceled, either by a CancelMoveTo
-	//      command or when a disconnection appears.
-	//   3: ERROR: The move to has not been finished or started because of an
-	//      error.
-	log.Info("ardrone3.moveToChanged() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Move to changed
+// // Description: The drone moves or moved to a given location.
+// // Support: 090c:4.3.0
+// // Triggered: by [MoveTo](#1-0-10) or when the drone did reach the given
+// //   position.
+// // Result:
+// func (p *pilotingState) moveToChanged(args []interface{}) error {
+// 	// latitude := args[0].(float64)
+// 	//   Latitude of the location (in degrees) to reach
+// 	// longitude := args[1].(float64)
+// 	//   Longitude of the location (in degrees) to reach
+// 	// altitude := args[2].(float64)
+// 	//   Altitude above sea level (in m) to reach
+// 	// orientation_mode := args[3].(int32)
+// 	//   Orientation mode of the move to
+// 	//   0: NONE: The drone won&#39;t change its orientation
+// 	//   1: TO_TARGET: The drone will make a rotation to look in direction of the
+// 	//      given location
+// 	//   2: HEADING_START: The drone will orientate itself to the given heading
+// 	//      before moving to the location
+// 	//   3: HEADING_DURING: The drone will orientate itself to the given heading
+// 	//      while moving to the location
+// 	// heading := args[4].(float32)
+// 	//   Heading (relative to the North in degrees). This value is only used if
+// 	//   the orientation mode is HEADING_START or HEADING_DURING
+// 	// status := args[5].(int32)
+// 	//   Status of the move to
+// 	//   0: RUNNING: The drone is actually flying to the given position
+// 	//   1: DONE: The drone has reached the target
+// 	//   2: CANCELED: The move to has been canceled, either by a CancelMoveTo
+// 	//      command or when a disconnection appears.
+// 	//   3: ERROR: The move to has not been finished or started because of an
+// 	//      error.
+// 	log.Info("ardrone3.moveToChanged() called")
+// 	return nil
+// }
 
-// TODO: Implement this
-// Title: Motion state
-// Description: Motion state.\n If [MotionDetection](#1-6-16) is disabled,
-//   motion is steady.\n This information is only valid when the drone is not
-//   flying.
-// Support: 090c:4.3.0
-// Triggered: when the [FlyingState](#1-4-1) is landed and the
-//   [MotionDetection](#1-6-16) is enabled and the motion state changes.\n This
-//   event is triggered at a filtered rate.
-// Result:
-func (p *pilotingState) motionState(args []interface{}) error {
-	// state := args[0].(int32)
-	//   Motion state
-	//   0: steady: Drone is steady
-	//   1: moving: Drone is moving
-	log.Info("ardrone3.motionState() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Motion state
+// // Description: Motion state.\n If [MotionDetection](#1-6-16) is disabled,
+// //   motion is steady.\n This information is only valid when the drone is not
+// //   flying.
+// // Support: 090c:4.3.0
+// // Triggered: when the [FlyingState](#1-4-1) is landed and the
+// //   [MotionDetection](#1-6-16) is enabled and the motion state changes.\n This
+// //   event is triggered at a filtered rate.
+// // Result:
+// func (p *pilotingState) motionState(args []interface{}) error {
+// 	// state := args[0].(int32)
+// 	//   Motion state
+// 	//   0: steady: Drone is steady
+// 	//   1: moving: Drone is moving
+// 	log.Info("ardrone3.motionState() called")
+// 	return nil
+// }
 
-// TODO: Implement this
-// Title: Piloted POI state
-// Description: Piloted POI state.
-// Support: 090c:4.3.0
-// Triggered: by [StartPilotedPOI](#1-0-12) or [StopPilotedPOI](#1-0-13) or when
-//   piloted POI becomes unavailable.
-// Result:
-func (p *pilotingState) pilotedPOI(args []interface{}) error {
-	// latitude := args[0].(float64)
-	//   Latitude of the location (in degrees) to look at. This information is
-	//   only valid when the state is pending or running.
-	// longitude := args[1].(float64)
-	//   Longitude of the location (in degrees) to look at. This information is
-	//   only valid when the state is pending or running.
-	// altitude := args[2].(float64)
-	//   Altitude above sea level (in m) to look at. This information is only
-	//   valid when the state is pending or running.
-	// status := args[3].(int32)
-	//   Status of the move to
-	//   0: UNAVAILABLE: The piloted POI is not available
-	//   1: AVAILABLE: The piloted POI is available
-	//   2: PENDING: Piloted POI has been requested. Waiting to be in state that
-	//      allow the piloted POI to start
-	//   3: RUNNING: Piloted POI is running
-	log.Info("ardrone3.pilotedPOI() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Piloted POI state
+// // Description: Piloted POI state.
+// // Support: 090c:4.3.0
+// // Triggered: by [StartPilotedPOI](#1-0-12) or [StopPilotedPOI](#1-0-13) or when
+// //   piloted POI becomes unavailable.
+// // Result:
+// func (p *pilotingState) pilotedPOI(args []interface{}) error {
+// 	// latitude := args[0].(float64)
+// 	//   Latitude of the location (in degrees) to look at. This information is
+// 	//   only valid when the state is pending or running.
+// 	// longitude := args[1].(float64)
+// 	//   Longitude of the location (in degrees) to look at. This information is
+// 	//   only valid when the state is pending or running.
+// 	// altitude := args[2].(float64)
+// 	//   Altitude above sea level (in m) to look at. This information is only
+// 	//   valid when the state is pending or running.
+// 	// status := args[3].(int32)
+// 	//   Status of the move to
+// 	//   0: UNAVAILABLE: The piloted POI is not available
+// 	//   1: AVAILABLE: The piloted POI is available
+// 	//   2: PENDING: Piloted POI has been requested. Waiting to be in state that
+// 	//      allow the piloted POI to start
+// 	//   3: RUNNING: Piloted POI is running
+// 	log.Info("ardrone3.pilotedPOI() called")
+// 	return nil
+// }
 
-// TODO: Implement this
-// Title: Return home battery capacity
-// Description: Battery capacity status to return home.
-// Support: 090c:4.3.0
-// Triggered: when the status of the battery capacity to do a return home
-//   changes. This means that it is triggered either when the battery level
-//   changes, when the distance to the home changes or when the position of the
-//   home changes.
-// Result:
-func (p *pilotingState) returnHomeBatteryCapacity(args []interface{}) error {
-	// status := args[0].(int32)
-	//   Status of battery to return home
-	//   0: OK: The battery is full enough to do a return home
-	//   1: WARNING: The battery is about to be too discharged to do a return home
-	//   2: CRITICAL: The battery level is too low to return to the home position
-	//   3: UNKNOWN: Battery capacity to do a return home is unknown. This can be
-	//      either because the home is unknown or the position of the drone is
-	//      unknown, or the drone has not enough information to determine how long
-	//      it takes to fly home.
-	log.Info("ardrone3.returnHomeBatteryCapacity() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Return home battery capacity
+// // Description: Battery capacity status to return home.
+// // Support: 090c:4.3.0
+// // Triggered: when the status of the battery capacity to do a return home
+// //   changes. This means that it is triggered either when the battery level
+// //   changes, when the distance to the home changes or when the position of the
+// //   home changes.
+// // Result:
+// func (p *pilotingState) returnHomeBatteryCapacity(args []interface{}) error {
+// 	// status := args[0].(int32)
+// 	//   Status of battery to return home
+// 	//   0: OK: The battery is full enough to do a return home
+// 	//   1: WARNING: The battery is about to be too discharged to do a return home
+// 	//   2: CRITICAL: The battery level is too low to return to the home position
+// 	//   3: UNKNOWN: Battery capacity to do a return home is unknown. This can be
+// 	//      either because the home is unknown or the position of the drone is
+// 	//      unknown, or the drone has not enough information to determine how long
+// 	//      it takes to fly home.
+// 	log.Info("ardrone3.returnHomeBatteryCapacity() called")
+// 	return nil
+// }

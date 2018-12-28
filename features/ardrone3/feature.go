@@ -8,7 +8,7 @@ import (
 // TODO: Document this
 type Feature interface {
 	arcommands.D2CFeature
-	AccessoryState() AccessoryState
+	// AccessoryState() AccessoryState
 	AntiflickeringState() AntiflickeringState
 	CameraState() CameraState
 	GPSSettingsState() GPSSettingsState
@@ -29,7 +29,7 @@ type Feature interface {
 }
 
 type feature struct {
-	accessoryState        *accessoryState
+	// accessoryState        *accessoryState
 	antiflickeringState   *antiflickeringState
 	cameraState           *cameraState
 	gpsSettingsState      *gpsSettingsState
@@ -53,7 +53,7 @@ type feature struct {
 // TODO: Document this
 func NewFeature() Feature {
 	return &feature{
-		accessoryState:        &accessoryState{},
+		// accessoryState:        &accessoryState{},
 		antiflickeringState:   &antiflickeringState{},
 		cameraState:           &cameraState{},
 		gpsSettingsState:      &gpsSettingsState{},
@@ -85,7 +85,7 @@ func (f *feature) Name() string {
 // TODO: Add stuff!
 func (f *feature) D2CClasses() []arcommands.D2CClass {
 	return []arcommands.D2CClass{
-		f.accessoryState,
+		// f.accessoryState,
 		f.antiflickeringState,
 		f.cameraState,
 		f.gpsSettingsState,
@@ -106,9 +106,9 @@ func (f *feature) D2CClasses() []arcommands.D2CClass {
 	}
 }
 
-func (f *feature) AccessoryState() AccessoryState {
-	return f.accessoryState
-}
+// func (f *feature) AccessoryState() AccessoryState {
+// 	return f.accessoryState
+// }
 
 func (f *feature) AntiflickeringState() AntiflickeringState {
 	return f.antiflickeringState

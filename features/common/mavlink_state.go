@@ -41,14 +41,14 @@ func (m *mavlinkState) D2CCommands() []arcommands.D2CCommand {
 		// 	},
 		// 	m.mavlinkPlayErrorStateChanged,
 		// ),
-		arcommands.NewD2CCommand(
-			2,
-			"MissionItemExecuted",
-			[]interface{}{
-				uint32(0), // idx,
-			},
-			m.missionItemExecuted,
-		),
+		// arcommands.NewD2CCommand(
+		// 	2,
+		// 	"MissionItemExecuted",
+		// 	[]interface{}{
+		// 		uint32(0), // idx,
+		// 	},
+		// 	m.missionItemExecuted,
+		// ),
 	}
 }
 
@@ -95,16 +95,16 @@ func (m *mavlinkState) mavlinkFilePlayingStateChanged(args []interface{}) error 
 // 	return nil
 // }
 
-// TODO: Implement this
-// Title: Mission item executed
-// Description: Mission item has been executed.
-// Support: 090c:4.2.0;090e:1.4.0
-// Triggered: when a mission item has been executed during a flight plan.
-// Result:
-func (m *mavlinkState) missionItemExecuted(args []interface{}) error {
-	// idx := args[0].(uint32)
-	//   Index of the mission item. This is the place of the mission item in the
-	//   list of the items of the mission. Begins at 0.
-	log.Info("common.missionItemExecuted() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Mission item executed
+// // Description: Mission item has been executed.
+// // Support: 090c:4.2.0;090e:1.4.0
+// // Triggered: when a mission item has been executed during a flight plan.
+// // Result:
+// func (m *mavlinkState) missionItemExecuted(args []interface{}) error {
+// 	// idx := args[0].(uint32)
+// 	//   Index of the mission item. This is the place of the mission item in the
+// 	//   list of the items of the mission. Begins at 0.
+// 	log.Info("common.missionItemExecuted() called")
+// 	return nil
+// }

@@ -34,18 +34,18 @@ package ardrone3
 // 	}
 // }
 
-// // // TODO: Implement this
-// // // Title: Alert sound state
-// // // Description: Alert sound state.
-// // // Support: none
-// // // Triggered: by [StartAlertSound](#1-35-0) or [StopAlertSound](#1-35-1) or \
-// // //   when the drone starts or stops to play an alert sound by itself.
-// // // Result:
-// // func (s *soundState) alertSound(args []interface{}) error {
-// // 	// state := args[0].(int32)
-// // 	//   State of the alert sound
-// // 	//   0: stopped: Alert sound is not playing
-// // 	//   1: playing: Alert sound is playing
-// // 	log.Info("ardrone3.alertSound() called")
-// // 	return nil
-// // }
+// // TODO: Implement this
+// // Title: Alert sound state
+// // Description: Alert sound state.
+// // Support: none
+// // Triggered: by [StartAlertSound](#1-35-0) or [StopAlertSound](#1-35-1) or \
+// //   when the drone starts or stops to play an alert sound by itself.
+// // Result:
+// func (s *soundState) alertSound(args []interface{}) error {
+// 	// state := args[0].(int32)
+// 	//   State of the alert sound
+// 	//   0: stopped: Alert sound is not playing
+// 	//   1: playing: Alert sound is playing
+// 	log.Info("ardrone3.alertSound() called")
+// 	return nil
+// }
