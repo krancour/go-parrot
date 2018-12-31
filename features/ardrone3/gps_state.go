@@ -1,6 +1,8 @@
 package ardrone3
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 )
@@ -9,9 +11,28 @@ import (
 
 // GPSState ...
 // TODO: Document this
-type GPSState interface{}
+type GPSState interface {
+	// RLock blocks until a read lock is obtained. This permits callers to procede
+	// with querying any or all attributes of the GPS state without worry
+	// that some attributes will be overwritten as others are read. i.e. It
+	// permits the possibility of taking an atomic snapshop of GPS state.
+	// Note that use of this function is not obligatory for applications that do
+	// not require such guarantees. Callers MUST call RUnlock() or else GPS
+	// state will never resume updating.
+	RLock()
+	// RUnlock releases a read lock on the piloting state. See RLock().
+	RUnlock()
+	// NumberOfSatellites returns the number of satellites used to determine GPS
+	// coordinates.
+	NumberOfSatellites() uint8
+}
 
-type gpsState struct{}
+type gpsState struct {
+	// numberOfSatellites is the number of satellites used to determine GPS
+	// coordinates.
+	numberOfSatellites uint8
+	lock               sync.RWMutex
+}
 
 func (g *gpsState) ID() uint8 {
 	return 31
@@ -25,11 +46,11 @@ func (g *gpsState) D2CCommands() []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
-			"NumberOfSatelliteChanged",
+			"NumberOfSatellitesChanged",
 			[]interface{}{
-				uint8(0), // numberOfSatellite,
+				uint8(0), // numberOfSatellites,
 			},
-			g.numberOfSatelliteChanged,
+			g.numberOfSatellitesChanged,
 		),
 		arcommands.NewD2CCommand(
 			1,
@@ -51,16 +72,13 @@ func (g *gpsState) D2CCommands() []arcommands.D2CCommand {
 	}
 }
 
-// TODO: Implement this
-// Title: Number of GPS satellites
-// Description: Number of GPS satellites.
-// Support: 0901;090c;090e
-// Triggered: on change.
-// Result:
-func (g *gpsState) numberOfSatelliteChanged(args []interface{}) error {
-	// numberOfSatellite := args[0].(uint8)
-	//   The number of satellite
-	log.Info("ardrone3.numberOfSatelliteChanged() called")
+// numberOfSatellitesChanged is invoked when the the device reports that the
+// number of satellites being used to determine GPS coordinates has changed.
+func (g *gpsState) numberOfSatellitesChanged(args []interface{}) error {
+	g.numberOfSatellites = args[0].(uint8)
+	log.WithField(
+		"numberOfSatellites", g.numberOfSatellites,
+	).Debug("gps state number of satellites updated")
 	return nil
 }
 
@@ -115,4 +133,16 @@ func (g *gpsState) homeTypeChosenChanged(args []interface{}) error {
 	//      of the followMe (given by ControllerInfo-GPS)
 	log.Info("ardrone3.homeTypeChosenChanged() called")
 	return nil
+}
+
+func (g *gpsState) NumberOfSatellites() uint8 {
+	return g.numberOfSatellites
+}
+
+func (g *gpsState) RLock() {
+	g.lock.RLock()
+}
+
+func (g *gpsState) RUnlock() {
+	g.lock.RUnlock()
 }

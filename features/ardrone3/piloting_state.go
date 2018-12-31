@@ -1,6 +1,8 @@
 package ardrone3
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 )
@@ -9,9 +11,90 @@ import (
 
 // PilotingState ...
 // TODO: Document this
-type PilotingState interface{}
+type PilotingState interface {
+	// RLock blocks until a read lock is obtained. This permits callers to procede
+	// with querying any or all attributes of the piloting state without worry
+	// that some attributes will be overwritten as others are read. i.e. It
+	// permits the possibility of taking an atomic snapshop of piloting state.
+	// Note that use of this function is not obligatory for applications that do
+	// not require such guarantees. Callers MUST call RUnlock() or else piloting
+	// state will never resume updating.
+	RLock()
+	// RUnlock releases a read lock on the piloting state. See RLock().
+	RUnlock()
+	// SpeedX returns the velocity relative to the north in m/s. When the drone
+	// moves to the north, the value is > 0.
+	SpeedX() float32
+	// SpeedY returns the velocity relative to the east in m/s. When the drone
+	// moves to the east, the value is > 0.
+	SpeedY() float32
+	// SpeedZ returns velocity relative to the ground in m/s. When the drone moves
+	// down, the value is > 0.
+	SpeedZ() float32
+	// Altitude returns the altitude, relative to the take off point, in meters.
+	Altitude() float64
+	// Roll returns the roll in radians.
+	Roll() float32
+	// Pitch returns the pitch in radians.
+	Pitch() float32
+	// Yaw returns the yaw in radians.
+	Yaw() float32
+	// Latitude returns the latitude, as determined by GPS, in degrees or 500.0 if
+	// unavailable.
+	Latitude() float64
+	// Longitude returns the longitude, as determined by GPS, in degrees or 500.0
+	// if unavailable.
+	Longitude() float64
+	// GPSAltitude returns the altitude relative to sea level, as determined by
+	// GPS, in degrees or 500.0 if unavailable.
+	GPSAltitude() float64
+	// LatitudeAccuracy returns GPS latitude location error (1 sigma/standard
+	// deviation) in meters or -1 if unavailable.
+	LatitudeAccuracy() int8
+	// LongitudeAccuracy returns GPS longitude location error (1 sigma/standard
+	// deviation) in meters or -1 if unavailable.
+	LongitudeAccuracy() int8
+	// GPSAltitudeAccuracy returns GPS altitude location error (1 sigma/standard
+	// deviation) in meters or -1 if unavailable.
+	GPSAltitudeAccuracy() int8
+}
 
-type pilotingState struct{}
+type pilotingState struct {
+	// speedX is velocity relative to the north in m/s. When the drone moves to
+	// the north, the value is > 0
+	speedX float32
+	// speedY is velocity relative to the east in m/s. When the drone moves to the
+	// east, the value is > 0
+	speedY float32
+	// speedZ is velocity relative to the ground in m/s. When the drone moves
+	// down, the value is > 0
+	speedZ float32
+	// altitude, relative to the take off point, in meters
+	altitude float64
+	// roll in radians
+	roll float32
+	// pitch in radians
+	pitch float32
+	// yaw in radians
+	yaw float32
+	// latitude, as determined by GPS, in degrees (500.0 if unavailable)
+	latitude float64
+	// longitude, as determined by GPS, in degrees (500.0 if unavailable)
+	longitude float64
+	// gpsAltitude is altitude relative to sea level, as determined by GPS, in
+	// meters
+	gpsAltitude float64
+	// latitudeAccuracy represents latitude location error (1 sigma/standard
+	// deviation) in meters (-1 if unavailable)
+	latitudeAccuracy int8
+	// longitudeAccuracy represents longitude location error (1 sigma/standard
+	// deviation) in meters (-1 if unavailable)
+	longitudeAccuracy int8
+	// gpsAltitudeAccuracy represents altitude location error (1 sigma/standard
+	// deviation) in meters (-1 if unavailable)
+	gpsAltitudeAccuracy int8
+	lock                sync.RWMutex
+}
 
 func (p *pilotingState) ID() uint8 {
 	return 4
@@ -54,6 +137,12 @@ func (p *pilotingState) D2CCommands() []arcommands.D2CCommand {
 			},
 			p.navigateHomeStateChanged,
 		),
+		// According to Parrot developer documentation, they seem poised to replace
+		// PositionChanged with GpsLocationChanged. Since GpsLocationChanged is
+		// functioning as expected, but we can still see this command being invoked,
+		// we'll implement the command to avoid a warning, but the implementation
+		// will remain a no-op unless / until such time that it becomes clear that
+		// older versions of the firmware might require us to support both commands.
 		arcommands.NewD2CCommand(
 			4,
 			"PositionChanged",
@@ -256,12 +345,14 @@ func (p *pilotingState) navigateHomeStateChanged(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Drone&#39;s position changed
-// Description: Drone&#39;s position changed.
-// Support: 0901;090c;090e
-// Triggered: regularly.
-// Result:
+// PositionChanged does not appear deprecated (yet), according to Parrot
+// developer documentation, but according to the same documentation, they appear
+// poised to replace PositionChanged with GpsLocationChanged. Since
+// GpsLocationChanged is functioning as expected, but we can still see this
+// command being invoked, we'll implement the command to avoid a warning, but
+// the implementation will remain a no-op unless / until such time that it
+// becomes clear that older versions of the firmware might require us to support
+// both commands.
 func (p *pilotingState) positionChanged(args []interface{}) error {
 	// latitude := args[0].(float64)
 	//   Latitude position in decimal degrees (500.0 if not available)
@@ -269,44 +360,43 @@ func (p *pilotingState) positionChanged(args []interface{}) error {
 	//   Longitude position in decimal degrees (500.0 if not available)
 	// altitude := args[2].(float64)
 	//   Altitude in meters (from GPS)
-	log.Info("ardrone3.positionChanged() called")
+	log.Debug("piloting state position changed-- this is a no-op")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Drone&#39;s speed changed
-// Description: Drone&#39;s speed changed.\n Expressed in the NED referential
-//   (North-East-Down).
-// Support: 0901;090c;090e
-// Triggered: regularly.
-// Result:
+// speedChanged is invoked when the the device reports velocity at regular
+// intervals.
 func (p *pilotingState) speedChanged(args []interface{}) error {
-	// speedX := args[0].(float32)
-	//   Speed relative to the North (when drone moves to the north, speed is
-	//   &gt; 0) (in m/s)
-	// speedY := args[1].(float32)
-	//   Speed relative to the East (when drone moves to the east, speed is
-	//   &gt; 0) (in m/s)
-	// speedZ := args[2].(float32)
-	//   Speed on the z axis (when drone moves down, speed is &gt; 0) (in m/s)
-	log.Info("ardrone3.speedChanged() called")
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	p.speedX = args[0].(float32)
+	p.speedY = args[1].(float32)
+	p.speedZ = args[2].(float32)
+	log.WithField(
+		"speedX", p.speedX,
+	).WithField(
+		"speedY", p.speedY,
+	).WithField(
+		"speedZ", p.speedZ,
+	).Debug("piloting state speed updated")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Drone&#39;s attitude changed
-// Description: Drone&#39;s attitude changed.
-// Support: 0901;090c;090e
-// Triggered: regularly.
-// Result:
+// attitudeChanged is invoked when the device reports attitude at regular
+// intervals.
 func (p *pilotingState) attitudeChanged(args []interface{}) error {
-	// roll := args[0].(float32)
-	//   roll value (in radian)
-	// pitch := args[1].(float32)
-	//   Pitch value (in radian)
-	// yaw := args[2].(float32)
-	//   Yaw value (in radian)
-	log.Info("ardrone3.attitudeChanged() called")
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	p.roll = args[0].(float32)
+	p.pitch = args[1].(float32)
+	p.yaw = args[2].(float32)
+	log.WithField(
+		"roll", p.roll,
+	).WithField(
+		"pitch", p.pitch,
+	).WithField(
+		"yaw", p.yaw,
+	).Debug("piloting state attitude updated")
 	return nil
 }
 
@@ -324,45 +414,42 @@ func (p *pilotingState) attitudeChanged(args []interface{}) error {
 // 	return nil
 // }
 
-// TODO: Implement this
-// Title: Drone&#39;s altitude changed
-// Description: Drone&#39;s altitude changed.\n The altitude reported is the
-//   altitude above the take off point.\n To get the altitude above sea level,
-//   see [PositionChanged](#1-4-4).
-// Support: 0901;090c;090e
-// Triggered: regularly.
-// Result:
+// altitudeChanged is invoked when the device reports attitude relative to the
+// take off point at regular intervals.
 func (p *pilotingState) altitudeChanged(args []interface{}) error {
-	// altitude := args[0].(float64)
-	//   Altitude in meters
-	log.Info("ardrone3.altitudeChanged() called")
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	p.altitude = args[0].(float64)
+	log.WithField(
+		"altitude", p.altitude,
+	).Debug("piloting state altitude updated")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Drone&#39;s location changed
-// Description: Drone&#39;s location changed.\n This event is meant to replace
-//   [PositionChanged](#1-4-4).
-// Support: 0901:4.0.0;090c:4.0.0
-// Triggered: regularly.
-// Result:
+// gpsLocationChanged is invoked when the device reports gps coordinates at
+// regular intervals.
 func (p *pilotingState) gpsLocationChanged(args []interface{}) error {
-	// latitude := args[0].(float64)
-	//   Latitude location in decimal degrees (500.0 if not available)
-	// longitude := args[1].(float64)
-	//   Longitude location in decimal degrees (500.0 if not available)
-	// altitude := args[2].(float64)
-	//   Altitude location in meters.
-	// latitude_accuracy := args[3].(int8)
-	//   Latitude location error in meters (1 sigma/standard deviation) -1 if not
-	//   available.
-	// longitude_accuracy := args[4].(int8)
-	//   Longitude location error in meters (1 sigma/standard deviation) -1 if not
-	//   available.
-	// altitude_accuracy := args[5].(int8)
-	//   Altitude location error in meters (1 sigma/standard deviation) -1 if not
-	//   available.
-	log.Info("ardrone3.gpsLocationChanged() called")
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	p.latitude = args[0].(float64)
+	p.longitude = args[1].(float64)
+	p.altitude = args[2].(float64)
+	p.latitudeAccuracy = args[3].(int8)
+	p.longitudeAccuracy = args[4].(int8)
+	p.gpsAltitudeAccuracy = args[5].(int8)
+	log.WithField(
+		"latitude", p.latitude,
+	).WithField(
+		"longitude", p.longitude,
+	).WithField(
+		"altitude", p.gpsAltitude,
+	).WithField(
+		"latitudeAccuracy", p.latitudeAccuracy,
+	).WithField(
+		"longitudeAccuracy", p.longitudeAccuracy,
+	).WithField(
+		"altitudeAccuracy", p.gpsAltitudeAccuracy,
+	).Debug("piloting state gps coordinates updated")
 	return nil
 }
 
@@ -503,3 +590,63 @@ func (p *pilotingState) gpsLocationChanged(args []interface{}) error {
 // 	log.Info("ardrone3.returnHomeBatteryCapacity() called")
 // 	return nil
 // }
+
+func (p *pilotingState) RLock() {
+	p.lock.RLock()
+}
+
+func (p *pilotingState) RUnlock() {
+	p.lock.RUnlock()
+}
+
+func (p *pilotingState) SpeedX() float32 {
+	return p.speedX
+}
+
+func (p *pilotingState) SpeedY() float32 {
+	return p.speedY
+}
+
+func (p *pilotingState) SpeedZ() float32 {
+	return p.speedZ
+}
+
+func (p *pilotingState) Altitude() float64 {
+	return p.altitude
+}
+
+func (p *pilotingState) Roll() float32 {
+	return p.roll
+}
+
+func (p *pilotingState) Pitch() float32 {
+	return p.pitch
+}
+
+func (p *pilotingState) Yaw() float32 {
+	return p.yaw
+}
+
+func (p *pilotingState) Latitude() float64 {
+	return p.latitude
+}
+
+func (p *pilotingState) Longitude() float64 {
+	return p.longitude
+}
+
+func (p *pilotingState) GPSAltitude() float64 {
+	return p.gpsAltitude
+}
+
+func (p *pilotingState) LatitudeAccuracy() int8 {
+	return p.latitudeAccuracy
+}
+
+func (p *pilotingState) LongitudeAccuracy() int8 {
+	return p.longitudeAccuracy
+}
+
+func (p *pilotingState) GPSAltitudeAccuracy() int8 {
+	return p.gpsAltitudeAccuracy
+}
