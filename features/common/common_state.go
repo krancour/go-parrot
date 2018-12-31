@@ -155,15 +155,15 @@ func (c *commonState) D2CCommands() []arcommands.D2CCommand {
 		// 	},
 		// 	c.massStorageContentForCurrentRun,
 		// ),
-		arcommands.NewD2CCommand(
-			14,
-			"VideoRecordingTimestamp",
-			[]interface{}{
-				uint64(0), // startTimestamp,
-				uint64(0), // stopTimestamp,
-			},
-			c.videoRecordingTimestamp,
-		),
+		// arcommands.NewD2CCommand(
+		// 	14,
+		// 	"VideoRecordingTimestamp",
+		// 	[]interface{}{
+		// 		uint64(0), // startTimestamp,
+		// 		uint64(0), // stopTimestamp,
+		// 	},
+		// 	c.videoRecordingTimestamp,
+		// ),
 	}
 }
 
@@ -437,21 +437,21 @@ func (c *commonState) sensorsStatesListChanged(args []interface{}) error {
 // 	return nil
 // }
 
-// TODO: Implement this
-// Title: Video recording timestamp
-// Description: Current or last video recording timestamp.\n Timestamp in
-//   milliseconds since 00:00:00 UTC on 1 January 1970.\n **Please note that
-//   values don&#39;t persist after drone reboot**
-// Support:
-// Triggered: on video recording start and video recording stop or \n after that
-//   the date/time of the drone changed.
-// Result:
-func (c *commonState) videoRecordingTimestamp(args []interface{}) error {
-	// startTimestamp := args[0].(uint64)
-	//   Timestamp in milliseconds since 00:00:00 UTC on 1 January 1970.
-	// stopTimestamp := args[1].(uint64)
-	//   Timestamp in milliseconds since 00:00:00 UTC on 1 January 1970. 0 mean
-	//   that video is still recording.
-	log.Info("common.videoRecordingTimestamp() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Video recording timestamp
+// // Description: Current or last video recording timestamp.\n Timestamp in
+// //   milliseconds since 00:00:00 UTC on 1 January 1970.\n **Please note that
+// //   values don&#39;t persist after drone reboot**
+// // Support:
+// // Triggered: on video recording start and video recording stop or \n after that
+// //   the date/time of the drone changed.
+// // Result:
+// func (c *commonState) videoRecordingTimestamp(args []interface{}) error {
+// 	// startTimestamp := args[0].(uint64)
+// 	//   Timestamp in milliseconds since 00:00:00 UTC on 1 January 1970.
+// 	// stopTimestamp := args[1].(uint64)
+// 	//   Timestamp in milliseconds since 00:00:00 UTC on 1 January 1970. 0 mean
+// 	//   that video is still recording.
+// 	log.Info("common.videoRecordingTimestamp() called")
+// 	return nil
+// }

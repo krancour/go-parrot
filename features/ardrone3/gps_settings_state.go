@@ -75,15 +75,15 @@ func (g *gpsSettingsState) D2CCommands() []arcommands.D2CCommand {
 			},
 			g.returnHomeDelayChanged,
 		),
-		arcommands.NewD2CCommand(
-			6,
-			"GeofenceCenterChanged",
-			[]interface{}{
-				float64(0), // latitude,
-				float64(0), // longitude,
-			},
-			g.geofenceCenterChanged,
-		),
+		// arcommands.NewD2CCommand(
+		// 	6,
+		// 	"GeofenceCenterChanged",
+		// 	[]interface{}{
+		// 		float64(0), // latitude,
+		// 		float64(0), // longitude,
+		// 	},
+		// 	g.geofenceCenterChanged,
+		// ),
 	}
 }
 
@@ -188,19 +188,19 @@ func (g *gpsSettingsState) returnHomeDelayChanged(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Geofence center
-// Description: Geofence center location. This location represents the center of
-//   the geofence zone. This is updated at a maximum frequency of 1 Hz.
-// Support:
-// Triggered: when [HomeChanged](#1-24-0) and when [GpsLocationChanged](#1-4-9)
-//   before takeoff.
-// Result:
-func (g *gpsSettingsState) geofenceCenterChanged(args []interface{}) error {
-	// latitude := args[0].(float64)
-	//   GPS latitude in decimal degrees
-	// longitude := args[1].(float64)
-	//   GPS longitude in decimal degrees
-	log.Info("ardrone3.geofenceCenterChanged() called")
-	return nil
-}
+// // TODO: Implement this
+// // Title: Geofence center
+// // Description: Geofence center location. This location represents the center of
+// //   the geofence zone. This is updated at a maximum frequency of 1 Hz.
+// // Support:
+// // Triggered: when [HomeChanged](#1-24-0) and when [GpsLocationChanged](#1-4-9)
+// //   before takeoff.
+// // Result:
+// func (g *gpsSettingsState) geofenceCenterChanged(args []interface{}) error {
+// 	// latitude := args[0].(float64)
+// 	//   GPS latitude in decimal degrees
+// 	// longitude := args[1].(float64)
+// 	//   GPS longitude in decimal degrees
+// 	log.Info("ardrone3.geofenceCenterChanged() called")
+// 	return nil
+// }

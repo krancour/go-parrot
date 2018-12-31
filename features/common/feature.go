@@ -22,7 +22,7 @@ type Feature interface {
 	// HeadlightsState() HeadlightsState
 	MavlinkState() MavlinkState
 	NetworkEvent() NetworkEvent
-	OverHeatState() OverHeatState
+	// OverHeatState() OverHeatState
 	RunState() RunState
 	SettingsState() SettingsState
 	WifiSettingsState() WifiSettingsState
@@ -41,9 +41,9 @@ type feature struct {
 	flightPlanSettingsState *flightPlanSettingsState
 	flightPlanState         *flightPlanState
 	// headlightsState         *headlightsState
-	mavlinkState      *mavlinkState
-	networkEvent      *networkEvent
-	overHeatState     *overHeatState
+	mavlinkState *mavlinkState
+	networkEvent *networkEvent
+	// overHeatState     *overHeatState
 	runState          *runState
 	settingsState     *settingsState
 	wifiSettingsState *wifiSettingsState
@@ -65,9 +65,9 @@ func NewFeature() Feature {
 		flightPlanSettingsState: &flightPlanSettingsState{},
 		flightPlanState:         &flightPlanState{},
 		// headlightsState:         &headlightsState{},
-		mavlinkState:      &mavlinkState{},
-		networkEvent:      &networkEvent{},
-		overHeatState:     &overHeatState{},
+		mavlinkState: &mavlinkState{},
+		networkEvent: &networkEvent{},
+		// overHeatState:     &overHeatState{},
 		runState:          &runState{},
 		settingsState:     &settingsState{},
 		wifiSettingsState: &wifiSettingsState{},
@@ -99,7 +99,7 @@ func (f *feature) D2CClasses() []arcommands.D2CClass {
 		// f.headlightsState,
 		f.mavlinkState,
 		f.networkEvent,
-		f.overHeatState,
+		// f.overHeatState,
 		f.runState,
 		f.settingsState,
 		f.wifiSettingsState,
@@ -162,9 +162,9 @@ func (f *feature) NetworkEvent() NetworkEvent {
 	return f.networkEvent
 }
 
-func (f *feature) OverHeatState() OverHeatState {
-	return f.overHeatState
-}
+// func (f *feature) OverHeatState() OverHeatState {
+// 	return f.overHeatState
+// }
 
 func (f *feature) RunState() RunState {
 	return f.RunState

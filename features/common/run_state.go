@@ -29,7 +29,7 @@ func (r *runState) D2CCommands() []arcommands.D2CCommand {
 			[]interface{}{
 				string(0), // runId,
 			},
-			r.runIdChanged,
+			r.runIDChanged,
 		),
 	}
 }
@@ -44,9 +44,9 @@ func (r *runState) D2CCommands() []arcommands.D2CCommand {
 // Triggered: when the drone generates a new run id (generally right after a
 //   take off).
 // Result:
-func (r *runState) runIdChanged(args []interface{}) error {
+func (r *runState) runIDChanged(args []interface{}) error {
 	// runId := args[0].(string)
 	//   Id of the run
-	log.Info("common.runIdChanged() called")
+	log.Info("common.runIDChanged() called")
 	return nil
 }
