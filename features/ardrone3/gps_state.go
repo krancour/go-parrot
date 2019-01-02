@@ -20,7 +20,7 @@ type GPSState interface {
 	// not require such guarantees. Callers MUST call RUnlock() or else GPS
 	// state will never resume updating.
 	RLock()
-	// RUnlock releases a read lock on the piloting state. See RLock().
+	// RUnlock releases a read lock on the GPS state. See RLock().
 	RUnlock()
 	// NumberOfSatellites returns the number of satellites used to determine GPS
 	// coordinates.
@@ -75,6 +75,8 @@ func (g *gpsState) D2CCommands() []arcommands.D2CCommand {
 // numberOfSatellitesChanged is invoked when the the device reports that the
 // number of satellites being used to determine GPS coordinates has changed.
 func (g *gpsState) numberOfSatellitesChanged(args []interface{}) error {
+	g.lock.Lock()
+	defer g.lock.Unlock()
 	g.numberOfSatellites = args[0].(uint8)
 	log.WithField(
 		"numberOfSatellites", g.numberOfSatellites,

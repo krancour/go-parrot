@@ -1,6 +1,8 @@
 package common
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 )
@@ -9,9 +11,30 @@ import (
 
 // CommonState ...
 // TODO: Document this
-type CommonState interface{}
+type CommonState interface {
+	// RLock blocks until a read lock is obtained. This permits callers to procede
+	// with querying any or all attributes of the common state without worry
+	// that some attributes will be overwritten as others are read. i.e. It
+	// permits the possibility of taking an atomic snapshop of common state.
+	// Note that use of this function is not obligatory for applications that do
+	// not require such guarantees. Callers MUST call RUnlock() or else piloting
+	// state will never resume updating.
+	RLock()
+	// RUnlock releases a read lock on the common state. See RLock().
+	RUnlock()
+	// RSSI returns the relative signal stength between the client and the device
+	// in dbm
+	RSSI() int16
+}
 
-type commonState struct{}
+type commonState struct {
+	// TODO: Is this right? I thought RSSI is a relative measure, while dbm
+	// would seem to indicate an absolute measure.
+	// rssi is the relative signal stength between the client and the device
+	// in dbm
+	rssi int16
+	lock sync.RWMutex
+}
 
 func (c *commonState) ID() uint8 {
 	return 5
@@ -285,16 +308,15 @@ func (c *commonState) currentTimeChanged(args []interface{}) error {
 // 	return nil
 // }
 
-// TODO: Implement this
-// Title: Rssi changed
-// Description: Rssi (Wifi Signal between controller and product) changed.
-// Support: 0901;0902;0905;0906;090c;090e
-// Triggered: regularly.
-// Result:
+// wifiSignalChanged is invoked when the device reports relative wifi signal
+// strength at regular intervals.
 func (c *commonState) wifiSignalChanged(args []interface{}) error {
-	// rssi := args[0].(int16)
-	//   RSSI of the signal between controller and the product (in dbm)
-	log.Info("common.wifiSignalChanged() called")
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.rssi = args[0].(int16)
+	log.WithField(
+		"rssi", c.rssi,
+	).Debug("common state wifi signal strength updated")
 	return nil
 }
 
@@ -455,3 +477,15 @@ func (c *commonState) sensorsStatesListChanged(args []interface{}) error {
 // 	log.Info("common.videoRecordingTimestamp() called")
 // 	return nil
 // }
+
+func (c *commonState) RLock() {
+	c.lock.RLock()
+}
+
+func (c *commonState) RUnlock() {
+	c.lock.RUnlock()
+}
+
+func (c *commonState) RSSI() int16 {
+	return c.rssi
+}
