@@ -5,6 +5,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arcommands"
+	"github.com/krancour/go-parrot/ptr"
 )
 
 // Common state from product
@@ -23,8 +24,10 @@ type CommonState interface {
 	// RUnlock releases a read lock on the common state. See RLock().
 	RUnlock()
 	// RSSI returns the relative signal stength between the client and the device
-	// in dbm
-	RSSI() int16
+	// in dbm. A boolean value is also returned, indicating whether the first
+	// value was reported by the device (true) or a default value (false). This
+	// permits callers to distinguish real zero values from default zero values.
+	RSSI() (int16, bool)
 }
 
 type commonState struct {
@@ -32,7 +35,7 @@ type commonState struct {
 	// would seem to indicate an absolute measure.
 	// rssi is the relative signal stength between the client and the device
 	// in dbm
-	rssi int16
+	rssi *int16
 	lock sync.RWMutex
 }
 
@@ -313,7 +316,7 @@ func (c *commonState) currentTimeChanged(args []interface{}) error {
 func (c *commonState) wifiSignalChanged(args []interface{}) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	c.rssi = args[0].(int16)
+	c.rssi = ptr.ToInt16(args[0].(int16))
 	log.WithField(
 		"rssi", c.rssi,
 	).Debug("common state wifi signal strength updated")
@@ -486,6 +489,9 @@ func (c *commonState) RUnlock() {
 	c.lock.RUnlock()
 }
 
-func (c *commonState) RSSI() int16 {
-	return c.rssi
+func (c *commonState) RSSI() (int16, bool) {
+	if c.rssi == nil {
+		return 0, false
+	}
+	return *c.rssi, true
 }

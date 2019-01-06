@@ -5,6 +5,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arcommands"
+	"github.com/krancour/go-parrot/ptr"
 )
 
 // State from drone
@@ -23,76 +24,114 @@ type PilotingState interface {
 	// RUnlock releases a read lock on the piloting state. See RLock().
 	RUnlock()
 	// SpeedX returns the velocity relative to the north in m/s. When the drone
-	// moves to the north, the value is > 0.
-	SpeedX() float32
+	// moves to the north, the value is > 0. A boolean value is also returned,
+	// indicating whether the first value was reported by the device (true) or a
+	// default value (false). This permits callers to distinguish real zero values
+	// from default zero values.
+	SpeedX() (float32, bool)
 	// SpeedY returns the velocity relative to the east in m/s. When the drone
-	// moves to the east, the value is > 0.
-	SpeedY() float32
+	// moves to the east, the value is > 0. A boolean value is also returned,
+	// indicating whether the first value was reported by the device (true) or a
+	// default value (false). This permits callers to distinguish real zero values
+	// from default zero values.
+	SpeedY() (float32, bool)
 	// SpeedZ returns velocity relative to the ground in m/s. When the drone moves
-	// down, the value is > 0.
-	SpeedZ() float32
+	// down, the value is > 0. A boolean value is also returned, indicating
+	// whether the first value was reported by the device (true) or a default
+	// value (false). This permits callers to distinguish real zero values from
+	// default zero values.
+	SpeedZ() (float32, bool)
 	// Altitude returns the altitude, relative to the take off point, in meters.
-	Altitude() float64
-	// Roll returns the roll in radians.
-	Roll() float32
-	// Pitch returns the pitch in radians.
-	Pitch() float32
-	// Yaw returns the yaw in radians.
-	Yaw() float32
+	// A boolean value is also returned, indicating whether the first value was
+	// reported by the device (true) or a default value (false). This permits
+	// callers to distinguish real zero values from default zero values.
+	Altitude() (float64, bool)
+	// Roll returns the roll in radians. A boolean value is also returned,
+	// indicating whether the first value was reported by the device (true) or a
+	// default value (false). This permits callers to distinguish real zero values
+	// from default zero values.
+	Roll() (float32, bool)
+	// Pitch returns the pitch in radians. A boolean value is also returned,
+	// indicating whether the first value was reported by the device (true) or a
+	// default value (false). This permits callers to distinguish real zero values
+	// from default zero values.
+	Pitch() (float32, bool)
+	// Yaw returns the yaw in radians. A boolean value is also returned,
+	// indicating whether the first value was reported by the device (true) or a
+	// default value (false). This permits callers to distinguish real zero values
+	// from default zero values.
+	Yaw() (float32, bool)
 	// Latitude returns the latitude, as determined by GPS, in degrees or 500.0 if
-	// unavailable.
-	Latitude() float64
+	// unavailable. A boolean value is also returned, indicating whether the first
+	// value was reported by the device (true) or a default value (false). This
+	// permits callers to distinguish real zero values from default zero values.
+	Latitude() (float64, bool)
 	// Longitude returns the longitude, as determined by GPS, in degrees or 500.0
-	// if unavailable.
-	Longitude() float64
+	// if unavailable. A boolean value is also returned, indicating whether the
+	// first value was reported by the device (true) or a default value (false).
+	// This permits callers to distinguish real zero values from default zero
+	// values.
+	Longitude() (float64, bool)
 	// GPSAltitude returns the altitude relative to sea level, as determined by
-	// GPS, in degrees or 500.0 if unavailable.
-	GPSAltitude() float64
+	// GPS, in meters. A boolean value is also returned, indicating whether the
+	// first value was reported by the device (true) or a default value (false).
+	// This permits callers to distinguish real zero values from default zero
+	// values.
+	GPSAltitude() (float64, bool)
 	// LatitudeAccuracy returns GPS latitude location error (1 sigma/standard
-	// deviation) in meters or -1 if unavailable.
-	LatitudeAccuracy() int8
+	// deviation) in meters or -1 if unavailable. A boolean value is also
+	// returned, indicating whether the first value was reported by the device
+	// (true) or a default value (false). This permits callers to distinguish real
+	// zero values from default zero values.
+	LatitudeAccuracy() (int8, bool)
 	// LongitudeAccuracy returns GPS longitude location error (1 sigma/standard
-	// deviation) in meters or -1 if unavailable.
-	LongitudeAccuracy() int8
+	// deviation) in meters or -1 if unavailable. A boolean value is also
+	// returned, indicating whether the first value was reported by the device
+	// (true) or a default value (false). This permits callers to distinguish real
+	// zero values from default zero values.
+	LongitudeAccuracy() (int8, bool)
 	// GPSAltitudeAccuracy returns GPS altitude location error (1 sigma/standard
-	// deviation) in meters or -1 if unavailable.
-	GPSAltitudeAccuracy() int8
+	// deviation) in meters or -1 if unavailable. A boolean value is also
+	// returned, indicating whether the first value was reported by the device
+	// (true) or a default value (false). This permits callers to distinguish real
+	// zero values from default zero values.
+	GPSAltitudeAccuracy() (int8, bool)
 }
 
 type pilotingState struct {
 	// speedX is velocity relative to the north in m/s. When the drone moves to
 	// the north, the value is > 0
-	speedX float32
+	speedX *float32
 	// speedY is velocity relative to the east in m/s. When the drone moves to the
 	// east, the value is > 0
-	speedY float32
+	speedY *float32
 	// speedZ is velocity relative to the ground in m/s. When the drone moves
 	// down, the value is > 0
-	speedZ float32
+	speedZ *float32
 	// altitude, relative to the take off point, in meters
-	altitude float64
+	altitude *float64
 	// roll in radians
-	roll float32
+	roll *float32
 	// pitch in radians
-	pitch float32
+	pitch *float32
 	// yaw in radians
-	yaw float32
+	yaw *float32
 	// latitude, as determined by GPS, in degrees (500.0 if unavailable)
-	latitude float64
+	latitude *float64
 	// longitude, as determined by GPS, in degrees (500.0 if unavailable)
-	longitude float64
+	longitude *float64
 	// gpsAltitude is altitude relative to sea level, as determined by GPS, in
 	// meters
-	gpsAltitude float64
+	gpsAltitude *float64
 	// latitudeAccuracy represents latitude location error (1 sigma/standard
 	// deviation) in meters (-1 if unavailable)
-	latitudeAccuracy int8
+	latitudeAccuracy *int8
 	// longitudeAccuracy represents longitude location error (1 sigma/standard
 	// deviation) in meters (-1 if unavailable)
-	longitudeAccuracy int8
+	longitudeAccuracy *int8
 	// gpsAltitudeAccuracy represents altitude location error (1 sigma/standard
 	// deviation) in meters (-1 if unavailable)
-	gpsAltitudeAccuracy int8
+	gpsAltitudeAccuracy *int8
 	lock                sync.RWMutex
 }
 
@@ -369,9 +408,9 @@ func (p *pilotingState) positionChanged(args []interface{}) error {
 func (p *pilotingState) speedChanged(args []interface{}) error {
 	p.lock.Lock()
 	defer p.lock.Unlock()
-	p.speedX = args[0].(float32)
-	p.speedY = args[1].(float32)
-	p.speedZ = args[2].(float32)
+	p.speedX = ptr.ToFloat32(args[0].(float32))
+	p.speedY = ptr.ToFloat32(args[1].(float32))
+	p.speedZ = ptr.ToFloat32(args[2].(float32))
 	log.WithField(
 		"speedX", p.speedX,
 	).WithField(
@@ -387,9 +426,9 @@ func (p *pilotingState) speedChanged(args []interface{}) error {
 func (p *pilotingState) attitudeChanged(args []interface{}) error {
 	p.lock.Lock()
 	defer p.lock.Unlock()
-	p.roll = args[0].(float32)
-	p.pitch = args[1].(float32)
-	p.yaw = args[2].(float32)
+	p.roll = ptr.ToFloat32(args[0].(float32))
+	p.pitch = ptr.ToFloat32(args[1].(float32))
+	p.yaw = ptr.ToFloat32(args[2].(float32))
 	log.WithField(
 		"roll", p.roll,
 	).WithField(
@@ -419,7 +458,7 @@ func (p *pilotingState) attitudeChanged(args []interface{}) error {
 func (p *pilotingState) altitudeChanged(args []interface{}) error {
 	p.lock.Lock()
 	defer p.lock.Unlock()
-	p.altitude = args[0].(float64)
+	p.altitude = ptr.ToFloat64(args[0].(float64))
 	log.WithField(
 		"altitude", p.altitude,
 	).Debug("piloting state altitude updated")
@@ -431,12 +470,12 @@ func (p *pilotingState) altitudeChanged(args []interface{}) error {
 func (p *pilotingState) gpsLocationChanged(args []interface{}) error {
 	p.lock.Lock()
 	defer p.lock.Unlock()
-	p.latitude = args[0].(float64)
-	p.longitude = args[1].(float64)
-	p.altitude = args[2].(float64)
-	p.latitudeAccuracy = args[3].(int8)
-	p.longitudeAccuracy = args[4].(int8)
-	p.gpsAltitudeAccuracy = args[5].(int8)
+	p.latitude = ptr.ToFloat64(args[0].(float64))
+	p.longitude = ptr.ToFloat64(args[1].(float64))
+	p.altitude = ptr.ToFloat64(args[2].(float64))
+	p.latitudeAccuracy = ptr.ToInt8(args[3].(int8))
+	p.longitudeAccuracy = ptr.ToInt8(args[4].(int8))
+	p.gpsAltitudeAccuracy = ptr.ToInt8(args[5].(int8))
 	log.WithField(
 		"latitude", p.latitude,
 	).WithField(
@@ -599,54 +638,93 @@ func (p *pilotingState) RUnlock() {
 	p.lock.RUnlock()
 }
 
-func (p *pilotingState) SpeedX() float32 {
-	return p.speedX
+func (p *pilotingState) SpeedX() (float32, bool) {
+	if p.speedX == nil {
+		return 0, false
+	}
+	return *p.speedX, true
 }
 
-func (p *pilotingState) SpeedY() float32 {
-	return p.speedY
+func (p *pilotingState) SpeedY() (float32, bool) {
+	if p.speedY == nil {
+		return 0, false
+	}
+	return *p.speedY, true
 }
 
-func (p *pilotingState) SpeedZ() float32 {
-	return p.speedZ
+func (p *pilotingState) SpeedZ() (float32, bool) {
+	if p.speedZ == nil {
+		return 0, false
+	}
+	return *p.speedZ, true
 }
 
-func (p *pilotingState) Altitude() float64 {
-	return p.altitude
+func (p *pilotingState) Altitude() (float64, bool) {
+	if p.altitude == nil {
+		return 0, false
+	}
+	return *p.altitude, true
 }
 
-func (p *pilotingState) Roll() float32 {
-	return p.roll
+func (p *pilotingState) Roll() (float32, bool) {
+	if p.roll == nil {
+		return 0, false
+	}
+	return *p.roll, true
 }
 
-func (p *pilotingState) Pitch() float32 {
-	return p.pitch
+func (p *pilotingState) Pitch() (float32, bool) {
+	if p.pitch == nil {
+		return 0, false
+	}
+	return *p.pitch, true
 }
 
-func (p *pilotingState) Yaw() float32 {
-	return p.yaw
+func (p *pilotingState) Yaw() (float32, bool) {
+	if p.yaw == nil {
+		return 0, false
+	}
+	return *p.yaw, true
 }
 
-func (p *pilotingState) Latitude() float64 {
-	return p.latitude
+func (p *pilotingState) Latitude() (float64, bool) {
+	if p.latitude == nil {
+		return 0, false
+	}
+	return *p.latitude, true
 }
 
-func (p *pilotingState) Longitude() float64 {
-	return p.longitude
+func (p *pilotingState) Longitude() (float64, bool) {
+	if p.longitude == nil {
+		return 0, false
+	}
+	return *p.longitude, true
 }
 
-func (p *pilotingState) GPSAltitude() float64 {
-	return p.gpsAltitude
+func (p *pilotingState) GPSAltitude() (float64, bool) {
+	if p.gpsAltitude == nil {
+		return 0, false
+	}
+	return *p.gpsAltitude, true
 }
 
-func (p *pilotingState) LatitudeAccuracy() int8 {
-	return p.latitudeAccuracy
+func (p *pilotingState) LatitudeAccuracy() (int8, bool) {
+	if p.latitudeAccuracy == nil {
+		return 0, false
+	}
+	return *p.latitudeAccuracy, true
 }
 
-func (p *pilotingState) LongitudeAccuracy() int8 {
-	return p.longitudeAccuracy
+func (p *pilotingState) LongitudeAccuracy() (int8, bool) {
+	if p.longitudeAccuracy == nil {
+		return 0, false
+	}
+	return *p.longitudeAccuracy, true
 }
 
-func (p *pilotingState) GPSAltitudeAccuracy() int8 {
-	return p.gpsAltitudeAccuracy
+func (p *pilotingState) GPSAltitudeAccuracy() (int8, bool) {
+	if p.gpsAltitudeAccuracy == nil {
+		return 0, false
+	}
+	return *p.gpsAltitudeAccuracy, true
 }

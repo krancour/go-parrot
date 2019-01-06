@@ -5,6 +5,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arcommands"
+	"github.com/krancour/go-parrot/ptr"
 )
 
 // GPS related States
@@ -23,14 +24,16 @@ type GPSState interface {
 	// RUnlock releases a read lock on the GPS state. See RLock().
 	RUnlock()
 	// NumberOfSatellites returns the number of satellites used to determine GPS
-	// coordinates.
-	NumberOfSatellites() uint8
+	// coordinates and a boolean value indicating whether the first value was
+	// reported by the device (true) or a default value (false). This permits
+	// callers to distinguish real zero values from default zero values.
+	NumberOfSatellites() (uint8, bool)
 }
 
 type gpsState struct {
 	// numberOfSatellites is the number of satellites used to determine GPS
 	// coordinates.
-	numberOfSatellites uint8
+	numberOfSatellites *uint8
 	lock               sync.RWMutex
 }
 
@@ -77,7 +80,7 @@ func (g *gpsState) D2CCommands() []arcommands.D2CCommand {
 func (g *gpsState) numberOfSatellitesChanged(args []interface{}) error {
 	g.lock.Lock()
 	defer g.lock.Unlock()
-	g.numberOfSatellites = args[0].(uint8)
+	g.numberOfSatellites = ptr.ToUint8(args[0].(uint8))
 	log.WithField(
 		"numberOfSatellites", g.numberOfSatellites,
 	).Debug("gps state number of satellites updated")
@@ -137,14 +140,17 @@ func (g *gpsState) homeTypeChosenChanged(args []interface{}) error {
 	return nil
 }
 
-func (g *gpsState) NumberOfSatellites() uint8 {
-	return g.numberOfSatellites
-}
-
 func (g *gpsState) RLock() {
 	g.lock.RLock()
 }
 
 func (g *gpsState) RUnlock() {
 	g.lock.RUnlock()
+}
+
+func (g *gpsState) NumberOfSatellites() (uint8, bool) {
+	if g.numberOfSatellites == nil {
+		return 0, false
+	}
+	return *g.numberOfSatellites, true
 }
