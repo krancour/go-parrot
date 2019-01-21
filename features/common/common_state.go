@@ -81,6 +81,11 @@ type CommonState interface {
 	// value (false). This permits callers to distinguish real zero values from
 	// default zero values.
 	CurrentRunRawPhotoCount() (uint16, bool)
+	// BatteryPercent returns the percentage of battery life remaining. A boolean
+	// value is also returned, indicating whether the first value was reported by
+	// the device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	BatteryPercent() (uint8, bool)
 }
 
 type commonState struct {
@@ -99,6 +104,7 @@ type commonState struct {
 	currentRunPhotoCount    *uint16
 	currentRunVideoCount    *uint16
 	currentRunRawPhotoCount *uint16
+	batteryPercent          *uint8
 	lock                    sync.RWMutex
 }
 
@@ -276,9 +282,12 @@ func (c *commonState) allStatesChanged(args []interface{}) error {
 // Triggered: when the battery level changes.
 // Result:
 func (c *commonState) batteryStateChanged(args []interface{}) error {
-	// percent := args[0].(uint8)
-	//   Battery percentage
-	log.Info("common.batteryStateChanged() called")
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.batteryPercent = ptr.ToUint8(args[0].(uint8))
+	log.WithField(
+		"batteryPercent", *c.batteryPercent,
+	).Debug("battery state changed")
 	return nil
 }
 
@@ -625,4 +634,11 @@ func (c *commonState) CurrentRunRawPhotoCount() (uint16, bool) {
 		return 0, false
 	}
 	return *c.currentRunRawPhotoCount, true
+}
+
+func (c *commonState) BatteryPercent() (uint8, bool) {
+	if c.batteryPercent == nil {
+		return 0, false
+	}
+	return *c.batteryPercent, true
 }

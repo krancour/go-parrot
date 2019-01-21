@@ -28,11 +28,48 @@ type SettingsState interface {
 	// default value (false). This permits callers to distinguish real zero values
 	// from default zero values.
 	ProductName() (string, bool)
+	// SerialHigh returns the high end of the device's serial number. A boolean
+	// value is also returned, indicating whether the first value was reported by
+	// the device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	SerialHigh() (string, bool)
+	// SerialLow returns the low end of the device's serial number. A boolean
+	// value is also returned, indicating whether the first value was reported by
+	// the device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	SerialLow() (string, bool)
+	// SoftwareVersion returns the device's software version. A boolean value is
+	// also returned, indicating whether the first value was reported by the
+	// device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	SoftwareVersion() (string, bool)
+	// HardwareVersion returns the the device's hardware version. A boolean value
+	// is also returned, indicating whether the first value was reported by the
+	// device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	HardwareVersion() (string, bool)
+	// AutoCountryEnabled returns a boolean indicating whether autoCountry is
+	// enabled. A boolean value is also returned, indicating whether the first
+	// value was reported by the device (true) or a default value (false). This
+	// permits callers to distinguish real zero values from default zero values.
+	AutoCountryEnabled() (bool, bool)
+	// CountryCode returns the country code in ISO 3166 format. An empty string
+	// indicates the country is unknown. A boolean value is also returned,
+	// indicating whether the first value was reported by the device (true) or a
+	// default value (false). This permits callers to distinguish real zero values
+	// from default zero values.
+	CountryCode() (string, bool)
 }
 
 type settingsState struct {
-	productName *string
-	lock        sync.RWMutex
+	productName        *string
+	serialHigh         *string
+	serialLow          *string
+	softwareVersion    *string
+	hardwareVersion    *string
+	autoCountryEnabled *bool
+	countryCode        *string
+	lock               sync.RWMutex
 }
 
 func (s *settingsState) ID() uint8 {
@@ -144,44 +181,42 @@ func (s *settingsState) productNameChanged(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Product version
-// Description: Product version.
-// Support: drones
-// Triggered: during the connection process.
-// Result:
+// productVersionChanged is invoked during the connection process to report
+// the product version.
 func (s *settingsState) productVersionChanged(args []interface{}) error {
-	// software := args[0].(string)
-	//   Product software version
-	// hardware := args[1].(string)
-	//   Product hardware version
-	log.Info("common.productVersionChanged() called")
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.softwareVersion = ptr.ToString(args[0].(string))
+	s.hardwareVersion = ptr.ToString(args[1].(string))
+	log.WithField(
+		"softwareVersion", *s.softwareVersion,
+	).WithField(
+		"hardwareVersion", *s.hardwareVersion,
+	).Debug("common.productVersionChanged() called")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Product serial (1st part)
-// Description: Product serial (1st part).
-// Support: drones
-// Triggered: during the connection process.
-// Result:
+// productSerialHighChanged is invoked during the connection process to report
+// the the high end of the device's serial number.
 func (s *settingsState) productSerialHighChanged(args []interface{}) error {
-	// high := args[0].(string)
-	//   Serial high number (hexadecimal value)
-	log.Info("common.productSerialHighChanged() called")
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.serialHigh = ptr.ToString(args[0].(string))
+	log.WithField(
+		"serialHigh", *s.serialHigh,
+	).Debug("serial high changed")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Product serial (2nd part)
-// Description: Product serial (2nd part).
-// Support: drones
-// Triggered: during the connection process.
-// Result:
+// productSerialLowChanged is invoked during the connection process to report
+// the the low end of the device's serial number.
 func (s *settingsState) productSerialLowChanged(args []interface{}) error {
-	// low := args[0].(string)
-	//   Serial low number (hexadecimal value)
-	log.Info("common.productSerialLowChanged() called")
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.serialLow = ptr.ToString(args[0].(string))
+	log.WithField(
+		"serialLow", *s.serialLow,
+	).Debug("serial low changed")
 	return nil
 }
 
@@ -192,22 +227,25 @@ func (s *settingsState) productSerialLowChanged(args []interface{}) error {
 // Triggered: by [SetCountry](#0-2-3).
 // Result:
 func (s *settingsState) countryChanged(args []interface{}) error {
-	// code := args[0].(string)
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.countryCode = ptr.ToString(args[0].(string))
 	//   Country code with ISO 3166 format, empty string means unknown country.
-	log.Info("common.countryChanged() called")
+	log.WithField(
+		"countryCode", *s.countryCode,
+	).Debug("common.countryChanged() called")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Auto-country changed
-// Description: Auto-country changed.
-// Support: drones
-// Triggered: by [SetAutoCountry](#0-2-4).
-// Result:
+// autoCountryChanged is invoked by the device to indicate whether auto country
+// is enabled.
 func (s *settingsState) autoCountryChanged(args []interface{}) error {
-	// automatic := args[0].(uint8)
-	//   Boolean : 0 : Manual / 1 : Auto
-	log.Info("common.autoCountryChanged() called")
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.autoCountryEnabled = ptr.ToBool(args[0].(uint8) == 1)
+	log.WithField(
+		"autoCountryEnabled", *s.autoCountryEnabled,
+	).Debug("autoCountry changed")
 	return nil
 }
 
@@ -224,4 +262,46 @@ func (s *settingsState) ProductName() (string, bool) {
 		return "", false
 	}
 	return *s.productName, true
+}
+
+func (s *settingsState) SerialHigh() (string, bool) {
+	if s.serialHigh == nil {
+		return "", false
+	}
+	return *s.serialHigh, true
+}
+
+func (s *settingsState) SerialLow() (string, bool) {
+	if s.serialLow == nil {
+		return "", false
+	}
+	return *s.serialLow, true
+}
+
+func (s *settingsState) SoftwareVersion() (string, bool) {
+	if s.softwareVersion == nil {
+		return "", false
+	}
+	return *s.softwareVersion, true
+}
+
+func (s *settingsState) HardwareVersion() (string, bool) {
+	if s.hardwareVersion == nil {
+		return "", false
+	}
+	return *s.hardwareVersion, true
+}
+
+func (s *settingsState) AutoCountryEnabled() (bool, bool) {
+	if s.autoCountryEnabled == nil {
+		return false, false
+	}
+	return *s.autoCountryEnabled, true
+}
+
+func (s *settingsState) CountryCode() (string, bool) {
+	if s.countryCode == nil {
+		return "", false
+	}
+	return *s.countryCode, true
 }
