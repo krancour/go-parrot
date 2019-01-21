@@ -52,14 +52,14 @@ func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 			},
 			s.motorErrorStateChanged,
 		),
-		// arcommands.NewD2CCommand(
-		// 	3,
-		// 	"MotorSoftwareVersionChanged",
-		// 	[]interface{}{
-		// 		string(0), // version,
-		// 	},
-		// 	s.motorSoftwareVersionChanged,
-		// ),
+		arcommands.NewD2CCommand(
+			3,
+			"MotorSoftwareVersionChanged",
+			[]interface{}{
+				string(0), // version,
+			},
+			s.motorSoftwareVersionChanged,
+		),
 		arcommands.NewD2CCommand(
 			4,
 			"MotorFlightsStatusChanged",
@@ -78,14 +78,14 @@ func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 			},
 			s.motorErrorLastErrorChanged,
 		),
-		// arcommands.NewD2CCommand(
-		// 	6,
-		// 	"P7ID",
-		// 	[]interface{}{
-		// 		string(0), // serialID,
-		// 	},
-		// 	s.p7ID,
-		// ),
+		arcommands.NewD2CCommand(
+			6,
+			"P7ID",
+			[]interface{}{
+				string(0), // serialID,
+			},
+			s.p7ID,
+		),
 		arcommands.NewD2CCommand(
 			7,
 			"CPUID",
@@ -167,21 +167,21 @@ func (s *settingsState) motorErrorStateChanged(args []interface{}) error {
 	return nil
 }
 
-// // TODO: Implement this
-// // Title: Motor version
-// // Description: Motor version.
-// // Support:
-// // Triggered:
-// // Result:
-// // WARNING: Deprecated
-// func (s *settingsState) motorSoftwareVersionChanged(args []interface{}) error {
-// 	// version := args[0].(string)
-// 	//   name of the version : dot separated fields (major version - minor version
-// 	//   - firmware type - nb motors handled). Firmware types : Release, Debug,
-// 	//   Alpha, Test-bench
-// 	log.Info("ardrone3.motorSoftwareVersionChanged() called")
-// 	return nil
-// }
+// TODO: Implement this
+// Title: Motor version
+// Description: Motor version.
+// Support:
+// Triggered:
+// Result:
+// WARNING: Deprecated
+func (s *settingsState) motorSoftwareVersionChanged(args []interface{}) error {
+	// version := args[0].(string)
+	//   name of the version : dot separated fields (major version - minor version
+	//   - firmware type - nb motors handled). Firmware types : Release, Debug,
+	//   Alpha, Test-bench
+	log.Info("ardrone3.motorSoftwareVersionChanged() called")
+	return nil
+}
 
 // TODO: Implement this
 // Title: Motor flight status
@@ -228,19 +228,16 @@ func (s *settingsState) motorErrorLastErrorChanged(args []interface{}) error {
 	return nil
 }
 
-// // TODO: Implement this
-// // Title: P7ID
-// // Description: P7ID.
-// // Support:
-// // Triggered:
-// // Result:
-// // WARNING: Deprecated
-// func (s *settingsState) p7ID(args []interface{}) error {
-// 	// serialID := args[0].(string)
-// 	//   Product P7ID
-// 	log.Info("ardrone3.p7ID() called")
-// 	return nil
-// }
+// p7ID is deprecated, but since we can still see this command being invoked,
+// we'll implement the command to avoid a warning, but the implementation will
+// remain a no-op unless / until such time that it becomes clear that older
+// versions of the firmware might require us to support it.
+func (s *settingsState) p7ID(args []interface{}) error {
+	// serialID := args[0].(string)
+	//   Product P7ID
+	log.Debug("p7ID changed-- this is a no-op")
+	return nil
+}
 
 // TODO: Implement this
 func (s *settingsState) cPUID(args []interface{}) error {

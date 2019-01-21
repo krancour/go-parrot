@@ -29,7 +29,7 @@ type Feature interface {
 }
 
 type feature struct {
-	// accessoryState        *accessoryState
+	accessoryState        *accessoryState
 	antiflickeringState   *antiflickeringState
 	cameraState           *cameraState
 	gpsSettingsState      *gpsSettingsState
@@ -43,17 +43,17 @@ type feature struct {
 	pilotingEvent         *pilotingEvent
 	pilotingSettingsState *pilotingSettingsState
 	pilotingState         *pilotingState
-	// proState              *proState
-	settingsState *settingsState
-	// soundState         *soundState
-	speedSettingsState *speedSettingsState
+	proState              *proState
+	settingsState         *settingsState
+	soundState            *soundState
+	speedSettingsState    *speedSettingsState
 }
 
 // NewFeature ...
 // TODO: Document this
 func NewFeature(c2dCommandClient arcommands.C2DCommandClient) Feature {
 	return &feature{
-		// accessoryState:        &accessoryState{},
+		accessoryState:        &accessoryState{},
 		antiflickeringState:   &antiflickeringState{},
 		cameraState:           &cameraState{},
 		gpsSettingsState:      &gpsSettingsState{},
@@ -67,10 +67,10 @@ func NewFeature(c2dCommandClient arcommands.C2DCommandClient) Feature {
 		pilotingEvent:         &pilotingEvent{},
 		pilotingSettingsState: &pilotingSettingsState{},
 		pilotingState:         &pilotingState{},
-		// proState:              &proState{},
-		settingsState: &settingsState{},
-		// soundState:         &soundState{},
-		speedSettingsState: &speedSettingsState{},
+		proState:              &proState{},
+		settingsState:         &settingsState{},
+		soundState:            &soundState{},
+		speedSettingsState:    &speedSettingsState{},
 	}
 }
 
@@ -85,7 +85,7 @@ func (f *feature) Name() string {
 // TODO: Add stuff!
 func (f *feature) D2CClasses() []arcommands.D2CClass {
 	return []arcommands.D2CClass{
-		// f.accessoryState,
+		f.accessoryState,
 		f.antiflickeringState,
 		f.cameraState,
 		f.gpsSettingsState,
@@ -99,9 +99,9 @@ func (f *feature) D2CClasses() []arcommands.D2CClass {
 		f.pilotingEvent,
 		f.pilotingSettingsState,
 		f.pilotingState,
-		// f.proState,
+		f.proState,
 		f.settingsState,
-		// f.soundState,
+		f.soundState,
 		f.speedSettingsState,
 	}
 }

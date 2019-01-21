@@ -33,14 +33,14 @@ func (n *networkSettingsState) D2CCommands() []arcommands.D2CCommand {
 			},
 			n.wifiSelectionChanged,
 		),
-		// arcommands.NewD2CCommand(
-		// 	1,
-		// 	"wifiSecurityChanged",
-		// 	[]interface{}{
-		// 		int32(0), // type,
-		// 	},
-		// 	n.wifiSecurityChanged,
-		// ),
+		arcommands.NewD2CCommand(
+			1,
+			"wifiSecurityChanged",
+			[]interface{}{
+				int32(0), // type,
+			},
+			n.wifiSecurityChanged,
+		),
 		arcommands.NewD2CCommand(
 			2,
 			"wifiSecurity",
@@ -78,21 +78,19 @@ func (n *networkSettingsState) wifiSelectionChanged(args []interface{}) error {
 	return nil
 }
 
-// // TODO: Implement this
-// // Title: Wifi security type
-// // Description: Wifi security type.
-// // Support:
-// // Triggered:
-// // Result:
-// // WARNING: Deprecated
-// func (n *networkSettingsState) wifiSecurityChanged(args []interface{}) error {
-// 	// type := args[0].(int32)
-// 	//   The type of wifi security (open, wpa2)
-// 	//   0: open: Wifi is not protected by any security (default)
-// 	//   1: wpa2: Wifi is protected by wpa2
-// 	log.Info("ardrone3.wifiSecurityChanged() called")
-// 	return nil
-// }
+// wifiSecurityChanged is deprecated in favor of wifiSecurity, but since we can
+// still see this command being invoked, we'll implement the command to avoid a
+// warning, but the implementation will remain a no-op unless / until such time
+// that it becomes clear that older versions of the firmware might require us to
+// support both commands.
+func (n *networkSettingsState) wifiSecurityChanged(args []interface{}) error {
+	// type := args[0].(int32)
+	//   The type of wifi security (open, wpa2)
+	//   0: open: Wifi is not protected by any security (default)
+	//   1: wpa2: Wifi is protected by wpa2
+	log.Debug("wifi security changed-- this is a no-op")
+	return nil
+}
 
 // TODO: Implement this
 // Title: Wifi security type

@@ -51,14 +51,14 @@ func (s *speedSettingsState) D2CCommands() []arcommands.D2CCommand {
 			},
 			s.hullProtectionChanged,
 		),
-		// arcommands.NewD2CCommand(
-		// 	3,
-		// 	"OutdoorChanged",
-		// 	[]interface{}{
-		// 		uint8(0), // outdoor,
-		// 	},
-		// 	s.outdoorChanged,
-		// ),
+		arcommands.NewD2CCommand(
+			3,
+			"OutdoorChanged",
+			[]interface{}{
+				uint8(0), // outdoor,
+			},
+			s.outdoorChanged,
+		),
 		arcommands.NewD2CCommand(
 			4,
 			"MaxPitchRollRotationSpeedChanged",
@@ -119,19 +119,16 @@ func (s *speedSettingsState) hullProtectionChanged(args []interface{}) error {
 	return nil
 }
 
-// // TODO: Implement this
-// // Title: Outdoor mode
-// // Description: Outdoor mode.
-// // Support:
-// // Triggered:
-// // Result:
-// // WARNING: Deprecated
-// func (s *speedSettingsState) outdoorChanged(args []interface{}) error {
-// 	// outdoor := args[0].(uint8)
-// 	//   1 if outdoor flight, 0 if indoor flight
-// 	log.Info("ardrone3.outdoorChanged() called")
-// 	return nil
-// }
+// outdoorChanged is deprecated, but since we can still see this command being
+// invoked, we'll implement the command to avoid a warning, but the
+// implementation will remain a no-op unless / until such time that it becomes
+// clear that older versions of the firmware might require us to support it.
+func (s *speedSettingsState) outdoorChanged(args []interface{}) error {
+	// outdoor := args[0].(uint8)
+	//   1 if outdoor flight, 0 if indoor flight
+	log.Debug("outdoor changed-- this is a no-op")
+	return nil
+}
 
 // TODO: Implement this
 // Title: Max pitch/roll rotation speed
