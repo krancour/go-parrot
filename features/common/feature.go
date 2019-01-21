@@ -26,6 +26,9 @@ type Feature interface {
 	RunState() RunState
 	SettingsState() SettingsState
 	WifiSettingsState() WifiSettingsState
+	// ---------------------------------------------------------------------------
+	Common() Common
+	Settings() Settings
 }
 
 type feature struct {
@@ -47,11 +50,14 @@ type feature struct {
 	runState          *runState
 	settingsState     *settingsState
 	wifiSettingsState *wifiSettingsState
+	// ---------------------------------------------------------------------------
+	common   *common
+	settings *settings
 }
 
 // NewFeature ...
 // TODO: Document this
-func NewFeature() Feature {
+func NewFeature(c2dCommandClient arcommands.C2DCommandClient) Feature {
 	return &feature{
 		// accessoryState:          &accessoryState{},
 		// animationsState:         &animationsState{},
@@ -71,6 +77,13 @@ func NewFeature() Feature {
 		runState:          &runState{},
 		settingsState:     &settingsState{},
 		wifiSettingsState: &wifiSettingsState{},
+		// -------------------------------------------------------------------------
+		common: &common{
+			c2dCommandClient: c2dCommandClient,
+		},
+		settings: &settings{
+			c2dCommandClient: c2dCommandClient,
+		},
 	}
 }
 
@@ -176,4 +189,14 @@ func (f *feature) SettingsState() SettingsState {
 
 func (f *feature) WifiSettingsState() WifiSettingsState {
 	return f.wifiSettingsState
+}
+
+// -----------------------------------------------------------------------------
+
+func (f *feature) Common() Common {
+	return f.common
+}
+
+func (f *feature) Settings() Settings {
+	return f.settings
 }

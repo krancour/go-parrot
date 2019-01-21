@@ -51,7 +51,7 @@ type feature struct {
 
 // NewFeature ...
 // TODO: Document this
-func NewFeature() Feature {
+func NewFeature(c2dCommandClient arcommands.C2DCommandClient) Feature {
 	return &feature{
 		// accessoryState:        &accessoryState{},
 		antiflickeringState:   &antiflickeringState{},

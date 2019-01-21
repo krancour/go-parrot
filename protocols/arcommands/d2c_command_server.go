@@ -33,7 +33,7 @@ func NewD2CCommandServer(
 			for _, command := range class.D2CCommands() {
 				key := getCommandKey(feature.ID(), class.ID(), command.ID())
 				if _, ok := d2cCommands[key]; ok {
-					return nil, fmt.Errorf("command with key %s already defined", key)
+					return nil, errors.Errorf("command with key %s already defined", key)
 				}
 				d2cCommands[key] = command
 			}

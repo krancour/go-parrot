@@ -15,15 +15,13 @@ import (
 // Controller ...
 // TODO: Document this
 type Controller interface {
-	// TODO: Add all supported commands to this interface
-	// The first ones we experiment with should be configuration related and
-	// not anything to do with flight. We want to be pretty sure that everything
-	// works before we try flying!
+	Common() common.Feature
+	ARDrone3() ardrone3.Feature
 }
 
 type controller struct {
-	// common   common.Feature
-	// ardrone3 ardrone3.Feature
+	common   common.Feature
+	ardrone3 ardrone3.Feature
 }
 
 // NewController ...
@@ -33,7 +31,7 @@ func NewController() (Controller, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "connection error")
 	}
-	_, d2cChs, err := arnetwork.NewBuffers(
+	c2dChs, d2cChs, err := arnetwork.NewBuffers(
 		frameSender,
 		frameReceiver,
 		[]arnetwork.C2DBufferConfig{
@@ -127,16 +125,40 @@ func NewController() (Controller, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating buffer manager")
 	}
+	c2dCommandClient := arcommands.NewC2DCommandClient(
+		c2dChs[11], // ACK
+		c2dChs[10], // NON_ACK
+		c2dChs[12], // HIGH_PRIO
+	)
+	commonFeature := common.NewFeature(c2dCommandClient)
+	ardrone3Feature := ardrone3.NewFeature(c2dCommandClient)
 	d2cCommandServer, err := arcommands.NewD2CCommandServer(
 		d2cChs,
 		[]arcommands.D2CFeature{
-			common.NewFeature(),
-			ardrone3.NewFeature(),
+			commonFeature,
+			ardrone3Feature,
 		},
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating d2c command server")
 	}
 	d2cCommandServer.Start()
-	return &controller{}, nil
+	// if err := commonFeature.Settings().AllSettings(); err != nil {
+	// 	log.Error(err)
+	// }
+	// if err := commonFeature.Common().AllStates(); err != nil {
+	// 	log.Error(err)
+	// }
+	return &controller{
+		common:   commonFeature,
+		ardrone3: ardrone3Feature,
+	}, nil
+}
+
+func (c *controller) Common() common.Feature {
+	return c.common
+}
+
+func (c *controller) ARDrone3() ardrone3.Feature {
+	return c.ardrone3
 }

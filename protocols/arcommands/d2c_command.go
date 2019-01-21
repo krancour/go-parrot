@@ -3,7 +3,6 @@ package arcommands
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"reflect"
 
 	"github.com/pkg/errors"
@@ -102,7 +101,7 @@ func decodeArgs(data []byte, args []interface{}) error {
 			bytes = bytes[0 : len(bytes)-1]
 			args[i] = string(bytes)
 		default:
-			err = fmt.Errorf("unknown type: %s", reflect.TypeOf(argIface))
+			err = errors.Errorf("unknown type: %s", reflect.TypeOf(argIface))
 		}
 		if err != nil {
 			return errors.Wrapf(
