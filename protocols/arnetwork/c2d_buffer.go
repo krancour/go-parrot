@@ -2,7 +2,6 @@ package arnetwork
 
 import (
 	"bytes"
-	"fmt"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -104,7 +103,7 @@ func (c *c2dBuffer) writeFrame(frame Frame) error { // nolint: unparam
 		select {
 		case ack := <-c.ackCh:
 			if bytes.Equal(
-				[]byte(fmt.Sprintf("%d", netFrame.Seq)),
+				[]byte{netFrame.Seq},
 				ack.Data,
 			) {
 				return nil

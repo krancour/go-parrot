@@ -73,6 +73,7 @@ func NewBuffers(
 					IsOverwriting: false, // Useless by design: there is only one ack waiting at a time
 				},
 			)
+			d2cInChs[ackBuf.ID] = ackBuf.inCh
 			buf.ackCh = ackBuf.buffer.outCh
 		}
 	}

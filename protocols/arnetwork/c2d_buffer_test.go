@@ -1,7 +1,6 @@
 package arnetwork
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -72,7 +71,7 @@ func TestWriteFrame(t *testing.T) {
 			) error {
 				go func() {
 					ackCh <- Frame{
-						Data: []byte(fmt.Sprintf("%d", netFrame.Seq)),
+						Data: []byte{netFrame.Seq},
 					}
 				}()
 				return nil
@@ -103,7 +102,7 @@ func TestWriteFrame(t *testing.T) {
 				}
 				go func() {
 					ackCh <- Frame{
-						Data: []byte(fmt.Sprintf("%d", netFrame.Seq)),
+						Data: []byte{netFrame.Seq},
 					}
 				}()
 				return nil
