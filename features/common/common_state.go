@@ -28,6 +28,59 @@ type CommonState interface {
 	// value was reported by the device (true) or a default value (false). This
 	// permits callers to distinguish real zero values from default zero values.
 	RSSI() (int16, bool)
+	// MassStorageID returns the mass storage ID. A boolean value is also
+	// returned, indicating whether the first value was reported by the device
+	// (true) or a default value (false). This permits callers to distinguish real
+	// zero values from default zero values.
+	MassStorageID() (uint8, bool)
+	// PhotoCount returns the number of photos in mass storage. A boolean value is
+	// also returned, indicating whether the first value was reported by the
+	// device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	PhotoCount() (uint16, bool)
+	// VideoCount returns the numnber of videos in mass storage. A boolean value
+	// is also returned, indicating whether the first value was reported by the
+	// device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	VideoCount() (uint16, bool)
+	// PudCount returns the number of puds in mass storage. A boolean value is
+	// also returned, indicating whether the first value was reported by the
+	// device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	PudCount() (uint16, bool)
+	// CrashLogCount returns the number of crash logs in mass storage. A boolean
+	// value is also returned, indicating whether the first value was reported by
+	// the device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	CrashLogCount() (uint16, bool)
+	// RawPhotoCount returns the number of raw photos in mass stroage. A boolean
+	// value is also returned, indicating whether the first value was reported by
+	// the device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	RawPhotoCount() (uint16, bool)
+	// CurrentRunMassStorageID returns the mass storage ID for the current run. A
+	// boolean value is also returned, indicating whether the first value was
+	// reported by the device (true) or a default value (false). This permits
+	// callers to distinguish real zero values from default zero values.
+	CurrentRunMassStorageID() (uint8, bool)
+	// CurrentRunPhotoCount returns the number of photos in mass storage related
+	// to the current run. A boolean value is also returned, indicating whether
+	// the first value was reported by the device (true) or a default value
+	// (false). This permits callers to distinguish real zero values from default
+	// zero values.
+	CurrentRunPhotoCount() (uint16, bool)
+	// CurrentRunVideoCount returns the number of photos in mass storage related
+	// to the current run. A boolean value is also returned, indicating whether
+	// the first value was reported by the device (true) or a default value
+	// (false). This permits callers to distinguish real zero values from default
+	// zero values.
+	CurrentRunVideoCount() (uint16, bool)
+	// CurrentRunRawPhotoCount returns the number of raw photos in mass storage
+	// related to the current run. A boolean value is also returned, indicating
+	// whether the first value was reported by the device (true) or a default
+	// value (false). This permits callers to distinguish real zero values from
+	// default zero values.
+	CurrentRunRawPhotoCount() (uint16, bool)
 }
 
 type commonState struct {
@@ -35,8 +88,18 @@ type commonState struct {
 	// would seem to indicate an absolute measure.
 	// rssi is the relative signal stength between the client and the device
 	// in dbm
-	rssi *int16
-	lock sync.RWMutex
+	rssi                    *int16
+	massStorageID           *uint8
+	photoCount              *uint16
+	videoCount              *uint16
+	pudCount                *uint16 // TODO: What is a pud?
+	crashLogCount           *uint16
+	rawPhotoCount           *uint16
+	currentRunMassStorageID *uint8
+	currentRunPhotoCount    *uint16
+	currentRunVideoCount    *uint16
+	currentRunRawPhotoCount *uint16
+	lock                    sync.RWMutex
 }
 
 func (c *commonState) ID() uint8 {
@@ -145,42 +208,42 @@ func (c *commonState) D2CCommands() []arcommands.D2CCommand {
 		// 	},
 		// 	c.countryListKnown,
 		// ),
-		// arcommands.NewD2CCommand(
-		// 	11,
-		// 	"DeprecatedMassStorageContentChanged",
-		// 	[]interface{}{
-		// 		uint8(0),  // mass_storage_id,
-		// 		uint16(0), // nbPhotos,
-		// 		uint16(0), // nbVideos,
-		// 		uint16(0), // nbPuds,
-		// 		uint16(0), // nbCrashLogs,
-		// 	},
-		// 	c.deprecatedMassStorageContentChanged,
-		// ),
-		// arcommands.NewD2CCommand(
-		// 	12,
-		// 	"MassStorageContent",
-		// 	[]interface{}{
-		// 		uint8(0),  // mass_storage_id,
-		// 		uint16(0), // nbPhotos,
-		// 		uint16(0), // nbVideos,
-		// 		uint16(0), // nbPuds,
-		// 		uint16(0), // nbCrashLogs,
-		// 		uint16(0), // nbRawPhotos,
-		// 	},
-		// 	c.massStorageContent,
-		// ),
-		// arcommands.NewD2CCommand(
-		// 	13,
-		// 	"MassStorageContentForCurrentRun",
-		// 	[]interface{}{
-		// 		uint8(0),  // mass_storage_id,
-		// 		uint16(0), // nbPhotos,
-		// 		uint16(0), // nbVideos,
-		// 		uint16(0), // nbRawPhotos,
-		// 	},
-		// 	c.massStorageContentForCurrentRun,
-		// ),
+		arcommands.NewD2CCommand(
+			11,
+			"DeprecatedMassStorageContentChanged",
+			[]interface{}{
+				uint8(0),  // mass_storage_id,
+				uint16(0), // nbPhotos,
+				uint16(0), // nbVideos,
+				uint16(0), // nbPuds,
+				uint16(0), // nbCrashLogs,
+			},
+			c.deprecatedMassStorageContentChanged,
+		),
+		arcommands.NewD2CCommand(
+			12,
+			"MassStorageContent",
+			[]interface{}{
+				uint8(0),  // mass_storage_id,
+				uint16(0), // nbPhotos,
+				uint16(0), // nbVideos,
+				uint16(0), // nbPuds,
+				uint16(0), // nbCrashLogs,
+				uint16(0), // nbRawPhotos,
+			},
+			c.massStorageContent,
+		),
+		arcommands.NewD2CCommand(
+			13,
+			"MassStorageContentForCurrentRun",
+			[]interface{}{
+				uint8(0),  // mass_storage_id,
+				uint16(0), // nbPhotos,
+				uint16(0), // nbVideos,
+				uint16(0), // nbRawPhotos,
+			},
+			c.massStorageContentForCurrentRun,
+		),
 		// arcommands.NewD2CCommand(
 		// 	14,
 		// 	"VideoRecordingTimestamp",
@@ -394,73 +457,78 @@ func (c *commonState) sensorsStatesListChanged(args []interface{}) error {
 // 	return nil
 // }
 
-// // TODO: Implement this
-// // Title: Mass storage content changed
-// // Description: Mass storage content changed.
-// // Support:
-// // Triggered:
-// // Result:
-// // WARNING: Deprecated
-// func (c *commonState) deprecatedMassStorageContentChanged(
-// 	args []interface{},
-// ) error {
-// 	// mass_storage_id := args[0].(uint8)
-// 	//   Mass storage id (unique)
-// 	// nbPhotos := args[1].(uint16)
-// 	//   Number of photos (does not include raw photos)
-// 	// nbVideos := args[2].(uint16)
-// 	//   Number of videos
-// 	// nbPuds := args[3].(uint16)
-// 	//   Number of puds
-// 	// nbCrashLogs := args[4].(uint16)
-// 	//   Number of crash logs
-// 	log.Info("common.deprecatedMassStorageContentChanged() called")
-// 	return nil
-// }
+// deprecatedMassStorageContentChanged is deprecated in favor of
+// massStorageContent, but since we can still see this command being invoked,
+// we'll implement the command to avoid a warning, but the implementation will
+// remain a no-op unless / until such time that it becomes clear that older
+// versions of the firmware might require us to support both commands.
+func (c *commonState) deprecatedMassStorageContentChanged(
+	args []interface{},
+) error {
+	// mass_storage_id := args[0].(uint8)
+	//   Mass storage id (unique)
+	// nbPhotos := args[1].(uint16)
+	//   Number of photos (does not include raw photos)
+	// nbVideos := args[2].(uint16)
+	//   Number of videos
+	// nbPuds := args[3].(uint16)
+	//   Number of puds
+	// nbCrashLogs := args[4].(uint16)
+	//   Number of crash logs
+	log.Debug("mass storage content changed-- this is a no-op")
+	return nil
+}
 
-// // TODO: Implement this
-// // Title: Mass storage content
-// // Description: Mass storage content.
-// // Support: 090c:4.0.0;090e:4.0.0
-// // Triggered: when the content of the mass storage changes.
-// // Result:
-// func (c *commonState) massStorageContent(args []interface{}) error {
-// 	// mass_storage_id := args[0].(uint8)
-// 	//   Mass storage id (unique)
-// 	// nbPhotos := args[1].(uint16)
-// 	//   Number of photos (does not include raw photos)
-// 	// nbVideos := args[2].(uint16)
-// 	//   Number of videos
-// 	// nbPuds := args[3].(uint16)
-// 	//   Number of puds
-// 	// nbCrashLogs := args[4].(uint16)
-// 	//   Number of crash logs
-// 	// nbRawPhotos := args[5].(uint16)
-// 	//   Number of raw photos
-// 	log.Info("common.massStorageContent() called")
-// 	return nil
-// }
+// massStorageContent is invoked when the device reports that the content of the
+// mass storage has changed.
+func (c *commonState) massStorageContent(args []interface{}) error {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.massStorageID = ptr.ToUint8(args[0].(uint8))
+	c.photoCount = ptr.ToUint16(args[1].(uint16))
+	c.videoCount = ptr.ToUint16(args[2].(uint16))
+	c.pudCount = ptr.ToUint16(args[3].(uint16))
+	c.crashLogCount = ptr.ToUint16(args[4].(uint16))
+	c.rawPhotoCount = ptr.ToUint16(args[5].(uint16))
+	log.WithField(
+		"massStorageID", *c.massStorageID,
+	).WithField(
+		"photoCount", *c.photoCount,
+	).WithField(
+		"videoCount", *c.videoCount,
+	).WithField(
+		"pudCount", *c.pudCount,
+	).WithField(
+		"crashLogCount", *c.crashLogCount,
+	).WithField(
+		"rawPhotoCount", *c.rawPhotoCount,
+	).Debug("mass storage content changed")
+	return nil
+}
 
-// // TODO: Implement this
-// // Title: Mass storage content for current run
-// // Description: Mass storage content for current run.\n Only counts the files
-// //   related to the current run (see [RunId](#0-30-0))
-// // Support: 090c:4.0.0;090e:4.0.0
-// // Triggered: when the content of the mass storage changes and this content is
-// //   related to the current run.
-// // Result:
-// func (c *commonState) massStorageContentForCurrentRun(args []interface{}) error {
-// 	// mass_storage_id := args[0].(uint8)
-// 	//   Mass storage id (unique)
-// 	// nbPhotos := args[1].(uint16)
-// 	//   Number of photos (does not include raw photos)
-// 	// nbVideos := args[2].(uint16)
-// 	//   Number of videos
-// 	// nbRawPhotos := args[3].(uint16)
-// 	//   Number of raw photos
-// 	log.Info("common.massStorageContentForCurrentRun() called")
-// 	return nil
-// }
+// massStorageContentForCurrentRun is invoked when the device reports that the
+// content of the mass storage has changed and the content is related to the
+// current run.s
+func (c *commonState) massStorageContentForCurrentRun(
+	args []interface{},
+) error {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.currentRunMassStorageID = ptr.ToUint8(args[0].(uint8))
+	c.currentRunPhotoCount = ptr.ToUint16(args[1].(uint16))
+	c.currentRunVideoCount = ptr.ToUint16(args[2].(uint16))
+	c.currentRunRawPhotoCount = ptr.ToUint16(args[3].(uint16))
+	log.WithField(
+		"currentRunMassStorageID", *c.currentRunMassStorageID,
+	).WithField(
+		"currentRunPhotoCount", *c.currentRunPhotoCount,
+	).WithField(
+		"currentRunVideoCount", *c.currentRunVideoCount,
+	).WithField(
+		"currentRunRawPhotoCount", *c.currentRunRawPhotoCount,
+	).Debug("mass storage content for current run changed")
+	return nil
+}
 
 // // TODO: Implement this
 // // Title: Video recording timestamp
@@ -494,4 +562,74 @@ func (c *commonState) RSSI() (int16, bool) {
 		return 0, false
 	}
 	return *c.rssi, true
+}
+
+func (c *commonState) MassStorageID() (uint8, bool) {
+	if c.massStorageID == nil {
+		return 0, false
+	}
+	return *c.massStorageID, true
+}
+
+func (c *commonState) PhotoCount() (uint16, bool) {
+	if c.photoCount == nil {
+		return 0, false
+	}
+	return *c.photoCount, true
+}
+
+func (c *commonState) VideoCount() (uint16, bool) {
+	if c.videoCount == nil {
+		return 0, false
+	}
+	return *c.videoCount, true
+}
+
+func (c *commonState) PudCount() (uint16, bool) {
+	if c.pudCount == nil {
+		return 0, false
+	}
+	return *c.pudCount, true
+}
+
+func (c *commonState) CrashLogCount() (uint16, bool) {
+	if c.crashLogCount == nil {
+		return 0, false
+	}
+	return *c.crashLogCount, true
+}
+
+func (c *commonState) RawPhotoCount() (uint16, bool) {
+	if c.rawPhotoCount == nil {
+		return 0, false
+	}
+	return *c.rawPhotoCount, true
+}
+
+func (c *commonState) CurrentRunMassStorageID() (uint8, bool) {
+	if c.currentRunMassStorageID == nil {
+		return 0, false
+	}
+	return *c.currentRunMassStorageID, true
+}
+
+func (c *commonState) CurrentRunPhotoCount() (uint16, bool) {
+	if c.currentRunPhotoCount == nil {
+		return 0, false
+	}
+	return *c.currentRunPhotoCount, true
+}
+
+func (c *commonState) CurrentRunVideoCount() (uint16, bool) {
+	if c.currentRunVideoCount == nil {
+		return 0, false
+	}
+	return *c.currentRunVideoCount, true
+}
+
+func (c *commonState) CurrentRunRawPhotoCount() (uint16, bool) {
+	if c.currentRunRawPhotoCount == nil {
+		return 0, false
+	}
+	return *c.currentRunRawPhotoCount, true
 }

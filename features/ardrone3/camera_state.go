@@ -23,24 +23,24 @@ func (c *cameraState) Name() string {
 
 func (c *cameraState) D2CCommands() []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
-		// arcommands.NewD2CCommand(
-		// 	0,
-		// 	"Orientation",
-		// 	[]interface{}{
-		// 		int8(0), // tilt,
-		// 		int8(0), // pan,
-		// 	},
-		// 	c.orientation,
-		// ),
-		// arcommands.NewD2CCommand(
-		// 	1,
-		// 	"defaultCameraOrientation",
-		// 	[]interface{}{
-		// 		int8(0), // tilt,
-		// 		int8(0), // pan,
-		// 	},
-		// 	c.defaultCameraOrientation,
-		// ),
+		arcommands.NewD2CCommand(
+			0,
+			"Orientation",
+			[]interface{}{
+				int8(0), // tilt,
+				int8(0), // pan,
+			},
+			c.orientation,
+		),
+		arcommands.NewD2CCommand(
+			1,
+			"defaultCameraOrientation",
+			[]interface{}{
+				int8(0), // tilt,
+				int8(0), // pan,
+			},
+			c.defaultCameraOrientation,
+		),
 		arcommands.NewD2CCommand(
 			2,
 			"OrientationV2",
@@ -71,38 +71,34 @@ func (c *cameraState) D2CCommands() []arcommands.D2CCommand {
 	}
 }
 
-// // TODO: Implement this
-// // Title: Camera orientation
-// // Description: Camera orientation.
-// // Support: 0901;090c;090e
-// // Triggered: by [SetCameraOrientation](#1-1-0).
-// // Result:
-// // WARNING: Deprecated
-// func (c *cameraState) orientation(args []interface{}) error {
-// 	// tilt := args[0].(int8)
-// 	//   Tilt camera consign for the drone [-100;100]
-// 	// pan := args[1].(int8)
-// 	//   Pan camera consign for the drone [-100;100]
-// 	log.Info("ardrone3.orientation() called")
-// 	return nil
-// }
+// orientation is deprecated in favor of orientationV2, but since we can still
+// see this command being invoked, we'll implement the command to avoid a
+// warning, but the implementation will remain a no-op unless / until such time
+// that it becomes clear that older versions of the firmware might require us to
+// support both commands.
+func (c *cameraState) orientation(args []interface{}) error {
+	// tilt := args[0].(int8)
+	//   Tilt camera consign for the drone [-100;100]
+	// pan := args[1].(int8)
+	//   Pan camera consign for the drone [-100;100]
+	log.Debug("camera orientation changed-- this is a no-op")
+	return nil
+}
 
-// // TODO: Implement this
-// // Title: Orientation of the camera center
-// // Description: Orientation of the center of the camera.\n This is the value to
-// //   send when you want to center the camera.
-// // Support: 0901;090c;090e
-// // Triggered: at connection.
-// // Result:
-// // WARNING: Deprecated
-// func (c *cameraState) defaultCameraOrientation(args []interface{}) error {
-// 	// tilt := args[0].(int8)
-// 	//   Tilt value (in degree)
-// 	// pan := args[1].(int8)
-// 	//   Pan value (in degree)
-// 	log.Info("ardrone3.defaultCameraOrientation() called")
-// 	return nil
-// }
+// defaultCameraOrientation is deprecated in favor of
+// defaultCameraOrientationV2, but since we can still see this command being
+// invoked, we'll implement the command to avoid a warning, but the
+// implementation will remain a no-op unless / until such time that it becomes
+// clear that older versions of the firmware might require us to support both
+// commands.
+func (c *cameraState) defaultCameraOrientation(args []interface{}) error {
+	// tilt := args[0].(int8)
+	//   Tilt value (in degree)
+	// pan := args[1].(int8)
+	//   Pan value (in degree)
+	log.Debug("default camera orientation changed-- this is a no-op")
+	return nil
+}
 
 // TODO: Implement this
 // Title: Camera orientation

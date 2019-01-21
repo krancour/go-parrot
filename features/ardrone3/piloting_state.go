@@ -384,7 +384,7 @@ func (p *pilotingState) navigateHomeStateChanged(args []interface{}) error {
 	return nil
 }
 
-// PositionChanged does not appear deprecated (yet), according to Parrot
+// positionChanged does not appear deprecated (yet), according to Parrot
 // developer documentation, but according to the same documentation, they appear
 // poised to replace PositionChanged with GpsLocationChanged. Since
 // GpsLocationChanged is functioning as expected, but we can still see this

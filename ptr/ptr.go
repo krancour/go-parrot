@@ -64,3 +64,8 @@ func ToFloat32(val float32) *float32 {
 func ToFloat64(val float64) *float64 {
 	return &val
 }
+
+// ToBool returns a pointer to a bool.
+func ToBool(val bool) *bool {
+	return &val
+}

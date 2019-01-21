@@ -1,17 +1,35 @@
 package ardrone3
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arcommands"
+	"github.com/krancour/go-parrot/ptr"
 )
 
 // Piloting Settings state from product
 
 // PilotingSettingsState ...
 // TODO: Document this
-type PilotingSettingsState interface{}
+type PilotingSettingsState interface {
+	// RLock blocks until a read lock is obtained. This permits callers to procede
+	// with querying any or all attributes of the piloting state without worry
+	// that some attributes will be overwritten as others are read. i.e. It
+	// permits the possibility of taking an atomic snapshop of piloting state.
+	// Note that use of this function is not obligatory for applications that do
+	// not require such guarantees. Callers MUST call RUnlock() or else piloting
+	// state will never resume updating.
+	RLock()
+	// RUnlock releases a read lock on the GPS state. See RLock().
+	RUnlock()
+	MotionDetectionEnabled() (bool, bool)
+}
 
-type pilotingSettingsState struct{}
+type pilotingSettingsState struct {
+	motionDetectionEnabled *bool
+	lock                   sync.RWMutex
+}
 
 func (p *pilotingSettingsState) ID() uint8 {
 	return 6
@@ -163,14 +181,14 @@ func (p *pilotingSettingsState) D2CCommands() []arcommands.D2CCommand {
 		// 	},
 		// 	p.pitchModeChanged,
 		// ),
-		// arcommands.NewD2CCommand(
-		// 	16,
-		// 	"MotionDetection",
-		// 	[]interface{}{
-		// 		uint8(0), // enabled,
-		// 	},
-		// 	p.motionDetection,
-		// ),
+		arcommands.NewD2CCommand(
+			16,
+			"MotionDetection",
+			[]interface{}{
+				uint8(0), // enabled,
+			},
+			p.motionDetection,
+		),
 	}
 }
 
@@ -443,15 +461,29 @@ func (p *pilotingSettingsState) bankedTurnChanged(args []interface{}) error {
 // 	return nil
 // }
 
-// // TODO: Implement this
-// // Title: State of the motion detection
-// // Description: State of the motion detection.
-// // Support: 090c:4.3.0
-// // Triggered: by [SetMotionDetectionMode](#1-2-16)
-// // Result:
-// func (p *pilotingSettingsState) motionDetection(args []interface{}) error {
-// 	// enabled := args[0].(uint8)
-// 	//   1 if motion detection is enabled, 0 otherwise.
-// 	log.Info("ardrone3.motionDetection() called")
-// 	return nil
-// }
+// motionDetection is invoked by the device to indicate whether motion
+// detection is enabled.
+func (p *pilotingSettingsState) motionDetection(args []interface{}) error {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	p.motionDetectionEnabled = ptr.ToBool(args[0].(uint8) == 1)
+	log.WithField(
+		"motionDetectionEnabled", p.motionDetectionEnabled,
+	).Debug("motion detection enabled changed")
+	return nil
+}
+
+func (p *pilotingSettingsState) RLock() {
+	p.lock.RLock()
+}
+
+func (p *pilotingSettingsState) RUnlock() {
+	p.lock.RUnlock()
+}
+
+func (p *pilotingSettingsState) MotionDetectionEnabled() (bool, bool) {
+	if p.motionDetectionEnabled == nil {
+		return false, false
+	}
+	return *p.motionDetectionEnabled, true
+}
