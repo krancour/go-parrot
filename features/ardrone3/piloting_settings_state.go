@@ -23,6 +23,11 @@ type PilotingSettingsState interface {
 	RLock()
 	// RUnlock releases a read lock on the GPS state. See RLock().
 	RUnlock()
+	// MotionDetectionEnabled returns a boolean indicating whether motion
+	// detection is enabled. A boolean value is also returned, indicating whether
+	// the first value was reported by the device (true) or a default value
+	// (false). This permits callers to distinguish real zero values from default
+	// zero values.
 	MotionDetectionEnabled() (bool, bool)
 }
 
@@ -468,7 +473,7 @@ func (p *pilotingSettingsState) motionDetection(args []interface{}) error {
 	defer p.lock.Unlock()
 	p.motionDetectionEnabled = ptr.ToBool(args[0].(uint8) == 1)
 	log.WithField(
-		"motionDetectionEnabled", p.motionDetectionEnabled,
+		"motionDetectionEnabled", *p.motionDetectionEnabled,
 	).Debug("motion detection enabled changed")
 	return nil
 }
