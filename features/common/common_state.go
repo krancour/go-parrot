@@ -318,7 +318,7 @@ func (c *commonState) wifiSignalChanged(args []interface{}) error {
 	defer c.lock.Unlock()
 	c.rssi = ptr.ToInt16(args[0].(int16))
 	log.WithField(
-		"rssi", c.rssi,
+		"rssi", *c.rssi,
 	).Debug("common state wifi signal strength updated")
 	return nil
 }

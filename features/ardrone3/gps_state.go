@@ -82,7 +82,7 @@ func (g *gpsState) numberOfSatellitesChanged(args []interface{}) error {
 	defer g.lock.Unlock()
 	g.numberOfSatellites = ptr.ToUint8(args[0].(uint8))
 	log.WithField(
-		"numberOfSatellites", g.numberOfSatellites,
+		"numberOfSatellites", *g.numberOfSatellites,
 	).Debug("gps state number of satellites updated")
 	return nil
 }

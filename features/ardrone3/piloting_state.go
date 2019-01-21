@@ -412,11 +412,11 @@ func (p *pilotingState) speedChanged(args []interface{}) error {
 	p.speedY = ptr.ToFloat32(args[1].(float32))
 	p.speedZ = ptr.ToFloat32(args[2].(float32))
 	log.WithField(
-		"speedX", p.speedX,
+		"speedX", *p.speedX,
 	).WithField(
-		"speedY", p.speedY,
+		"speedY", *p.speedY,
 	).WithField(
-		"speedZ", p.speedZ,
+		"speedZ", *p.speedZ,
 	).Debug("piloting state speed updated")
 	return nil
 }
@@ -430,11 +430,11 @@ func (p *pilotingState) attitudeChanged(args []interface{}) error {
 	p.pitch = ptr.ToFloat32(args[1].(float32))
 	p.yaw = ptr.ToFloat32(args[2].(float32))
 	log.WithField(
-		"roll", p.roll,
+		"roll", *p.roll,
 	).WithField(
-		"pitch", p.pitch,
+		"pitch", *p.pitch,
 	).WithField(
-		"yaw", p.yaw,
+		"yaw", *p.yaw,
 	).Debug("piloting state attitude updated")
 	return nil
 }
@@ -460,7 +460,7 @@ func (p *pilotingState) altitudeChanged(args []interface{}) error {
 	defer p.lock.Unlock()
 	p.altitude = ptr.ToFloat64(args[0].(float64))
 	log.WithField(
-		"altitude", p.altitude,
+		"altitude", *p.altitude,
 	).Debug("piloting state altitude updated")
 	return nil
 }
@@ -472,22 +472,22 @@ func (p *pilotingState) gpsLocationChanged(args []interface{}) error {
 	defer p.lock.Unlock()
 	p.latitude = ptr.ToFloat64(args[0].(float64))
 	p.longitude = ptr.ToFloat64(args[1].(float64))
-	p.altitude = ptr.ToFloat64(args[2].(float64))
+	p.gpsAltitude = ptr.ToFloat64(args[2].(float64))
 	p.latitudeAccuracy = ptr.ToInt8(args[3].(int8))
 	p.longitudeAccuracy = ptr.ToInt8(args[4].(int8))
 	p.gpsAltitudeAccuracy = ptr.ToInt8(args[5].(int8))
 	log.WithField(
-		"latitude", p.latitude,
+		"latitude", *p.latitude,
 	).WithField(
-		"longitude", p.longitude,
+		"longitude", *p.longitude,
 	).WithField(
-		"altitude", p.gpsAltitude,
+		"altitude", *p.gpsAltitude,
 	).WithField(
-		"latitudeAccuracy", p.latitudeAccuracy,
+		"latitudeAccuracy", *p.latitudeAccuracy,
 	).WithField(
-		"longitudeAccuracy", p.longitudeAccuracy,
+		"longitudeAccuracy", *p.longitudeAccuracy,
 	).WithField(
-		"altitudeAccuracy", p.gpsAltitudeAccuracy,
+		"altitudeAccuracy", *p.gpsAltitudeAccuracy,
 	).Debug("piloting state gps coordinates updated")
 	return nil
 }

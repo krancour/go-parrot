@@ -3,6 +3,7 @@ package arcommands
 import (
 	"bytes"
 	"encoding/binary"
+	"reflect"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arnetwork"
@@ -84,7 +85,7 @@ func (c *c2dCommandClient) SendCommand(
 	retryPolicy RetryPolicy,
 	args ...interface{},
 ) error {
-	encodedData, err := encodeCommand(featureID, classID, commandID, args)
+	encodedData, err := encodeCommand(featureID, classID, commandID, args...)
 	if err != nil {
 		return errors.Wrap(err, "error encoding c2d command")
 	}
@@ -118,8 +119,36 @@ func encodeCommand(
 	if err := binary.Write(&buf, binary.LittleEndian, commandID); err != nil {
 		return nil, errors.Wrap(err, "error encoding c2d command")
 	}
-	for _, arg := range args {
-		if err := binary.Write(&buf, binary.LittleEndian, arg); err != nil {
+	for _, argIface := range args {
+		var err error
+		switch arg := argIface.(type) {
+		case uint8:
+			err = binary.Write(&buf, binary.LittleEndian, arg)
+		case int8:
+			err = binary.Write(&buf, binary.LittleEndian, arg)
+		case uint16:
+			err = binary.Write(&buf, binary.LittleEndian, arg)
+		case int16:
+			err = binary.Write(&buf, binary.LittleEndian, arg)
+		case uint32:
+			err = binary.Write(&buf, binary.LittleEndian, arg)
+		case int32:
+			err = binary.Write(&buf, binary.LittleEndian, arg)
+		case uint64:
+			err = binary.Write(&buf, binary.LittleEndian, arg)
+		case int64:
+			err = binary.Write(&buf, binary.LittleEndian, arg)
+		case float32:
+			err = binary.Write(&buf, binary.LittleEndian, arg)
+		case float64:
+			err = binary.Write(&buf, binary.LittleEndian, arg)
+		default:
+			err = errors.Errorf(
+				"do not know how to encode type: %s",
+				reflect.TypeOf(argIface),
+			)
+		}
+		if err != nil {
 			return nil, errors.Wrap(err, "error encoding c2d command")
 		}
 	}

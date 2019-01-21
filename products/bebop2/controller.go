@@ -3,6 +3,7 @@ package bebop2
 import (
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/features/ardrone3"
 	"github.com/krancour/go-parrot/features/common"
 	"github.com/krancour/go-parrot/protocols/arcommands"
@@ -143,12 +144,12 @@ func NewController() (Controller, error) {
 		return nil, errors.Wrap(err, "error creating d2c command server")
 	}
 	d2cCommandServer.Start()
-	// if err := commonFeature.Settings().AllSettings(); err != nil {
-	// 	log.Error(err)
-	// }
-	// if err := commonFeature.Common().AllStates(); err != nil {
-	// 	log.Error(err)
-	// }
+	if err := commonFeature.Settings().AllSettings(); err != nil {
+		log.Error(err)
+	}
+	if err := commonFeature.Common().AllStates(); err != nil {
+		log.Error(err)
+	}
 	return &controller{
 		common:   commonFeature,
 		ardrone3: ardrone3Feature,
