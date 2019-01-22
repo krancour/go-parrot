@@ -180,7 +180,7 @@ func (f *feature) NetworkEvent() NetworkEvent {
 // }
 
 func (f *feature) RunState() RunState {
-	return f.RunState
+	return f.runState
 }
 
 func (f *feature) SettingsState() SettingsState {
@@ -190,8 +190,6 @@ func (f *feature) SettingsState() SettingsState {
 func (f *feature) WifiSettingsState() WifiSettingsState {
 	return f.wifiSettingsState
 }
-
-// -----------------------------------------------------------------------------
 
 func (f *feature) Common() Common {
 	return f.common

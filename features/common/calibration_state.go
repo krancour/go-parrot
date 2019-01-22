@@ -1,17 +1,61 @@
 package common
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arcommands"
+	"github.com/krancour/go-parrot/ptr"
 )
 
 // Status of the calibration
 
+const (
+	MaxnetoCalibrationAxisX    int32 = 0
+	MaxnetoCalibrationAxisY    int32 = 1
+	MaxnetoCalibrationAxisZ    int32 = 2
+	MaxnetoCalibrationAxisNone int32 = 3
+)
+
 // CalibrationState ...
 // TODO: Document this
-type CalibrationState interface{}
+type CalibrationState interface {
+	// RLock blocks until a read lock is obtained. This permits callers to procede
+	// with querying any or all attributes of the calibration state without worry
+	// that some attributes will be overwritten as others are read. i.e. It
+	// permits the possibility of taking an atomic snapshop of calibration state.
+	// Note that use of this function is not obligatory for applications that do
+	// not require such guarantees. Callers MUST call RUnlock() or else
+	// calibration state will never resume updating.
+	RLock()
+	// RUnlock releases a read lock on the calibration state. See RLock().
+	RUnlock()
+	// MagnetoCalibrationRequired returns a boolean indicating whether the device
+	// requires magneto calibrartion to be performed. A boolean value is also
+	// returned, indicating whether the first value was reported by the device
+	// (true) or a default value (false). This permits callers to distinguish real
+	// zero values from default zero values.
+	MagnetoCalibrationRequired() (bool, bool)
+	// MagnetoCalibrationStarted returns a boolean indicating whether magneto
+	// calibration is currently in progress. A boolean value is also returned,
+	// indicating whether the first value was reported by the device (true) or a
+	// default value (false). This permits callers to distinguish real zero values
+	// from default zero values.
+	MagnetoCalibrationStarted() (bool, bool)
+	// MagnetoCalibrationAxis returns an int32 indicating which axis, if any is
+	// currently being calibrated. A boolean value is also returned, indicating
+	// whether the first value was reported by the device (true) or a default
+	// value (false). This permits callers to distinguish real zero values from
+	// default zero values.
+	MagnetoCalibrationAxis() (int32, bool)
+}
 
-type calibrationState struct{}
+type calibrationState struct {
+	magnetoCalibrationRequired *bool
+	magnetoCalibrationStarted  *bool
+	magnetoCalibrationAxis     *int32
+	lock                       sync.RWMutex
+}
 
 func (c *calibrationState) ID() uint8 {
 	return 14
@@ -97,53 +141,45 @@ func (c *calibrationState) magnetoCalibrationStateChanged(
 	return nil
 }
 
-// TODO: Implement this
-// Title: Calibration required
-// Description: Calibration required.
-// Support: 0901;090c;090e
-// Triggered: when the calibration requirement changes.
-// Result:
+// magnetoCalibrationRequiredState is invoked by the device to indicate that
+// magnetometer calibration is required.
 func (c *calibrationState) magnetoCalibrationRequiredState(
 	args []interface{},
 ) error {
-	// required := args[0].(uint8)
-	//   1 if calibration is required, 0 if current calibration is still valid
-	log.Info("common.magnetoCalibrationRequiredState() called")
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.magnetoCalibrationRequired = ptr.ToBool(args[0].(uint8) == 1)
+	log.WithField(
+		"magnetoCalibrationRequired", *c.magnetoCalibrationRequired,
+	).Debug("magneto claibration required state changed")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Axis to calibrate during calibration process
-// Description: Axis to calibrate during calibration process.
-// Support: 0901;090c;090e
-// Triggered: during the calibration process when the axis to calibrate changes.
-// Result:
+// magnetoCalibrationAxisToCalibrateChanged is invoked by the device to indicate
+// which axis is actively being calibrated.
 func (c *calibrationState) magnetoCalibrationAxisToCalibrateChanged(
 	args []interface{},
 ) error {
-	// axis := args[0].(int32)
-	//   The axis to calibrate
-	//   0: xAxis: If the current calibration axis should be the x axis
-	//   1: yAxis: If the current calibration axis should be the y axis
-	//   2: zAxis: If the current calibration axis should be the z axis
-	//   3: none: If none of the axis should be calibrated
-	log.Info("common.magnetoCalibrationAxisToCalibrateChanged() called")
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.magnetoCalibrationAxis = ptr.ToInt32(args[0].(int32))
+	log.WithField(
+		"magnetoCalibrationAxis", *c.magnetoCalibrationAxis,
+	).Debug("common.magnetoCalibrationAxisToCalibrateChanged() called")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Calibration process state
-// Description: Calibration process state.
-// Support: 0901;090c;090e
-// Triggered: by [StartOrAbortMagnetoCalib](#0-13-0) or when the process ends
-//   because it succeeded.
-// Result:
+// magnetoCalibrationStartedChanged is invoked by the device to indicate whether
+// magneto calibration is in progress.
 func (c *calibrationState) magnetoCalibrationStartedChanged(
 	args []interface{},
 ) error {
-	// started := args[0].(uint8)
-	//   1 if calibration has started, 0 otherwise
-	log.Info("common.magnetoCalibrationStartedChanged() called")
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.magnetoCalibrationStarted = ptr.ToBool(args[0].(uint8) == 1)
+	log.WithField(
+		"magnetoCalibrationStarted", *c.magnetoCalibrationStarted,
+	).Debug("magneto calibration started state changed")
 	return nil
 }
 
@@ -161,4 +197,33 @@ func (c *calibrationState) pitotCalibrationStateChanged(
 	//   lastError : 1 if an error occured and 0 if not
 	log.Info("common.pitotCalibrationStateChanged() called")
 	return nil
+}
+
+func (c *calibrationState) RLock() {
+	c.lock.RLock()
+}
+
+func (c *calibrationState) RUnlock() {
+	c.lock.RUnlock()
+}
+
+func (c *calibrationState) MagnetoCalibrationRequired() (bool, bool) {
+	if c.magnetoCalibrationRequired == nil {
+		return false, false
+	}
+	return *c.magnetoCalibrationRequired, true
+}
+
+func (c *calibrationState) MagnetoCalibrationStarted() (bool, bool) {
+	if c.magnetoCalibrationStarted == nil {
+		return false, false
+	}
+	return *c.magnetoCalibrationStarted, true
+}
+
+func (c *calibrationState) MagnetoCalibrationAxis() (int32, bool) {
+	if c.magnetoCalibrationAxis == nil {
+		return 0, false
+	}
+	return *c.magnetoCalibrationAxis, true
 }

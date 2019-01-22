@@ -1,17 +1,34 @@
 package common
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arcommands"
+	"github.com/krancour/go-parrot/ptr"
 )
 
 // Wifi settings state from product
 
 // WifiSettingsState ...
 // TODO: Document this
-type WifiSettingsState interface{}
+type WifiSettingsState interface {
+	// RLock blocks until a read lock is obtained. This permits callers to procede
+	// with querying any or all attributes of the wifi settings state without
+	// worry that some attributes will be overwritten as others are read. i.e. It
+	// permits the possibility of taking an atomic snapshop of wifi settings
+	// state. Note that use of this function is not obligatory for applications
+	// that do not require such guarantees. Callers MUST call RUnlock() or else
+	// wifi settings state will never resume updating.
+	RLock()
+	// RUnlock releases a read lock on the wifi settings state. See RLock().
+	RUnlock()
+}
 
-type wifiSettingsState struct{}
+type wifiSettingsState struct {
+	outdoors *bool
+	lock     sync.RWMutex
+}
 
 func (w *wifiSettingsState) ID() uint8 {
 	return 10
@@ -34,15 +51,21 @@ func (w *wifiSettingsState) D2CCommands() []arcommands.D2CCommand {
 	}
 }
 
-// TODO: Implement this
-// Title: Wifi outdoor mode
-// Description: Wifi outdoor mode.
-// Support: 0901;0902;0905;0906;090c;090e
-// Triggered: by [SetWifiOutdoorMode](#0-9-0).
-// Result:
+// Invoked by the device to indicate whether it is using outdoor wifi settings.
 func (w *wifiSettingsState) outdoorSettingsChanged(args []interface{}) error {
-	// outdoor := args[0].(uint8)
-	//   1 if it should use outdoor wifi settings, 0 otherwise
-	log.Info("common.outdoorSettingsChanged() called")
+	w.lock.Lock()
+	defer w.lock.Unlock()
+	w.outdoors = ptr.ToBool(args[0].(uint8) == 1)
+	log.WithField(
+		"outdoors", *w.outdoors,
+	).Debug("outdoor settings changed")
 	return nil
+}
+
+func (w *wifiSettingsState) RLock() {
+	w.lock.RLock()
+}
+
+func (w *wifiSettingsState) RUnlock() {
+	w.lock.RUnlock()
 }

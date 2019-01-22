@@ -59,6 +59,12 @@ type SettingsState interface {
 	// default value (false). This permits callers to distinguish real zero values
 	// from default zero values.
 	CountryCode() (string, bool)
+	// AllSettingsSent returns a boolean indicating whether the device has sent
+	// all settings to the client. A boolean value is also returned, indicating
+	// whether the first value was reported by the device (true) or a default
+	// value (false). This permits callers to distinguish real zero values from
+	// default zero values.
+	AllSettingsSent() (bool, bool)
 }
 
 type settingsState struct {
@@ -69,6 +75,7 @@ type settingsState struct {
 	hardwareVersion    *string
 	autoCountryEnabled *bool
 	countryCode        *string
+	allSettingsSent    *bool
 	lock               sync.RWMutex
 }
 
@@ -146,16 +153,12 @@ func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 	}
 }
 
-// TODO: Implement this
-// Title: All settings have been sent
-// Description: All settings have been sent.\n\n **Please note that you should
-//   not care about this event if you are using the libARController API as this
-//   library is handling the connection process for you.**
-// Support: drones
-// Triggered: when all settings values have been sent.
-// Result:
+// Invoked by the device to indicate all settings have been sent.
 func (s *settingsState) allSettingsChanged(args []interface{}) error {
-	log.Info("common.allSettingsChanged() called")
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.allSettingsSent = ptr.ToBool(true)
+	log.Debug("all settings have been sent by the device")
 	return nil
 }
 
@@ -304,4 +307,11 @@ func (s *settingsState) CountryCode() (string, bool) {
 		return "", false
 	}
 	return *s.countryCode, true
+}
+
+func (s *settingsState) AllSettingsSent() (bool, bool) {
+	if s.allSettingsSent == nil {
+		return false, false
+	}
+	return *s.allSettingsSent, true
 }

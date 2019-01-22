@@ -1,17 +1,61 @@
 package common
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arcommands"
+	"github.com/krancour/go-parrot/ptr"
 )
 
 // Mavlink flight plans states commands
 
+const (
+	MavLinkStatePlaying int32 = 0
+	MavLinkStateStopped int32 = 1
+	MavLinkStatePaused  int32 = 2
+	MavLinkStateLoaded  int32 = 3
+
+	MavlinkTypeFlightPlan int32 = 0
+	MavlinkTypeMapMyHouse int32 = 1
+)
+
 // MavlinkState ...
 // TODO: Document this
-type MavlinkState interface{}
+type MavlinkState interface {
+	// RLock blocks until a read lock is obtained. This permits callers to procede
+	// with querying any or all attributes of the mavlink state without worry
+	// that some attributes will be overwritten as others are read. i.e. It
+	// permits the possibility of taking an atomic snapshop of mavlink state.
+	// Note that use of this function is not obligatory for applications that do
+	// not require such guarantees. Callers MUST call RUnlock() or else mavlink
+	// state will never resume updating.
+	RLock()
+	// RUnlock releases a read lock on the mavlink state. See RLock().
+	RUnlock()
+	// MavlinkState returns an int32 representing the current state of mavlink. A
+	// boolean value is also returned, indicating whether the first value was
+	// reported by the device (true) or a default value (false). This permits
+	// callers to distinguish real zero values from default zero values.
+	MavlinkState() (int32, bool)
+	// MavlinkFilePath returns a string representing the ftp path for the mavlink
+	// file. A boolean value is also returned, indicating whether the first value
+	// was reported by the device (true) or a default value (false). This permits
+	// callers to distinguish real zero values from default zero values.
+	MavlinkFilePath() (string, bool)
+	// MavlinkType returns an int32 representing the type of mavlink file. A
+	// boolean value is also returned, indicating whether the first value was
+	// reported by the device (true) or a default value (false). This permits
+	// callers to distinguish real zero values from default zero values.
+	MavlinkType() (int32, bool)
+}
 
-type mavlinkState struct{}
+type mavlinkState struct {
+	mavlinkState    *int32
+	mavlinkFilePath *string
+	mavlinkType     *int32
+	lock            sync.RWMutex
+}
 
 func (m *mavlinkState) ID() uint8 {
 	return 12
@@ -52,28 +96,21 @@ func (m *mavlinkState) D2CCommands() []arcommands.D2CCommand {
 	}
 }
 
-// TODO: Implement this
-// Title: Playing state of a FlightPlan
-// Description: Playing state of a FlightPlan.
-// Support: 0901:2.0.29;090c;090e
-// Triggered: by [StartFlightPlan](#0-11-0), [PauseFlightPlan](#0-11-1) or
-//   [StopFlightPlan](#0-11-2).
-// Result:
+// mavlinkFilePlayingStateChanged is invoked by the device when a flight plan
+// is started, paused, or stopped.
 func (m *mavlinkState) mavlinkFilePlayingStateChanged(args []interface{}) error {
-	// state := args[0].(int32)
-	//   State of the mavlink
-	//   0: playing: Mavlink file is playing
-	//   1: stopped: Mavlink file is stopped (arg filepath and type are useless in
-	//      this state)
-	//   2: paused: Mavlink file is paused
-	//   3: loaded: Mavlink file is loaded (it will be played at take-off)
-	// filepath := args[1].(string)
-	//   flight plan file path from the mavlink ftp root
-	// type := args[2].(int32)
-	//   type of the played mavlink file
-	//   0: flightPlan: Mavlink file for FlightPlan
-	//   1: mapMyHouse: Mavlink file for MapMyHouse
-	log.Info("common.mavlinkFilePlayingStateChanged() called")
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	m.mavlinkState = ptr.ToInt32(args[0].(int32))
+	m.mavlinkFilePath = ptr.ToString(args[1].(string))
+	m.mavlinkType = ptr.ToInt32(args[2].(int32))
+	log.WithField(
+		"mavlinkState", *m.mavlinkState,
+	).WithField(
+		"mavlinkFilePath", *m.mavlinkFilePath,
+	).WithField(
+		"mavlinkType", *m.mavlinkType,
+	).Debug("mavlink file playing state changed")
 	return nil
 }
 
@@ -108,3 +145,32 @@ func (m *mavlinkState) mavlinkFilePlayingStateChanged(args []interface{}) error 
 // 	log.Info("common.missionItemExecuted() called")
 // 	return nil
 // }
+
+func (m *mavlinkState) RLock() {
+	m.lock.RLock()
+}
+
+func (m *mavlinkState) RUnlock() {
+	m.lock.RUnlock()
+}
+
+func (m *mavlinkState) MavlinkState() (int32, bool) {
+	if m.mavlinkState == nil {
+		return 0, false
+	}
+	return *m.mavlinkState, true
+}
+
+func (m *mavlinkState) MavlinkFilePath() (string, bool) {
+	if m.mavlinkFilePath == nil {
+		return "", false
+	}
+	return *m.mavlinkFilePath, true
+}
+
+func (m *mavlinkState) MavlinkType() (int32, bool) {
+	if m.mavlinkType == nil {
+		return 0, false
+	}
+	return *m.mavlinkType, true
+}

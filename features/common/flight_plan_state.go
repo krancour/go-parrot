@@ -1,17 +1,45 @@
 package common
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arcommands"
+	"github.com/krancour/go-parrot/ptr"
 )
 
 // FlightPlan state commands
 
 // FlightPlanState ...
 // TODO: Document this
-type FlightPlanState interface{}
+type FlightPlanState interface {
+	// RLock blocks until a read lock is obtained. This permits callers to procede
+	// with querying any or all attributes of the flight plan state without worry
+	// that some attributes will be overwritten as others are read. i.e. It
+	// permits the possibility of taking an atomic snapshop of flight plan state.
+	// Note that use of this function is not obligatory for applications that do
+	// not require such guarantees. Callers MUST call RUnlock() or else flight
+	// plan state will never resume updating.
+	RLock()
+	// RUnlock releases a read lock on the flight plan state. See RLock().
+	RUnlock()
+	GPSOK() (bool, bool)
+	CalibrationOK() (bool, bool)
+	MavlinkFileOK() (bool, bool)
+	TakeOffOK() (bool, bool)
+	WaypointBeyondGeofenceOK() (bool, bool)
+	RunFlightPlanFileAvailable() (bool, bool)
+}
 
-type flightPlanState struct{}
+type flightPlanState struct {
+	gpsOK                      *bool
+	calibrationOK              *bool
+	mavlinkFileOK              *bool
+	takeOffOK                  *bool
+	waypointBeyondGeofenceOK   *bool
+	runFlightPlanFileAvailable *bool
+	lock                       sync.RWMutex
+}
 
 func (f *flightPlanState) ID() uint8 {
 	return 17
@@ -51,18 +79,15 @@ func (f *flightPlanState) D2CCommands() []arcommands.D2CCommand {
 	}
 }
 
-// TODO: Implement this
-// Title: FlightPlan availability
-// Description: FlightPlan availability.\n Availability is linked to GPS fix,
-//   magnetometer calibration, sensor states...
-// Support: 0901:2.0.29;090c;090e
-// Triggered: on change.
-// Result:
+// availabilityStateChanged is invoked by the device to indicate whether
+// running a flight plan file is available.
 func (f *flightPlanState) availabilityStateChanged(args []interface{}) error {
-	// AvailabilityState := args[0].(uint8)
-	//   Running a flightPlan file is available (1 running a flightPlan file is
-	//   available, otherwise 0)
-	log.Info("common.availabilityStateChanged() called")
+	f.lock.Lock()
+	defer f.lock.Unlock()
+	f.runFlightPlanFileAvailable = ptr.ToBool(args[0].(uint8) == 1)
+	log.WithField(
+		"runFlightPlanFileAvailable", *f.runFlightPlanFileAvailable,
+	).Debug("availability of running a flight plan file changed")
 	return nil
 }
 
@@ -80,21 +105,36 @@ func (f *flightPlanState) availabilityStateChanged(args []interface{}) error {
 //   [StartFlightPlan](#0-11-0) is received.
 // Result:
 func (f *flightPlanState) componentStateListChanged(args []interface{}) error {
-	// component := args[0].(int32)
-	//   Drone FlightPlan component id (unique)
-	//   0: GPS: Drone GPS component. State is 0 when the drone needs a GPS fix.
-	//   1: Calibration: Drone Calibration component. State is 0 when the sensors
-	//      of the drone needs to be calibrated.
-	//   2: Mavlink_File: Mavlink file component. State is 0 when the mavlink
-	//      file is missing or contains error.
-	//   3: TakeOff: Drone Take off component. State is 0 when the drone cannot
-	//      take-off.
-	//   4: WaypointsBeyondGeofence: Component for waypoints beyond the geofence.
-	//      State is 0 when one or more waypoints are beyond the geofence.
-	// State := args[1].(uint8)
-	//   State of the FlightPlan component (1 FlightPlan component OK, otherwise
-	//   0)
-	log.Info("common.componentStateListChanged() called")
+	f.lock.Lock()
+	defer f.lock.Unlock()
+	componentID := args[0].(int32)
+	state := ptr.ToBool(args[1].(uint8) == 1)
+	log := log.WithField(
+		"state", *state,
+	)
+	switch componentID {
+	case 0:
+		f.gpsOK = state
+		log = log.WithField("component", "gps")
+	case 1:
+		f.calibrationOK = state
+		log = log.WithField("component", "calibration")
+	case 2:
+		f.mavlinkFileOK = state
+		log = log.WithField("component", "mavlinkFile")
+	case 3:
+		f.takeOffOK = state
+		log = log.WithField("component", "takeOff")
+	case 4:
+		f.waypointBeyondGeofenceOK = state
+		log = log.WithField("component", "waypointBeyondGeofence")
+	default:
+		log.WithField(
+			"componentID", componentID,
+		).Warn("component state changed with unknown component id")
+		return nil
+	}
+	log.Debug("component state changed")
 	return nil
 }
 
@@ -111,4 +151,54 @@ func (f *flightPlanState) lockStateChanged(args []interface{}) error {
 	//   FlightPlan is unlocked: pause or stop available.
 	log.Info("common.lockStateChanged() called")
 	return nil
+}
+
+func (f *flightPlanState) RLock() {
+	f.lock.RLock()
+}
+
+func (f *flightPlanState) RUnlock() {
+	f.lock.RUnlock()
+}
+
+func (f *flightPlanState) GPSOK() (bool, bool) {
+	if f.gpsOK == nil {
+		return false, false
+	}
+	return *f.gpsOK, true
+}
+
+func (f *flightPlanState) CalibrationOK() (bool, bool) {
+	if f.calibrationOK == nil {
+		return false, false
+	}
+	return *f.calibrationOK, true
+}
+
+func (f *flightPlanState) MavlinkFileOK() (bool, bool) {
+	if f.mavlinkFileOK == nil {
+		return false, false
+	}
+	return *f.mavlinkFileOK, true
+}
+
+func (f *flightPlanState) TakeOffOK() (bool, bool) {
+	if f.takeOffOK == nil {
+		return false, false
+	}
+	return *f.takeOffOK, true
+}
+
+func (f *flightPlanState) WaypointBeyondGeofenceOK() (bool, bool) {
+	if f.waypointBeyondGeofenceOK == nil {
+		return false, false
+	}
+	return *f.waypointBeyondGeofenceOK, true
+}
+
+func (f *flightPlanState) RunFlightPlanFileAvailable() (bool, bool) {
+	if f.runFlightPlanFileAvailable == nil {
+		return false, false
+	}
+	return *f.runFlightPlanFileAvailable, true
 }

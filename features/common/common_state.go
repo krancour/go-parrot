@@ -8,6 +8,8 @@ import (
 	"github.com/krancour/go-parrot/ptr"
 )
 
+// TODO: Mass storage stuff all needs to be in a map indexed by ID
+
 // Common state from product
 
 // CommonState ...
@@ -18,7 +20,7 @@ type CommonState interface {
 	// that some attributes will be overwritten as others are read. i.e. It
 	// permits the possibility of taking an atomic snapshop of common state.
 	// Note that use of this function is not obligatory for applications that do
-	// not require such guarantees. Callers MUST call RUnlock() or else piloting
+	// not require such guarantees. Callers MUST call RUnlock() or else common
 	// state will never resume updating.
 	RLock()
 	// RUnlock releases a read lock on the common state. See RLock().
@@ -33,6 +35,36 @@ type CommonState interface {
 	// (true) or a default value (false). This permits callers to distinguish real
 	// zero values from default zero values.
 	MassStorageID() (uint8, bool)
+	// MassStorageName returns the mass storage name. A boolean value is also
+	// returned, indicating whether the first value was reported by the device
+	// (true) or a default value (false). This permits callers to distinguish real
+	// zero values from default zero values.
+	MassStorageName() (string, bool)
+	// MassStorageSize returns the size of the mass storage in megabytes. A
+	// boolean value is also returned, indicating whether the first value was
+	// reported by the device (true) or a default value (false). This permits
+	// callers to distinguish real zero values from default zero values.
+	MassStorageSize() (uint32, bool)
+	// MassStorageUsedSize returns the amount of mass storage used in megabytes. A
+	// boolean value is also returned, indicating whether the first value was
+	// reported by the device (true) or a default value (false). This permits
+	// callers to distinguish real zero values from default zero values.
+	MassStorageUsedSize() (uint32, bool)
+	// MassStoragePlugged returns a boolean indicating whether mass storage is
+	// plugged in. A boolean value is also returned, indicating whether the first
+	// value was reported by the device (true) or a default value (false). This
+	// permits callers to distinguish real zero values from default zero values.
+	MassStoragePlugged() (bool, bool)
+	// MassStorageFull returns a boolean indicating whether mass storage is full.
+	// A boolean value is also returned, indicating whether the first value was
+	// reported by the device (true) or a default value (false). This permits
+	// callers to distinguish real zero values from default zero values.
+	MassStorageFull() (bool, bool)
+	// MassStorageInternal returns a boolean indicating whether mass storage is
+	// internal. A boolean value is also returned, indicating whether the first
+	// value was reported by the device (true) or a default value (false). This
+	// permits callers to distinguish real zero values from default zero values.
+	MassStorageInternal() (bool, bool)
 	// PhotoCount returns the number of photos in mass storage. A boolean value is
 	// also returned, indicating whether the first value was reported by the
 	// device (true) or a default value (false). This permits callers to
@@ -86,6 +118,47 @@ type CommonState interface {
 	// the device (true) or a default value (false). This permits callers to
 	// distinguish real zero values from default zero values.
 	BatteryPercent() (uint8, bool)
+	// IMUOK returns a boolean indicating whether the inertial measurement unit
+	// sensor is operating normally. A boolean value is also returned, indicating
+	// whether the first value was reported by the device (true) or a default
+	// value (false). This permits callers to distinguish real zero values from
+	// default zero values.
+	IMUOK() (bool, bool)
+	// BarometerOK returns a boolean indicating whether the barometer is
+	// operarting normally. A boolean value is also returned, indicating whether
+	// the first value was reported by the device (true) or a default value
+	// (false). This permits callers to distinguish real zero values from default
+	// zero values.
+	BarometerOK() (bool, bool)
+	// UltrasoundOK returns a boolean indicating whether the ultrasonic sensor is
+	// operating normally. A boolean value is also returned, indicating whether
+	// the first value was reported by the device (true) or a default value
+	// (false). This permits callers to distinguish real zero values from default
+	// zero values.
+	UltrasoundOK() (bool, bool)
+	// GPSOK returns a boolean indicating whether the GPS is operating normally. A
+	// boolean value is also returned, indicating whether the first value was
+	// reported by the device (true) or a default value (false). This permits
+	// callers to distinguish real zero values from default zero values.
+	GPSOK() (bool, bool)
+	// MagnetometerOK returns a boolean indicating whether the magnetometer is
+	// operating normally. A boolean value is also returned, indicating whether
+	// the first value was reported by the device (true) or a default value
+	// (false). This permits callers to distinguish real zero values from default
+	// zero values.
+	MagnetometerOK() (bool, bool)
+	// VerticalCameraOK returns a boolean indicating whether the vertical camera
+	// is operating normally. A boolean value is also returned, indicating whether
+	// the first value was reported by the device (true) or a default value
+	// (false). This permits callers to distinguish real zero values from default
+	// zero values.
+	VerticalCameraOK() (bool, bool)
+	// AllStatesSent returns a boolean indicating whether the device has sent
+	// all states to the client. A boolean value is also returned, indicating
+	// whether the first value was reported by the device (true) or a default
+	// value (false). This permits callers to distinguish real zero values from
+	// default zero values.
+	AllStatesSent() (bool, bool)
 }
 
 type commonState struct {
@@ -95,6 +168,12 @@ type commonState struct {
 	// in dbm
 	rssi                    *int16
 	massStorageID           *uint8
+	massStorageName         *string
+	massStorageSize         *uint32
+	massStorageUsedSize     *uint32
+	massStoragePlugged      *bool
+	massStorageFull         *bool
+	massStorageInternal     *bool
 	photoCount              *uint16
 	videoCount              *uint16
 	pudCount                *uint16 // TODO: What is a pud?
@@ -105,6 +184,13 @@ type commonState struct {
 	currentRunVideoCount    *uint16
 	currentRunRawPhotoCount *uint16
 	batteryPercent          *uint8
+	imuOK                   *bool
+	barometerOK             *bool
+	ultrasoundOK            *bool
+	gpsOK                   *bool
+	magnetomenterOK         *bool
+	verticalCameraOK        *bool
+	allStatesSent           *bool
 	lock                    sync.RWMutex
 }
 
@@ -262,16 +348,12 @@ func (c *commonState) D2CCommands() []arcommands.D2CCommand {
 	}
 }
 
-// TODO: Implement this
-// Title: All states have been sent
-// Description: All states have been sent.\n\n **Please note that you should not
-//   care about this event if you are using the libARController API as this
-//   library is handling the connection process for you.**
-// Support: drones
-// Triggered: when all states values have been sent.
-// Result:
+// allStatesChanged is invoked by the device when all states have been sent.
 func (c *commonState) allStatesChanged(args []interface{}) error {
-	log.Info("common.allStatesChanged() called")
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.allStatesSent = ptr.ToBool(true)
+	log.Debug("all states have been sent by the device")
 	return nil
 }
 
@@ -291,43 +373,45 @@ func (c *commonState) batteryStateChanged(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Mass storage state list
-// Description: Mass storage state list.
-// Support: drones
-// Triggered: when a mass storage is inserted or ejected.
-// Result:
+// massStorageStateListChanged is invoked by the device when a mass storage
+// device is inserted or ejected.
 func (c *commonState) massStorageStateListChanged(args []interface{}) error {
-	// mass_storage_id := args[0].(uint8)
-	//   Mass storage id (unique)
-	// name := args[1].(string)
-	//   Mass storage name
-	log.Info("common.massStorageStateListChanged() called")
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.massStorageID = ptr.ToUint8(args[0].(uint8))
+	c.massStorageName = ptr.ToString(args[1].(string))
+	log.WithField(
+		"massStorageID", *c.massStorageID,
+	).WithField(
+		"massStorageName", *c.massStorageName,
+	).Debug("mass storage state list changed")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Mass storage info state list
-// Description: Mass storage info state list.
-// Support: drones
-// Triggered: when a mass storage info changes.
-// Result:
+// massStorageInfoStateListChanged is invoked by the devicde when mass storage
+// info changes.
 func (c *commonState) massStorageInfoStateListChanged(args []interface{}) error {
-	// mass_storage_id := args[0].(uint8)
-	//   Mass storage state id (unique)
-	// size := args[1].(uint32)
-	//   Mass storage size in MBytes
-	// used_size := args[2].(uint32)
-	//   Mass storage used size in MBytes
-	// plugged := args[3].(uint8)
-	//   Mass storage plugged (1 if mass storage is plugged, otherwise 0)
-	// full := args[4].(uint8)
-	//   Mass storage full information state (1 if mass storage full, 0
-	//   otherwise).
-	// internal := args[5].(uint8)
-	//   Mass storage internal type state (1 if mass storage is internal, 0
-	//   otherwise)
-	log.Info("common.massStorageInfoStateListChanged() called")
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.massStorageID = ptr.ToUint8(args[0].(uint8))
+	c.massStorageSize = ptr.ToUint32(args[1].(uint32))
+	c.massStorageUsedSize = ptr.ToUint32(args[2].(uint32))
+	c.massStoragePlugged = ptr.ToBool(args[3].(uint8) == 1)
+	c.massStorageFull = ptr.ToBool(args[4].(uint8) == 1)
+	c.massStorageInternal = ptr.ToBool(args[5].(uint8) == 1)
+	log.WithField(
+		"massStorageID", *c.massStorageID,
+	).WithField(
+		"massStorageSize", *c.massStorageSize,
+	).WithField(
+		"massStorageUsedSize", *c.massStorageUsedSize,
+	).WithField(
+		"massStoragePlugged", *c.massStoragePlugged,
+	).WithField(
+		"massStorageFull", *c.massStorageFull,
+	).WithField(
+		"massStorageInternal", *c.massStorageInternal,
+	).Debug("common.massStorageInfoStateListChanged() called")
 	return nil
 }
 
@@ -402,17 +486,39 @@ func (c *commonState) wifiSignalChanged(args []interface{}) error {
 // Triggered: at connection and when a sensor state changes.
 // Result:
 func (c *commonState) sensorsStatesListChanged(args []interface{}) error {
-	// sensorName := args[0].(int32)
-	//   Sensor name
-	//   0: IMU: Inertial Measurement Unit sensor
-	//   1: barometer: Barometer sensor
-	//   2: ultrasound: Ultrasonic sensor
-	//   3: GPS: GPS sensor
-	//   4: magnetometer: Magnetometer sensor
-	//   5: vertical_camera: Vertical Camera sensor
-	// sensorState := args[1].(uint8)
-	//   Sensor state (1 if the sensor is OK, 0 if the sensor is NOT OK)
-	log.Info("common.sensorsStatesListChanged() called")
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	sensorID := args[0].(int32)
+	state := ptr.ToBool(args[1].(uint8) == 1)
+	log := log.WithField(
+		"state", *state,
+	)
+	switch sensorID {
+	case 0:
+		c.imuOK = state
+		log = log.WithField("sensor", "IMU")
+	case 1:
+		c.barometerOK = state
+		log = log.WithField("sensor", "barometer")
+	case 2:
+		c.ultrasoundOK = state
+		log = log.WithField("sensor", "ultrasound")
+	case 3:
+		c.gpsOK = state
+		log = log.WithField("sensor", "GPS")
+	case 4:
+		c.magnetomenterOK = state
+		log = log.WithField("sensor", "megnetometer")
+	case 5:
+		c.verticalCameraOK = state
+		log = log.WithField("sensor", "verticalCamera")
+	default:
+		log.WithField(
+			"sensorID", sensorID,
+		).Warn("sensor state changed with unknown sensor id")
+		return nil
+	}
+	log.Debug("sensor state changed")
 	return nil
 }
 
@@ -573,6 +679,13 @@ func (c *commonState) MassStorageID() (uint8, bool) {
 	return *c.massStorageID, true
 }
 
+func (c *commonState) MassStorageName() (string, bool) {
+	if c.massStorageName == nil {
+		return "", false
+	}
+	return *c.massStorageName, true
+}
+
 func (c *commonState) PhotoCount() (uint16, bool) {
 	if c.photoCount == nil {
 		return 0, false
@@ -641,4 +754,88 @@ func (c *commonState) BatteryPercent() (uint8, bool) {
 		return 0, false
 	}
 	return *c.batteryPercent, true
+}
+
+func (c *commonState) IMUOK() (bool, bool) {
+	if c.imuOK == nil {
+		return false, false
+	}
+	return *c.imuOK, true
+}
+
+func (c *commonState) BarometerOK() (bool, bool) {
+	if c.barometerOK == nil {
+		return false, false
+	}
+	return *c.barometerOK, true
+}
+
+func (c *commonState) UltrasoundOK() (bool, bool) {
+	if c.ultrasoundOK == nil {
+		return false, false
+	}
+	return *c.ultrasoundOK, true
+}
+
+func (c *commonState) GPSOK() (bool, bool) {
+	if c.gpsOK == nil {
+		return false, false
+	}
+	return *c.gpsOK, true
+}
+
+func (c *commonState) MagnetometerOK() (bool, bool) {
+	if c.magnetomenterOK == nil {
+		return false, false
+	}
+	return *c.magnetomenterOK, true
+}
+
+func (c *commonState) VerticalCameraOK() (bool, bool) {
+	if c.verticalCameraOK == nil {
+		return false, false
+	}
+	return *c.verticalCameraOK, true
+}
+
+func (c *commonState) AllStatesSent() (bool, bool) {
+	if c.allStatesSent == nil {
+		return false, false
+	}
+	return *c.allStatesSent, true
+}
+
+func (c *commonState) MassStorageSize() (uint32, bool) {
+	if c.massStorageSize == nil {
+		return 0, false
+	}
+	return *c.massStorageSize, true
+}
+
+func (c *commonState) MassStorageUsedSize() (uint32, bool) {
+	if c.massStorageUsedSize == nil {
+		return 0, false
+	}
+	return *c.massStorageUsedSize, true
+}
+
+func (c *commonState) MassStoragePlugged() (bool, bool) {
+	if c.massStoragePlugged == nil {
+		return false, false
+	}
+	return *c.massStoragePlugged, true
+}
+
+func (c *commonState) MassStorageFull() (bool, bool) {
+	if c.massStorageFull == nil {
+		return false, false
+	}
+	return *c.massStorageFull, true
+}
+
+func (c *commonState) MassStorageInternal() (bool, bool) {
+	if c.massStorageInternal == nil {
+		return false, false
+	}
+	return *c.massStorageInternal, true
 }
