@@ -66,7 +66,9 @@ func NewFeature(c2dCommandClient arcommands.C2DCommandClient) Feature {
 		calibrationState:    &calibrationState{},
 		cameraSettingsState: &cameraSettingsState{},
 		// chargerState:            &chargerState{},
-		commonState:             &commonState{},
+		commonState: &commonState{
+			massStorageDevices: map[uint8]MassStorageDevice{},
+		},
 		flightPlanEvent:         &flightPlanEvent{},
 		flightPlanSettingsState: &flightPlanSettingsState{},
 		flightPlanState:         &flightPlanState{},

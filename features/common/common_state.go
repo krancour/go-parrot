@@ -30,89 +30,6 @@ type CommonState interface {
 	// value was reported by the device (true) or a default value (false). This
 	// permits callers to distinguish real zero values from default zero values.
 	RSSI() (int16, bool)
-	// MassStorageID returns the mass storage ID. A boolean value is also
-	// returned, indicating whether the first value was reported by the device
-	// (true) or a default value (false). This permits callers to distinguish real
-	// zero values from default zero values.
-	MassStorageID() (uint8, bool)
-	// MassStorageName returns the mass storage name. A boolean value is also
-	// returned, indicating whether the first value was reported by the device
-	// (true) or a default value (false). This permits callers to distinguish real
-	// zero values from default zero values.
-	MassStorageName() (string, bool)
-	// MassStorageSize returns the size of the mass storage in megabytes. A
-	// boolean value is also returned, indicating whether the first value was
-	// reported by the device (true) or a default value (false). This permits
-	// callers to distinguish real zero values from default zero values.
-	MassStorageSize() (uint32, bool)
-	// MassStorageUsedSize returns the amount of mass storage used in megabytes. A
-	// boolean value is also returned, indicating whether the first value was
-	// reported by the device (true) or a default value (false). This permits
-	// callers to distinguish real zero values from default zero values.
-	MassStorageUsedSize() (uint32, bool)
-	// MassStoragePlugged returns a boolean indicating whether mass storage is
-	// plugged in. A boolean value is also returned, indicating whether the first
-	// value was reported by the device (true) or a default value (false). This
-	// permits callers to distinguish real zero values from default zero values.
-	MassStoragePlugged() (bool, bool)
-	// MassStorageFull returns a boolean indicating whether mass storage is full.
-	// A boolean value is also returned, indicating whether the first value was
-	// reported by the device (true) or a default value (false). This permits
-	// callers to distinguish real zero values from default zero values.
-	MassStorageFull() (bool, bool)
-	// MassStorageInternal returns a boolean indicating whether mass storage is
-	// internal. A boolean value is also returned, indicating whether the first
-	// value was reported by the device (true) or a default value (false). This
-	// permits callers to distinguish real zero values from default zero values.
-	MassStorageInternal() (bool, bool)
-	// PhotoCount returns the number of photos in mass storage. A boolean value is
-	// also returned, indicating whether the first value was reported by the
-	// device (true) or a default value (false). This permits callers to
-	// distinguish real zero values from default zero values.
-	PhotoCount() (uint16, bool)
-	// VideoCount returns the numnber of videos in mass storage. A boolean value
-	// is also returned, indicating whether the first value was reported by the
-	// device (true) or a default value (false). This permits callers to
-	// distinguish real zero values from default zero values.
-	VideoCount() (uint16, bool)
-	// PudCount returns the number of puds in mass storage. A boolean value is
-	// also returned, indicating whether the first value was reported by the
-	// device (true) or a default value (false). This permits callers to
-	// distinguish real zero values from default zero values.
-	PudCount() (uint16, bool)
-	// CrashLogCount returns the number of crash logs in mass storage. A boolean
-	// value is also returned, indicating whether the first value was reported by
-	// the device (true) or a default value (false). This permits callers to
-	// distinguish real zero values from default zero values.
-	CrashLogCount() (uint16, bool)
-	// RawPhotoCount returns the number of raw photos in mass stroage. A boolean
-	// value is also returned, indicating whether the first value was reported by
-	// the device (true) or a default value (false). This permits callers to
-	// distinguish real zero values from default zero values.
-	RawPhotoCount() (uint16, bool)
-	// CurrentRunMassStorageID returns the mass storage ID for the current run. A
-	// boolean value is also returned, indicating whether the first value was
-	// reported by the device (true) or a default value (false). This permits
-	// callers to distinguish real zero values from default zero values.
-	CurrentRunMassStorageID() (uint8, bool)
-	// CurrentRunPhotoCount returns the number of photos in mass storage related
-	// to the current run. A boolean value is also returned, indicating whether
-	// the first value was reported by the device (true) or a default value
-	// (false). This permits callers to distinguish real zero values from default
-	// zero values.
-	CurrentRunPhotoCount() (uint16, bool)
-	// CurrentRunVideoCount returns the number of photos in mass storage related
-	// to the current run. A boolean value is also returned, indicating whether
-	// the first value was reported by the device (true) or a default value
-	// (false). This permits callers to distinguish real zero values from default
-	// zero values.
-	CurrentRunVideoCount() (uint16, bool)
-	// CurrentRunRawPhotoCount returns the number of raw photos in mass storage
-	// related to the current run. A boolean value is also returned, indicating
-	// whether the first value was reported by the device (true) or a default
-	// value (false). This permits callers to distinguish real zero values from
-	// default zero values.
-	CurrentRunRawPhotoCount() (uint16, bool)
 	// BatteryPercent returns the percentage of battery life remaining. A boolean
 	// value is also returned, indicating whether the first value was reported by
 	// the device (true) or a default value (false). This permits callers to
@@ -159,6 +76,8 @@ type CommonState interface {
 	// value (false). This permits callers to distinguish real zero values from
 	// default zero values.
 	AllStatesSent() (bool, bool)
+	// MassStorageDevices returns a map of MassStorageDevices indexed by ID.
+	MassStorageDevices() map[uint8]MassStorageDevice
 }
 
 type commonState struct {
@@ -166,32 +85,17 @@ type commonState struct {
 	// would seem to indicate an absolute measure.
 	// rssi is the relative signal stength between the client and the device
 	// in dbm
-	rssi                    *int16
-	massStorageID           *uint8
-	massStorageName         *string
-	massStorageSize         *uint32
-	massStorageUsedSize     *uint32
-	massStoragePlugged      *bool
-	massStorageFull         *bool
-	massStorageInternal     *bool
-	photoCount              *uint16
-	videoCount              *uint16
-	pudCount                *uint16 // TODO: What is a pud?
-	crashLogCount           *uint16
-	rawPhotoCount           *uint16
-	currentRunMassStorageID *uint8
-	currentRunPhotoCount    *uint16
-	currentRunVideoCount    *uint16
-	currentRunRawPhotoCount *uint16
-	batteryPercent          *uint8
-	imuOK                   *bool
-	barometerOK             *bool
-	ultrasoundOK            *bool
-	gpsOK                   *bool
-	magnetomenterOK         *bool
-	verticalCameraOK        *bool
-	allStatesSent           *bool
-	lock                    sync.RWMutex
+	rssi               *int16
+	massStorageDevices map[uint8]MassStorageDevice
+	batteryPercent     *uint8
+	imuOK              *bool
+	barometerOK        *bool
+	ultrasoundOK       *bool
+	gpsOK              *bool
+	magnetomenterOK    *bool
+	verticalCameraOK   *bool
+	allStatesSent      *bool
+	lock               sync.RWMutex
 }
 
 func (c *commonState) ID() uint8 {
@@ -378,12 +282,22 @@ func (c *commonState) batteryStateChanged(args []interface{}) error {
 func (c *commonState) massStorageStateListChanged(args []interface{}) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	c.massStorageID = ptr.ToUint8(args[0].(uint8))
-	c.massStorageName = ptr.ToString(args[1].(string))
+	massStorageID := args[0].(uint8)
+	msdIface, ok := c.massStorageDevices[massStorageID]
+	var msd *massStorageDevice
+	if ok {
+		msd = msdIface.(*massStorageDevice)
+	} else {
+		msd = &massStorageDevice{
+			id: massStorageID,
+		}
+		c.massStorageDevices[massStorageID] = msd
+	}
+	msd.name = ptr.ToString(args[1].(string))
 	log.WithField(
-		"massStorageID", *c.massStorageID,
+		"id", msd.id,
 	).WithField(
-		"massStorageName", *c.massStorageName,
+		"name", *msd.name,
 	).Debug("mass storage state list changed")
 	return nil
 }
@@ -393,24 +307,34 @@ func (c *commonState) massStorageStateListChanged(args []interface{}) error {
 func (c *commonState) massStorageInfoStateListChanged(args []interface{}) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	c.massStorageID = ptr.ToUint8(args[0].(uint8))
-	c.massStorageSize = ptr.ToUint32(args[1].(uint32))
-	c.massStorageUsedSize = ptr.ToUint32(args[2].(uint32))
-	c.massStoragePlugged = ptr.ToBool(args[3].(uint8) == 1)
-	c.massStorageFull = ptr.ToBool(args[4].(uint8) == 1)
-	c.massStorageInternal = ptr.ToBool(args[5].(uint8) == 1)
+	massStorageID := args[0].(uint8)
+	msdIface, ok := c.massStorageDevices[massStorageID]
+	var msd *massStorageDevice
+	if ok {
+		msd = msdIface.(*massStorageDevice)
+	} else {
+		msd = &massStorageDevice{
+			id: massStorageID,
+		}
+		c.massStorageDevices[massStorageID] = msd
+	}
+	msd.size = ptr.ToUint32(args[1].(uint32))
+	msd.usedSize = ptr.ToUint32(args[2].(uint32))
+	msd.plugged = ptr.ToBool(args[3].(uint8) == 1)
+	msd.full = ptr.ToBool(args[4].(uint8) == 1)
+	msd.internal = ptr.ToBool(args[5].(uint8) == 1)
 	log.WithField(
-		"massStorageID", *c.massStorageID,
+		"id", msd.id,
 	).WithField(
-		"massStorageSize", *c.massStorageSize,
+		"size", *msd.size,
 	).WithField(
-		"massStorageUsedSize", *c.massStorageUsedSize,
+		"usedSize", *msd.usedSize,
 	).WithField(
-		"massStoragePlugged", *c.massStoragePlugged,
+		"plugged", *msd.plugged,
 	).WithField(
-		"massStorageFull", *c.massStorageFull,
+		"full", *msd.full,
 	).WithField(
-		"massStorageInternal", *c.massStorageInternal,
+		"internal", *msd.internal,
 	).Debug("common.massStorageInfoStateListChanged() called")
 	return nil
 }
@@ -599,48 +523,68 @@ func (c *commonState) deprecatedMassStorageContentChanged(
 func (c *commonState) massStorageContent(args []interface{}) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	c.massStorageID = ptr.ToUint8(args[0].(uint8))
-	c.photoCount = ptr.ToUint16(args[1].(uint16))
-	c.videoCount = ptr.ToUint16(args[2].(uint16))
-	c.pudCount = ptr.ToUint16(args[3].(uint16))
-	c.crashLogCount = ptr.ToUint16(args[4].(uint16))
-	c.rawPhotoCount = ptr.ToUint16(args[5].(uint16))
+	massStorageID := args[0].(uint8)
+	msdIface, ok := c.massStorageDevices[massStorageID]
+	var msd *massStorageDevice
+	if ok {
+		msd = msdIface.(*massStorageDevice)
+	} else {
+		msd = &massStorageDevice{
+			id: massStorageID,
+		}
+		c.massStorageDevices[massStorageID] = msd
+	}
+	msd.photoCount = ptr.ToUint16(args[1].(uint16))
+	msd.videoCount = ptr.ToUint16(args[2].(uint16))
+	msd.pudCount = ptr.ToUint16(args[3].(uint16))
+	msd.crashLogCount = ptr.ToUint16(args[4].(uint16))
+	msd.rawPhotoCount = ptr.ToUint16(args[5].(uint16))
 	log.WithField(
-		"massStorageID", *c.massStorageID,
+		"id", msd.id,
 	).WithField(
-		"photoCount", *c.photoCount,
+		"photoCount", *msd.photoCount,
 	).WithField(
-		"videoCount", *c.videoCount,
+		"videoCount", *msd.videoCount,
 	).WithField(
-		"pudCount", *c.pudCount,
+		"pudCount", *msd.pudCount,
 	).WithField(
-		"crashLogCount", *c.crashLogCount,
+		"crashLogCount", *msd.crashLogCount,
 	).WithField(
-		"rawPhotoCount", *c.rawPhotoCount,
+		"rawPhotoCount", *msd.rawPhotoCount,
 	).Debug("mass storage content changed")
 	return nil
 }
 
 // massStorageContentForCurrentRun is invoked when the device reports that the
 // content of the mass storage has changed and the content is related to the
-// current run.s
+// current run.
 func (c *commonState) massStorageContentForCurrentRun(
 	args []interface{},
 ) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	c.currentRunMassStorageID = ptr.ToUint8(args[0].(uint8))
-	c.currentRunPhotoCount = ptr.ToUint16(args[1].(uint16))
-	c.currentRunVideoCount = ptr.ToUint16(args[2].(uint16))
-	c.currentRunRawPhotoCount = ptr.ToUint16(args[3].(uint16))
+	massStorageID := args[0].(uint8)
+	msdIface, ok := c.massStorageDevices[massStorageID]
+	var msd *massStorageDevice
+	if ok {
+		msd = msdIface.(*massStorageDevice)
+	} else {
+		msd = &massStorageDevice{
+			id: massStorageID,
+		}
+		c.massStorageDevices[massStorageID] = msd
+	}
+	msd.currentRunPhotoCount = ptr.ToUint16(args[1].(uint16))
+	msd.currentRunVideoCount = ptr.ToUint16(args[2].(uint16))
+	msd.currentRunRawPhotoCount = ptr.ToUint16(args[3].(uint16))
 	log.WithField(
-		"currentRunMassStorageID", *c.currentRunMassStorageID,
+		"id", msd.id,
 	).WithField(
-		"currentRunPhotoCount", *c.currentRunPhotoCount,
+		"currentRunPhotoCount", *msd.currentRunPhotoCount,
 	).WithField(
-		"currentRunVideoCount", *c.currentRunVideoCount,
+		"currentRunVideoCount", *msd.currentRunVideoCount,
 	).WithField(
-		"currentRunRawPhotoCount", *c.currentRunRawPhotoCount,
+		"currentRunRawPhotoCount", *msd.currentRunRawPhotoCount,
 	).Debug("mass storage content for current run changed")
 	return nil
 }
@@ -670,83 +614,6 @@ func (c *commonState) RSSI() (int16, bool) {
 		return 0, false
 	}
 	return *c.rssi, true
-}
-
-func (c *commonState) MassStorageID() (uint8, bool) {
-	if c.massStorageID == nil {
-		return 0, false
-	}
-	return *c.massStorageID, true
-}
-
-func (c *commonState) MassStorageName() (string, bool) {
-	if c.massStorageName == nil {
-		return "", false
-	}
-	return *c.massStorageName, true
-}
-
-func (c *commonState) PhotoCount() (uint16, bool) {
-	if c.photoCount == nil {
-		return 0, false
-	}
-	return *c.photoCount, true
-}
-
-func (c *commonState) VideoCount() (uint16, bool) {
-	if c.videoCount == nil {
-		return 0, false
-	}
-	return *c.videoCount, true
-}
-
-func (c *commonState) PudCount() (uint16, bool) {
-	if c.pudCount == nil {
-		return 0, false
-	}
-	return *c.pudCount, true
-}
-
-func (c *commonState) CrashLogCount() (uint16, bool) {
-	if c.crashLogCount == nil {
-		return 0, false
-	}
-	return *c.crashLogCount, true
-}
-
-func (c *commonState) RawPhotoCount() (uint16, bool) {
-	if c.rawPhotoCount == nil {
-		return 0, false
-	}
-	return *c.rawPhotoCount, true
-}
-
-func (c *commonState) CurrentRunMassStorageID() (uint8, bool) {
-	if c.currentRunMassStorageID == nil {
-		return 0, false
-	}
-	return *c.currentRunMassStorageID, true
-}
-
-func (c *commonState) CurrentRunPhotoCount() (uint16, bool) {
-	if c.currentRunPhotoCount == nil {
-		return 0, false
-	}
-	return *c.currentRunPhotoCount, true
-}
-
-func (c *commonState) CurrentRunVideoCount() (uint16, bool) {
-	if c.currentRunVideoCount == nil {
-		return 0, false
-	}
-	return *c.currentRunVideoCount, true
-}
-
-func (c *commonState) CurrentRunRawPhotoCount() (uint16, bool) {
-	if c.currentRunRawPhotoCount == nil {
-		return 0, false
-	}
-	return *c.currentRunRawPhotoCount, true
 }
 
 func (c *commonState) BatteryPercent() (uint8, bool) {
@@ -805,37 +672,6 @@ func (c *commonState) AllStatesSent() (bool, bool) {
 	return *c.allStatesSent, true
 }
 
-func (c *commonState) MassStorageSize() (uint32, bool) {
-	if c.massStorageSize == nil {
-		return 0, false
-	}
-	return *c.massStorageSize, true
-}
-
-func (c *commonState) MassStorageUsedSize() (uint32, bool) {
-	if c.massStorageUsedSize == nil {
-		return 0, false
-	}
-	return *c.massStorageUsedSize, true
-}
-
-func (c *commonState) MassStoragePlugged() (bool, bool) {
-	if c.massStoragePlugged == nil {
-		return false, false
-	}
-	return *c.massStoragePlugged, true
-}
-
-func (c *commonState) MassStorageFull() (bool, bool) {
-	if c.massStorageFull == nil {
-		return false, false
-	}
-	return *c.massStorageFull, true
-}
-
-func (c *commonState) MassStorageInternal() (bool, bool) {
-	if c.massStorageInternal == nil {
-		return false, false
-	}
-	return *c.massStorageInternal, true
+func (c *commonState) MassStorageDevices() map[uint8]MassStorageDevice {
+	return c.massStorageDevices
 }
