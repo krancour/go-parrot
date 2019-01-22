@@ -23,6 +23,12 @@ type WifiSettingsState interface {
 	RLock()
 	// RUnlock releases a read lock on the wifi settings state. See RLock().
 	RUnlock()
+	// Outdoors returns a boolean indicating whether the device is using outdoor
+	// wifi settings. A boolean value is also returned, indicating whether the
+	// first value was reported by the device (true) or a default value (false).
+	// This permits callers to distinguish real zero values from default zero
+	// values.
+	Outdoors() (bool, bool)
 }
 
 type wifiSettingsState struct {
@@ -68,4 +74,11 @@ func (w *wifiSettingsState) RLock() {
 
 func (w *wifiSettingsState) RUnlock() {
 	w.lock.RUnlock()
+}
+
+func (w *wifiSettingsState) Outdoors() (bool, bool) {
+	if w.outdoors == nil {
+		return false, false
+	}
+	return *w.outdoors, true
 }
