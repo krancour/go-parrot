@@ -261,12 +261,7 @@ func (c *commonState) allStatesChanged(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Battery state
-// Description: Battery state.
-// Support: drones
-// Triggered: when the battery level changes.
-// Result:
+// batteryStateChanged is invoked by the device when the battery state changes.
 func (c *commonState) batteryStateChanged(args []interface{}) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()

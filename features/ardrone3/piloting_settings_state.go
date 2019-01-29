@@ -29,11 +29,89 @@ type PilotingSettingsState interface {
 	// (false). This permits callers to distinguish real zero values from default
 	// zero values.
 	MotionDetectionEnabled() (bool, bool)
+	// MaxAltitude returns the currently configured maximum altitude of the device
+	// in meters. A boolean value is also returned, indicating whether the first
+	// value was reported by the device (true) or a default value (false). This
+	// permits callers to distinguish real zero values from default zero values.
+	MaxAltitude() (float32, bool)
+	// MaxAltitudeRangeMin returns the minimum altitude, in meters, that the
+	// device's maximum altitude can be configured to. A boolean value is also
+	// returned, indicating whether the first value was reported by the device
+	// (true) or a default value (false). This permits callers to distinguish real
+	// zero values from default zero values.
+	MaxAltitudeRangeMin() (float32, bool)
+	// MaxAltitudeRangeMax returns the maximum altitude, in meters, that the
+	// device's maximum altitude can be configured to. A boolean value is also
+	// returned, indicating whether the first value was reported by the device
+	// (true) or a default value (false). This permits callers to distinguish real
+	// zero values from default zero values.
+	MaxAltitudeRangeMax() (float32, bool)
+	// MaxDistance returns the currently configured maximum altitude of the device
+	// in meters. A boolean value is also returned, indicating whether the first
+	// value was reported by the device (true) or a default value (false). This
+	// permits callers to distinguish real zero values from default zero values.
+	MaxDistance() (float32, bool)
+	// MaxDistanceRangeMin returns the minimum distance, in meters, that the
+	// device's maximum distance can be configured to. A boolean value is also
+	// returned, indicating whether the first value was reported by the device
+	// (true) or a default value (false). This permits callers to distinguish real
+	// zero values from default zero values.
+	MaxDistanceRangeMin() (float32, bool)
+	// MaxDistanceRangeMax returns the maximum distance, in meters, that the
+	// device's maximum distance can be configured to. A boolean value is also
+	// returned, indicating whether the first value was reported by the device
+	// (true) or a default value (false). This permits callers to distinguish real
+	// zero values from default zero values.
+	MaxDistanceRangeMax() (float32, bool)
+	// MaxTilt returns the configured maximum tilt (pitch and roll) of the device
+	// in degrees. A boolean value is also returned, indicating whether the first
+	// value was reported by the device (true) or a default value (false). This
+	// permits callers to distinguish real zero values from default zero values.
+	MaxTilt() (float32, bool)
+	// MaxTiltRangeMin returns the minimum tilt (pitch and roll), in degrees, that
+	// the device's maximum tilt can be configured to. A boolean value is also
+	// returned, indicating whether the first value was reported by the device
+	// (true) or a default value (false). This permits callers to distinguish real
+	// zero values from default zero values.
+	MaxTiltRangeMin() (float32, bool)
+	// MaxTiltRangeMax is the maximum tilt (pitch and roll), in degrees, that the
+	// device's maximum tilt can be configured to. A boolean value is also
+	// returned, indicating whether the first value was reported by the device
+	// (true) or a default value (false). This permits callers to distinguish real
+	// zero values from default zero values.
+	MaxTiltRangeMax() (float32, bool)
 }
 
 type pilotingSettingsState struct {
 	motionDetectionEnabled *bool
-	lock                   sync.RWMutex
+	// maxAltitude is the currently configured maximum altitude of the device in
+	// meters.
+	maxAltitude *float32
+	// maxAltitudeRangeMin is the minimum altitude, in meters, that the device's
+	// maximum altitude can be configured to.
+	maxAltitudeRangeMin *float32
+	// maxAltitudeRangeMax is the maximum altitude, in meters, that the device's
+	// maximum altitude can be configured to.
+	maxAltitudeRangeMax *float32
+	// maxDistance is the configured maximum distance the device may fly from the
+	// take off point in meters.
+	maxDistance *float32
+	// maxDistanceRangeMin is the minimum distance, in meters, that the device's
+	// maximum distance can be configured to.
+	maxDistanceRangeMin *float32
+	// maxDistanceRangeMax is the maximum distance, in meters, that the device's
+	// maximum distance can be configured to.
+	maxDistanceRangeMax *float32
+	// maxTilt is the configured maximum tilt (pitch and roll) of the device in
+	// degrees.
+	maxTilt *float32
+	// maxTiltRangeMin is the minimum tilt (pitch and roll), in degrees, that the
+	// device's maximum tilt can be configured to.
+	maxTiltRangeMin *float32
+	// maxTiltRangeMax is the maximum tilt (pitch and roll), in degrees, that the
+	// device's maximum tilt can be configured to.
+	maxTiltRangeMax *float32
+	lock            sync.RWMutex
 }
 
 func (p *pilotingSettingsState) ID() uint8 {
@@ -197,39 +275,36 @@ func (p *pilotingSettingsState) D2CCommands() []arcommands.D2CCommand {
 	}
 }
 
-// TODO: Implement this
-// Title: Max altitude
-// Description: Max altitude.\n The drone will not fly higher than this altitude
-//   (above take off point).
-// Support: 0901;090c;090e
-// Triggered: by [SetMaxAltitude](#1-2-0).
-// Result:
+// maxAltitudeChanged is invoked by the device when the maximum altitude setting
+// is changed.
 func (p *pilotingSettingsState) maxAltitudeChanged(args []interface{}) error {
-	// current := args[0].(float32)
-	//   Current altitude max
-	// min := args[1].(float32)
-	//   Range min of altitude
-	// max := args[2].(float32)
-	//   Range max of altitude
-	log.Info("ardrone3.maxAltitudeChanged() called")
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	p.maxAltitude = ptr.ToFloat32(args[0].(float32))
+	p.maxAltitudeRangeMin = ptr.ToFloat32(args[1].(float32))
+	p.maxAltitudeRangeMax = ptr.ToFloat32(args[2].(float32))
+	log.WithField(
+		"maxAltitude", *p.maxAltitude,
+	).WithField(
+		"maxAltitudeRangeMin", *p.maxAltitudeRangeMin,
+	).WithField(
+		"maxAltitudeRangeMax", *p.maxAltitudeRangeMax,
+	).Debug("max altitude changed")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Max pitch/roll
-// Description: Max pitch/roll.\n The drone will not fly higher than this
-//   altitude (above take off point).
-// Support: 0901;090c
-// Triggered: by [SetMaxAltitude](#1-2-0).
-// Result:
+// maxTiltChanged is invoked by the device when the maximum tilt is changed.
 func (p *pilotingSettingsState) maxTiltChanged(args []interface{}) error {
-	// current := args[0].(float32)
-	//   Current max tilt
-	// min := args[1].(float32)
-	//   Range min of tilt
-	// max := args[2].(float32)
-	//   Range max of tilt
-	log.Info("ardrone3.maxTiltChanged() called")
+	p.maxTilt = ptr.ToFloat32(args[0].(float32))
+	p.maxTiltRangeMin = ptr.ToFloat32(args[1].(float32))
+	p.maxTiltRangeMax = ptr.ToFloat32(args[2].(float32))
+	log.WithField(
+		"maxTilt", *p.maxTilt,
+	).WithField(
+		"maxTiltRangeMin", *p.maxTiltRangeMin,
+	).WithField(
+		"maxTiltRangeMax", *p.maxTiltRangeMax,
+	).Debug("max tilt changed")
 	return nil
 }
 
@@ -249,20 +324,20 @@ func (p *pilotingSettingsState) maxTiltChanged(args []interface{}) error {
 // 	return nil
 // }
 
-// TODO: Implement this
-// Title: Max distance
-// Description: Max distance.
-// Support: 0901;090c;090e
-// Triggered: by [SetMaxDistance](#1-2-3).
-// Result:
+// maxDistanceChanged si invoked by the device when the max distance is changed.
 func (p *pilotingSettingsState) maxDistanceChanged(args []interface{}) error {
-	// current := args[0].(float32)
-	//   Current max distance in meter
-	// min := args[1].(float32)
-	//   Minimal possible max distance
-	// max := args[2].(float32)
-	//   Maximal possible max distance
-	log.Info("ardrone3.maxDistanceChanged() called")
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	p.maxDistance = ptr.ToFloat32(args[0].(float32))
+	p.maxDistanceRangeMin = ptr.ToFloat32(args[1].(float32))
+	p.maxDistanceRangeMax = ptr.ToFloat32(args[2].(float32))
+	log.WithField(
+		"maxDistance", *p.maxDistance,
+	).WithField(
+		"maxDistanceRangeMin", *p.maxDistanceRangeMin,
+	).WithField(
+		"maxDistanceRangeMax", *p.maxDistanceRangeMax,
+	).Debug("max distance changed")
 	return nil
 }
 
@@ -491,4 +566,67 @@ func (p *pilotingSettingsState) MotionDetectionEnabled() (bool, bool) {
 		return false, false
 	}
 	return *p.motionDetectionEnabled, true
+}
+
+func (p *pilotingSettingsState) MaxAltitude() (float32, bool) {
+	if p.maxAltitude == nil {
+		return 0, false
+	}
+	return *p.maxAltitude, true
+}
+
+func (p *pilotingSettingsState) MaxAltitudeRangeMin() (float32, bool) {
+	if p.maxAltitudeRangeMin == nil {
+		return 0, false
+	}
+	return *p.maxAltitudeRangeMin, true
+}
+
+func (p *pilotingSettingsState) MaxAltitudeRangeMax() (float32, bool) {
+	if p.maxAltitudeRangeMax == nil {
+		return 0, false
+	}
+	return *p.maxAltitudeRangeMax, true
+}
+
+func (p *pilotingSettingsState) MaxDistance() (float32, bool) {
+	if p.maxDistance == nil {
+		return 0, false
+	}
+	return *p.maxDistance, true
+}
+
+func (p *pilotingSettingsState) MaxDistanceRangeMin() (float32, bool) {
+	if p.maxDistanceRangeMin == nil {
+		return 0, false
+	}
+	return *p.maxDistanceRangeMin, true
+}
+
+func (p *pilotingSettingsState) MaxDistanceRangeMax() (float32, bool) {
+	if p.maxDistanceRangeMax == nil {
+		return 0, false
+	}
+	return *p.maxDistanceRangeMax, true
+}
+
+func (p *pilotingSettingsState) MaxTilt() (float32, bool) {
+	if p.maxTilt == nil {
+		return 0, false
+	}
+	return *p.maxTilt, true
+}
+
+func (p *pilotingSettingsState) MaxTiltRangeMin() (float32, bool) {
+	if p.maxTiltRangeMin == nil {
+		return 0, false
+	}
+	return *p.maxTiltRangeMin, true
+}
+
+func (p *pilotingSettingsState) MaxTiltRangeMax() (float32, bool) {
+	if p.maxTiltRangeMax == nil {
+		return 0, false
+	}
+	return *p.maxTiltRangeMax, true
 }

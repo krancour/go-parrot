@@ -10,6 +10,33 @@ import (
 
 // State from drone
 
+const (
+	// FlyingStateLanded represents the state where the device is landed.
+	FlyingStateLanded int32 = 0
+	// FlyingStateTakingOff represents the state where the device is taking off.
+	FlyingStateTakingOff int32 = 1
+	// FlyingStateHovering represents the state where the device is hovering
+	// (copters) or circling (fixed wing).
+	FlyingStateHovering int32 = 2
+	// FlyingStateFlying represents the state where the device is flying.
+	FlyingStateFlying int32 = 3
+	// FlyingStateLanding represents the state where the device is landing.
+	FlyingStateLanding int32 = 4
+	// FlyingStateEmergency represents the state where the device is experiencing
+	// an emergency.
+	FlyingStateEmergency int32 = 5
+	// FlyingStateUserTakeOff represents the state where the device is waiting for
+	// user action to effect take off.
+	FlyingStateUserTakeOff int32 = 6
+	// FlyingStateMotorRamping represents the motor ramping state.
+	FlyingStateMotorRamping int32 = 7
+	// FlyingStateEmergencyLanding represents the state where the device has
+	// detected faulty sensor(s) and is effecting an emergency landing. When in
+	// this state, the device will only respond to the PCMD command's ya argument.
+	// All other flying commands are ignored.
+	FlyingStateEmergencyLanding int32 = 8
+)
+
 // PilotingState ...
 // TODO: Document this
 type PilotingState interface {
@@ -96,6 +123,12 @@ type PilotingState interface {
 	// (true) or a default value (false). This permits callers to distinguish real
 	// zero values from default zero values.
 	GPSAltitudeAccuracy() (int8, bool)
+	// FlyingState returns the current flying state of the drone-- whether it is
+	// currently landed, taking off, landing, etc. A boolean value is also
+	// returned, indicating whether the first value was reported by the device
+	// (true) or a default value (false). This permits callers to distinguish real
+	// zero values from default zero values.
+	FlyingState() (int32, bool)
 }
 
 type pilotingState struct {
@@ -132,7 +165,10 @@ type pilotingState struct {
 	// gpsAltitudeAccuracy represents altitude location error (1 sigma/standard
 	// deviation) in meters (-1 if unavailable)
 	gpsAltitudeAccuracy *int8
-	lock                sync.RWMutex
+	// flyingState represents the current flying state of the device-- whether it
+	// is landed, taking off, landed, etc.
+	flyingState *int32
+	lock        sync.RWMutex
 }
 
 func (p *pilotingState) ID() uint8 {
@@ -311,27 +347,14 @@ func (p *pilotingState) flatTrimChanged(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Flying state
-// Description: Flying state.
-// Support: 0901;090c;090e
-// Triggered: when the flying state changes.
-// Result:
+// flyingStateChanged is invoked by the device when the flying state changes
 func (p *pilotingState) flyingStateChanged(args []interface{}) error {
-	// state := args[0].(int32)
-	//   Drone flying state
-	//   0: landed: Landed state
-	//   1: takingoff: Taking off state
-	//   2: hovering: Hovering / Circling (for fixed wings) state
-	//   3: flying: Flying state
-	//   4: landing: Landing state
-	//   5: emergency: Emergency state
-	//   6: usertakeoff: User take off state. Waiting for user action to take off.
-	//   7: motor_ramping: Motor ramping state.
-	//   8: emergency_landing: Emergency landing state. Drone autopilot has
-	//      detected defective sensor(s). Only Yaw argument in PCMD is taken into
-	//      account. All others flying commands are ignored.
-	log.Info("ardrone3.flyingStateChanged() called")
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	p.flyingState = ptr.ToInt32(args[0].(int32))
+	log.WithField(
+		"flyingState", *p.flyingState,
+	).Debug("flying state changed")
 	return nil
 }
 
@@ -727,4 +750,11 @@ func (p *pilotingState) GPSAltitudeAccuracy() (int8, bool) {
 		return 0, false
 	}
 	return *p.gpsAltitudeAccuracy, true
+}
+
+func (p *pilotingState) FlyingState() (int32, bool) {
+	if p.flyingState == nil {
+		return 0, false
+	}
+	return *p.flyingState, true
 }
