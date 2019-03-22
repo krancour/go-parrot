@@ -86,6 +86,11 @@ type PilotingSettingsState interface {
 	// (true) or a default value (false). This permits callers to distinguish real
 	// zero values from default zero values.
 	GeofencingEnabled() (bool, bool)
+	// BankedTurningEnabled indicates whether banked turning is enabled. A boolean
+	// value is also returned, indicating whether the first value was reported by
+	// the device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	BankedTurningEnabled() (bool, bool)
 }
 
 type pilotingSettingsState struct {
@@ -118,9 +123,11 @@ type pilotingSettingsState struct {
 	// device's maximum tilt can be configured to.
 	maxTiltRangeMax *float32
 	// geofencingEnabled indicates whether the drone should not fly beyond the
-	// maximum configured distance (1) or may (0).
+	// maximum configured distance
 	geofencingEnabled *bool
-	lock              sync.RWMutex
+	// bankedTurningEnabled indicates whether banked turning is enabled
+	bankedTurningEnabled *bool
+	lock                 sync.RWMutex
 }
 
 func (p *pilotingSettingsState) ID() uint8 {
@@ -439,18 +446,15 @@ func (p *pilotingSettingsState) autonomousFlightMaxRotationSpeed(
 	return nil
 }
 
-// TODO: Implement this
-// Title: Banked Turn mode
-// Description: Banked Turn mode.\n If banked turn mode is enabled, the drone
-//   will use yaw values from the piloting command to infer with roll and pitch
-//   on the drone when its horizontal speed is not null.
-// Support: 0901:3.2.0;090c:3.2.0
-// Triggered: by [SetBankedTurnMode](#1-2-10).
-// Result:
+// bankedTurnChanged is invoked by the device when banked turning is enabled or
+// disabled
 func (p *pilotingSettingsState) bankedTurnChanged(args []interface{}) error {
-	// state := args[0].(uint8)
-	//   1 if enabled, 0 if disabled
-	log.Info("ardrone3.bankedTurnChanged() called")
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	p.bankedTurningEnabled = ptr.ToBool(args[0].(uint8) == 1)
+	log.WithField(
+		"state", args[0].(uint8),
+	).Debug("banked turning enabled or disabled")
 	return nil
 }
 
@@ -642,4 +646,11 @@ func (p *pilotingSettingsState) GeofencingEnabled() (bool, bool) {
 		return false, false
 	}
 	return *p.geofencingEnabled, true
+}
+
+func (p *pilotingSettingsState) BankedTurningEnabled() (bool, bool) {
+	if p.bankedTurningEnabled == nil {
+		return false, false
+	}
+	return *p.bankedTurningEnabled, true
 }
