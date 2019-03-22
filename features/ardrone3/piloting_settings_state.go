@@ -80,6 +80,12 @@ type PilotingSettingsState interface {
 	// (true) or a default value (false). This permits callers to distinguish real
 	// zero values from default zero values.
 	MaxTiltRangeMax() (float32, bool)
+	// GeofencingEnabled indicates whether the drone should not fly
+	// beyond the maximum configured distance (1) or may (0). A boolean value is
+	// also returned, indicating whether the first value was reported by the
+	// device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	GeofencingEnabled() (bool, bool)
 }
 
 type pilotingSettingsState struct {
@@ -111,7 +117,10 @@ type pilotingSettingsState struct {
 	// maxTiltRangeMax is the maximum tilt (pitch and roll), in degrees, that the
 	// device's maximum tilt can be configured to.
 	maxTiltRangeMax *float32
-	lock            sync.RWMutex
+	// geofencingEnabled indicates whether the drone should not fly beyond the
+	// maximum configured distance (1) or may (0).
+	geofencingEnabled *bool
+	lock              sync.RWMutex
 }
 
 func (p *pilotingSettingsState) ID() uint8 {
@@ -324,7 +333,7 @@ func (p *pilotingSettingsState) maxTiltChanged(args []interface{}) error {
 // 	return nil
 // }
 
-// maxDistanceChanged si invoked by the device when the max distance is changed.
+// maxDistanceChanged is invoked by the device when the max distance is changed.
 func (p *pilotingSettingsState) maxDistanceChanged(args []interface{}) error {
 	p.lock.Lock()
 	defer p.lock.Unlock()
@@ -341,20 +350,17 @@ func (p *pilotingSettingsState) maxDistanceChanged(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Geofencing
-// Description: Geofencing.\n If set, the drone won&#39;t fly over the
-//   [MaxDistance](#1-6-3).
-// Support: 0901;090c;090e
-// Triggered: by [EnableGeofence](#1-2-4).
-// Result:
+// noFlyOverMaxDistanceChanged is invoked by the device when geofencing is
+// enabled or disabled.
 func (p *pilotingSettingsState) noFlyOverMaxDistanceChanged(
 	args []interface{},
 ) error {
-	// shouldNotFlyOver := args[0].(uint8)
-	//   1 if the drone won&#39;t fly further than max distance, 0 if no
-	//   limitation on the drone will be done
-	log.Info("ardrone3.noFlyOverMaxDistanceChanged() called")
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	p.geofencingEnabled = ptr.ToBool(args[0].(uint8) == 1)
+	log.WithField(
+		"shouldNotFlyOverMaxDistance", *p.geofencingEnabled,
+	).Debug("geofencing enabled or disabled")
 	return nil
 }
 
@@ -629,4 +635,11 @@ func (p *pilotingSettingsState) MaxTiltRangeMax() (float32, bool) {
 		return 0, false
 	}
 	return *p.maxTiltRangeMax, true
+}
+
+func (p *pilotingSettingsState) GeofencingEnabled() (bool, bool) {
+	if p.geofencingEnabled == nil {
+		return false, false
+	}
+	return *p.geofencingEnabled, true
 }
