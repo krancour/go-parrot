@@ -80,11 +80,11 @@ type PilotingSettingsState interface {
 	// (true) or a default value (false). This permits callers to distinguish real
 	// zero values from default zero values.
 	MaxTiltRangeMax() (float32, bool)
-	// GeofencingEnabled indicates whether the drone should not fly
-	// beyond the maximum configured distance (1) or may (0). A boolean value is
-	// also returned, indicating whether the first value was reported by the
-	// device (true) or a default value (false). This permits callers to
-	// distinguish real zero values from default zero values.
+	// GeofencingEnabled indicates whether the drone should not fly beyond the
+	// maximum configured distance (true) or may (false). A boolean value is also
+	// returned, indicating whether the first value was reported by the device
+	// (true) or a default value (false). This permits callers to distinguish real
+	// zero values from default zero values.
 	GeofencingEnabled() (bool, bool)
 }
 
@@ -359,7 +359,7 @@ func (p *pilotingSettingsState) noFlyOverMaxDistanceChanged(
 	defer p.lock.Unlock()
 	p.geofencingEnabled = ptr.ToBool(args[0].(uint8) == 1)
 	log.WithField(
-		"shouldNotFlyOverMaxDistance", *p.geofencingEnabled,
+		"shouldNotFlyOverMaxDistance", args[0].(uint8),
 	).Debug("geofencing enabled or disabled")
 	return nil
 }

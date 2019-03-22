@@ -79,6 +79,11 @@ type SpeedSettingsState interface {
 	// This permits callers to distinguish real zero values from default zero
 	// values.
 	MaxPitchRollRotationSpeedRangeMax() (float32, bool)
+	// HullProtection indicates whether the drone knows that it has hull
+	// protection. A boolean value is also returned, indicating whether the first
+	// value was reported by the device (true) or a default value (false). This
+	// permits callers to distinguish real zero values from default zero values.
+	HullProtection() (bool, bool)
 }
 
 type speedSettingsState struct {
@@ -111,7 +116,10 @@ type speedSettingsState struct {
 	// per second, that the device's maximum pitch/roll rotation speed can be
 	// configured to.
 	maxPitchRollRotationSpeedRangeMax *float32
-	lock                              sync.RWMutex
+	// hullProtection indicates whether the drone knows that it has hull
+	// protection.
+	hullProtection *bool
+	lock           sync.RWMutex
 }
 
 func (s *speedSettingsState) ID() uint8 {
@@ -217,16 +225,14 @@ func (s *speedSettingsState) maxRotationSpeedChanged(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Presence of hull protection
-// Description: Presence of hull protection.
-// Support: 0901;090c
-// Triggered: by [SetHullProtectionPresence](#1-11-2).
-// Result:
+// hullProtectionChanged is invoked by the device when hull protection changes.
 func (s *speedSettingsState) hullProtectionChanged(args []interface{}) error {
-	// present := args[0].(uint8)
-	//   1 if present, 0 if not present
-	log.Info("ardrone3.hullProtectionChanged() called")
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.hullProtection = ptr.ToBool(args[0].(uint8) == 1)
+	log.WithField(
+		"hullProtection", args[0].(uint8),
+	).Debug("hull protection changed")
 	return nil
 }
 
@@ -334,4 +340,11 @@ func (
 		return 0, false
 	}
 	return *s.maxPitchRollRotationSpeedRangeMax, true
+}
+
+func (s *speedSettingsState) HullProtection() (bool, bool) {
+	if s.hullProtection == nil {
+		return false, false
+	}
+	return *s.hullProtection, true
 }
