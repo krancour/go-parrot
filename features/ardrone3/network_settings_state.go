@@ -1,17 +1,65 @@
 package ardrone3
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arcommands"
+	"github.com/krancour/go-parrot/ptr"
 )
 
 // Network settings state from product
 
+const (
+	WifiTypeAutoAll        int32 = 0
+	WifiTypeAuto2Point4GHz int32 = 1
+	WifiTypeAuto5GHz       int32 = 2
+	WifiTypeManual         int32 = 3
+
+	WifiBand2Point4GHz int32 = 0
+	WifiBand5GHz       int32 = 1
+	WifiBandAll        int32 = 2
+)
+
 // NetworkSettingsState ...
 // TODO: Document this
-type NetworkSettingsState interface{}
+type NetworkSettingsState interface {
+	// RLock blocks until a read lock is obtained. This permits callers to procede
+	// with querying any or all attributes of the network settings state without
+	// worry that some attributes will be overwritten as others are read. i.e. It
+	// permits the possibility of taking an atomic snapshop of network settings
+	// state. Note that use of this function is not obligatory for applications
+	// that do not require such guarantees. Callers MUST call RUnlock() or else
+	// network settings state will never resume updating.
+	RLock()
+	// RUnlock releases a read lock on the GPS state. See RLock().
+	RUnlock()
+	// Type returns the type of wifi selection settings. A boolean value is also
+	// returned, indicating whether the first value was reported by the device
+	// (true) or a default value (false). This permits callers to distinguish real
+	// zero values from default zero values.
+	Type() (int32, bool)
+	// Band returns the actual wifi band state. A boolean value is also returned,
+	// indicating whether the first value was reported by the device (true) or a
+	// default value (false). This permits callers to distinguish real zero values
+	// from default zero values.
+	Band() (int32, bool)
+	// Channel returns the wifi channel (depends on the band). A boolean value is
+	// also returned, indicating whether the first value was reported by the
+	// device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	Channel() (uint8, bool)
+}
 
-type networkSettingsState struct{}
+type networkSettingsState struct {
+	// tipe represents the type of wifi selection settings
+	tipe *int32
+	// band represents actual wifi band state
+	band *int32
+	// channel is the wifi channel (depends of the band)
+	channel *uint8
+	lock    sync.RWMutex
+}
 
 func (n *networkSettingsState) ID() uint8 {
 	return 10
@@ -54,27 +102,20 @@ func (n *networkSettingsState) D2CCommands() []arcommands.D2CCommand {
 	}
 }
 
-// TODO: Implement this
-// Title: Wifi selection
-// Description: Wifi selection.
-// Support: 0901;090c;090e
-// Triggered: by [SelectWifi](#1-9-0).
-// Result:
+// wifiSelectionChanged is invoked by the device when wifi selection changes.
 func (n *networkSettingsState) wifiSelectionChanged(args []interface{}) error {
-	// type := args[0].(int32)
-	//   The type of wifi selection settings
-	//   0: auto_all: Auto selection
-	//   1: auto_2_4ghz: Auto selection 2.4ghz
-	//   2: auto_5ghz: Auto selection 5 ghz
-	//   3: manual: Manual selection
-	// band := args[1].(int32)
-	//   The actual wifi band state
-	//   0: 2_4ghz: 2.4 GHz band
-	//   1: 5ghz: 5 GHz band
-	//   2: all: Both 2.4 and 5 GHz bands
-	// channel := args[2].(uint8)
-	//   The channel (depends of the band)
-	log.Info("ardrone3.wifiSelectionChanged() called")
+	n.lock.Lock()
+	defer n.lock.Unlock()
+	n.tipe = ptr.ToInt32(args[0].(int32))
+	n.band = ptr.ToInt32(args[1].(int32))
+	n.channel = ptr.ToUint8(args[2].(uint8))
+	log.WithField(
+		"type", *n.tipe,
+	).WithField(
+		"band", *n.band,
+	).WithField(
+		"channel", *n.channel,
+	).Debug("wifi selection changed")
 	return nil
 }
 
@@ -110,4 +151,33 @@ func (n *networkSettingsState) wifiSecurity(args []interface{}) error {
 	//   0: plain: Key is plain text, not encrypted
 	log.Info("ardrone3.wifiSecurity() called")
 	return nil
+}
+
+func (n *networkSettingsState) RLock() {
+	n.lock.RLock()
+}
+
+func (n *networkSettingsState) RUnlock() {
+	n.lock.RUnlock()
+}
+
+func (n *networkSettingsState) Type() (int32, bool) {
+	if n.tipe == nil {
+		return 0, false
+	}
+	return *n.tipe, true
+}
+
+func (n *networkSettingsState) Band() (int32, bool) {
+	if n.band == nil {
+		return 0, false
+	}
+	return *n.band, true
+}
+
+func (n *networkSettingsState) Channel() (uint8, bool) {
+	if n.channel == nil {
+		return 0, false
+	}
+	return *n.channel, true
 }

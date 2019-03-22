@@ -11,10 +11,10 @@ import (
 // Status of the calibration
 
 const (
-	MaxnetoCalibrationAxisX    int32 = 0
-	MaxnetoCalibrationAxisY    int32 = 1
-	MaxnetoCalibrationAxisZ    int32 = 2
-	MaxnetoCalibrationAxisNone int32 = 3
+	MagnetoCalibrationAxisX    int32 = 0
+	MagnetoCalibrationAxisY    int32 = 1
+	MagnetoCalibrationAxisZ    int32 = 2
+	MagnetoCalibrationAxisNone int32 = 3
 )
 
 // CalibrationState ...

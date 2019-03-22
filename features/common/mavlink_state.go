@@ -11,10 +11,10 @@ import (
 // Mavlink flight plans states commands
 
 const (
-	MavLinkStatePlaying int32 = 0
-	MavLinkStateStopped int32 = 1
-	MavLinkStatePaused  int32 = 2
-	MavLinkStateLoaded  int32 = 3
+	MavlinkStatePlaying int32 = 0
+	MavlinkStateStopped int32 = 1
+	MavlinkStatePaused  int32 = 2
+	MavlinkStateLoaded  int32 = 3
 
 	MavlinkTypeFlightPlan int32 = 0
 	MavlinkTypeMapMyHouse int32 = 1
