@@ -19,6 +19,11 @@ const (
 	WifiBand2Point4GHz int32 = 0
 	WifiBand5GHz       int32 = 1
 	WifiBandAll        int32 = 2
+
+	WifiSecurityTypeOpen int32 = 0
+	WifiSecurityTypeWPA2 int32 = 1
+
+	WifiSecurityKeyTypePlaintext int32 = 0
 )
 
 // NetworkSettingsState ...
@@ -49,6 +54,21 @@ type NetworkSettingsState interface {
 	// device (true) or a default value (false). This permits callers to
 	// distinguish real zero values from default zero values.
 	Channel() (uint8, bool)
+	// SecurityType returns the type of wifi security in use. A boolean value is
+	// also returned, indicating whether the first value was reported by the
+	// device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	SecurityType() (int32, bool)
+	// SecurityKey returns the wifi security key. A boolean value is also
+	// returned, indicating whether the first value was reported by the device
+	// (true) or a default value (false). This permits callers to distinguish real
+	// zero values from default zero values.
+	SecurityKey() (string, bool)
+	// SecurityKeyType returns the type of wifi security key in use. A boolean
+	// value is also returned, indicating whether the first value was reported by
+	// the device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	SecurityKeyType() (int32, bool)
 }
 
 type networkSettingsState struct {
@@ -58,7 +78,13 @@ type networkSettingsState struct {
 	band *int32
 	// channel is the wifi channel (depends of the band)
 	channel *uint8
-	lock    sync.RWMutex
+	// securityType represents the type of wifi security in use
+	securityType *int32
+	// securityKey is the wifi security key
+	securityKey *string
+	// securityKeyType represents the type of wifi security key in use
+	securityKeyType *int32
+	lock            sync.RWMutex
 }
 
 func (n *networkSettingsState) ID() uint8 {
@@ -133,23 +159,20 @@ func (n *networkSettingsState) wifiSecurityChanged(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Wifi security type
-// Description: Wifi security type.
-// Support: 0901;090c;090e
-// Triggered: by [SetWifiSecurityType](#1-9-1).
-// Result:
+// wifiSecurity is invoked by the device when wifi security changes.
 func (n *networkSettingsState) wifiSecurity(args []interface{}) error {
-	// type := args[0].(int32)
-	//   The type of wifi security (open, wpa2)
-	//   0: open: Wifi is not protected by any security (default)
-	//   1: wpa2: Wifi is protected by wpa2
-	// key := args[1].(string)
-	//   The key used to secure the network (empty if type is open)
-	// keyType := args[2].(int32)
-	//   Type of the key
-	//   0: plain: Key is plain text, not encrypted
-	log.Info("ardrone3.wifiSecurity() called")
+	n.lock.Lock()
+	defer n.lock.Unlock()
+	n.securityType = ptr.ToInt32(args[0].(int32))
+	n.securityKey = ptr.ToString(args[1].(string))
+	n.securityKeyType = ptr.ToInt32(args[2].(int32))
+	log.WithField(
+		"type", *n.securityType,
+	).WithField(
+		"key", *n.securityKey,
+	).WithField(
+		"keyType", *n.securityKeyType,
+	).Debug("wifi security changed")
 	return nil
 }
 
@@ -180,4 +203,25 @@ func (n *networkSettingsState) Channel() (uint8, bool) {
 		return 0, false
 	}
 	return *n.channel, true
+}
+
+func (n *networkSettingsState) SecurityType() (int32, bool) {
+	if n.securityType == nil {
+		return 0, false
+	}
+	return *n.securityType, true
+}
+
+func (n *networkSettingsState) SecurityKey() (string, bool) {
+	if n.securityKey == nil {
+		return "", false
+	}
+	return *n.securityKey, true
+}
+
+func (n *networkSettingsState) SecurityKeyType() (int32, bool) {
+	if n.securityKeyType == nil {
+		return 0, false
+	}
+	return *n.securityKeyType, true
 }
