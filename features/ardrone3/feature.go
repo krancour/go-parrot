@@ -147,7 +147,7 @@ func (f *feature) NetworkState() NetworkState {
 }
 
 func (f *feature) PictureSettingsState() PictureSettingsState {
-	return f.PictureSettingsState
+	return f.pictureSettingsState
 }
 
 func (f *feature) PilotingEvent() PilotingEvent {

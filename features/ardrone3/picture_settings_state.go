@@ -1,17 +1,47 @@
 package ardrone3
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arcommands"
+	"github.com/krancour/go-parrot/ptr"
 )
 
 // Photo settings state from product
 
+const (
+	PictureFormatRaw         int32 = 0
+	PictureFormatJPEG        int32 = 1
+	PictureFormatSnapshot    int32 = 2
+	PictureFormatJPEGFisheye int32 = 3
+)
+
 // PictureSettingsState ...
 // TODO: Document this
-type PictureSettingsState interface{}
+type PictureSettingsState interface {
+	// RLock blocks until a read lock is obtained. This permits callers to procede
+	// with querying any or all attributes of the picture settings state without
+	// worry that some attributes will be overwritten as others are read. i.e. It
+	// permits the possibility of taking an atomic snapshop of picture settings
+	// state. Note that use of this function is not obligatory for applications
+	// that do not require such guarantees. Callers MUST call RUnlock() or else
+	// picture settings state will never resume updating.
+	RLock()
+	// RUnlock releases a read lock on the GPS state. See RLock().
+	RUnlock()
+	// Format returns the picture format. A boolean value is also returned,
+	// indicating whether the first value was reported by the device (true) or a
+	// default value (false). This permits callers to distinguish real zero values
+	// from default zero values.
+	Format() (int32, bool)
+}
 
-type pictureSettingsState struct{}
+type pictureSettingsState struct {
+	// format represents the picture format
+	format *int32
+	lock   sync.RWMutex
+}
 
 func (p *pictureSettingsState) ID() uint8 {
 	return 20
@@ -114,20 +144,15 @@ func (p *pictureSettingsState) D2CCommands() []arcommands.D2CCommand {
 	}
 }
 
-// TODO: Implement this
-// Title: Picture format
-// Description: Picture format.
-// Support: 0901;090c;090e
-// Triggered: by [SetPictureFormat](#1-19-0).
-// Result:
+// pictureFormatChanged is invoked by the device when the picture format is
+// changed.
 func (p *pictureSettingsState) pictureFormatChanged(args []interface{}) error {
-	// type := args[0].(int32)
-	//   The type of photo format
-	//   0: raw: Take raw image
-	//   1: jpeg: Take a 4:3 jpeg photo
-	//   2: snapshot: Take a 16:9 snapshot from camera
-	//   3: jpeg_fisheye: Take jpeg fisheye image only
-	log.Info("ardrone3.pictureFormatChanged() called")
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	p.format = ptr.ToInt32(args[0].(int32))
+	log.WithField(
+		"type", *p.format,
+	).Debug("picture format changed")
 	return nil
 }
 
@@ -287,4 +312,19 @@ func (p *pictureSettingsState) videoResolutionsChanged(
 	//   1: rec720_stream720: 720p recording, 720p streaming.
 	log.Info("ardrone3.videoResolutionsChanged() called")
 	return nil
+}
+
+func (p *pictureSettingsState) RLock() {
+	p.lock.RLock()
+}
+
+func (p *pictureSettingsState) RUnlock() {
+	p.lock.RUnlock()
+}
+
+func (p *pictureSettingsState) Format() (int32, bool) {
+	if p.format == nil {
+		return 0, false
+	}
+	return *p.format, true
 }
