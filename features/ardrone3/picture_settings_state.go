@@ -35,12 +35,80 @@ type PictureSettingsState interface {
 	// default value (false). This permits callers to distinguish real zero values
 	// from default zero values.
 	Format() (int32, bool)
+	// Saturation returns the current image saturation. A boolean value is also
+	// returned, indicating whether the first value was reported by the device
+	// (true) or a default value (false). This permits callers to distinguish real
+	// zero values from default zero values.
+	Saturation() (float32, bool)
+	// MinSaturation returns the minimum image saturation. A boolean value is also
+	// returned, indicating whether the first value was reported by the device
+	// (true) or a default value (false). This permits callers to distinguish real
+	// zero values from default zero values.
+	MinSaturation() (float32, bool)
+	// MaxSaturation returns the maximum image saturation. A boolean value is also
+	// returned, indicating whether the first value was reported by the device
+	// (true) or a default value (false). This permits callers to distinguish real
+	// zero values from default zero values.
+	MaxSaturation() (float32, bool)
+	// Exposure returns the current exposure. A boolean value is also returned,
+	// indicating whether the first value was reported by the device (true) or a
+	// default value (false). This permits callers to distinguish real zero values
+	// from default zero values.
+	Exposure() (float32, bool)
+	// MinExposure returns the minimum exposure. A boolean value is also returned,
+	// indicating whether the first value was reported by the device (true) or a
+	// default value (false). This permits callers to distinguish real zero values
+	// from default zero values.
+	MinExposure() (float32, bool)
+	// MaxExposure returns the maximum exposure. A boolean value is also returned,
+	// indicating whether the first value was reported by the device (true) or a
+	// default value (false). This permits callers to distinguish real zero values
+	// from default zero values.
+	MaxExposure() (float32, bool)
+	// TimeLapseEnabled returns an indicator of whether time lapse image capture
+	// is enabled.
+	TimeLapseEnabled() (bool, bool)
+	// TimeLapseInterval returns the current time lapse interval. A boolean value
+	// is also returned, indicating whether the first value was reported by the
+	// device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	TimeLapseInterval() (float32, bool)
+	// MinTimeLapseInterval returns the minimum time lapse interval. A boolean
+	// value is also returned, indicating whether the first value was reported by
+	// the device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	MinTimeLapseInterval() (float32, bool)
+	// MaxTimeLapseInterval returns the maximum time lapse interval. A boolean
+	// value is also returned, indicating whether the first value was reported by
+	// the device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	MaxTimeLapseInterval() (float32, bool)
 }
 
 type pictureSettingsState struct {
 	// format represents the picture format
 	format *int32
-	lock   sync.RWMutex
+	// saturation is the current image saturation
+	saturation *float32
+	// minSaturation is the minimum image saturation
+	minSaturation *float32
+	// maxSaturation is the maximum image saturation
+	maxSaturation *float32
+	// exposure is the current exposure
+	exposure *float32
+	// minExposure is the minimum exposure
+	minExposure *float32
+	// maxExposure is the maximum exposure
+	maxExposure *float32
+	// timeLapseEnabled indicates whether time lapse image capture is enabled
+	timeLapseEnabled *bool
+	// timeLapseInterval is the current time lapse interval in seconds
+	timeLapseInterval *float32
+	// minTimeLapseInterval is the minimum time lapse interval in seconds
+	minTimeLapseInterval *float32
+	// maxTimeLapseInterval is the maximum time lapse interval in seconds
+	maxTimeLapseInterval *float32
+	lock                 sync.RWMutex
 }
 
 func (p *pictureSettingsState) ID() uint8 {
@@ -176,37 +244,38 @@ func (p *pictureSettingsState) autoWhiteBalanceChanged(
 	return nil
 }
 
-// TODO: Implement this
-// Title: Image exposure
-// Description: Image exposure.
-// Support: 0901;090c;090e
-// Triggered: by [SetImageExposure](#1-19-2).
-// Result:
+// expositionChanged is invoked by the device when exposure is changed.
 func (p *pictureSettingsState) expositionChanged(args []interface{}) error {
-	// value := args[0].(float32)
-	//   Exposure value
-	// min := args[1].(float32)
-	//   Min exposure value
-	// max := args[2].(float32)
-	//   Max exposure value
-	log.Info("ardrone3.expositionChanged() called")
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	p.exposure = ptr.ToFloat32(args[0].(float32))
+	p.minExposure = ptr.ToFloat32(args[1].(float32))
+	p.maxExposure = ptr.ToFloat32(args[2].(float32))
+	log.WithField(
+		"value", *p.exposure,
+	).WithField(
+		"min", *p.minExposure,
+	).WithField(
+		"max", *p.maxExposure,
+	).Debug("image exposure changed")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Image saturation
-// Description: Image saturation.
-// Support: 0901;090c;090e
-// Triggered: by [SetImageSaturation](#1-19-3).
-// Result:
+// saturationChanged is invoked by the device when the picture saturation is
+// changed.
 func (p *pictureSettingsState) saturationChanged(args []interface{}) error {
-	// value := args[0].(float32)
-	//   Saturation value
-	// min := args[1].(float32)
-	//   Min saturation value
-	// max := args[2].(float32)
-	//   Max saturation value
-	log.Info("ardrone3.saturationChanged() called")
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	p.saturation = ptr.ToFloat32(args[0].(float32))
+	p.minSaturation = ptr.ToFloat32(args[1].(float32))
+	p.maxSaturation = ptr.ToFloat32(args[2].(float32))
+	log.WithField(
+		"value", *p.saturation,
+	).WithField(
+		"min", *p.minSaturation,
+	).WithField(
+		"max", *p.maxSaturation,
+	).Debug("image saturation changed")
 	return nil
 }
 
@@ -217,15 +286,21 @@ func (p *pictureSettingsState) saturationChanged(args []interface{}) error {
 // Triggered: by [SetTimelapseMode](#1-19-4).
 // Result:
 func (p *pictureSettingsState) timelapseChanged(args []interface{}) error {
-	// enabled := args[0].(uint8)
-	//   1 if timelapse is enabled, 0 otherwise
-	// interval := args[1].(float32)
-	//   interval in seconds for taking pictures
-	// minInterval := args[2].(float32)
-	//   Minimal interval for taking pictures
-	// maxInterval := args[3].(float32)
-	//   Maximal interval for taking pictures
-	log.Info("ardrone3.timelapseChanged() called")
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	p.timeLapseEnabled = ptr.ToBool(args[0].(uint8) == 1)
+	p.timeLapseInterval = ptr.ToFloat32(args[1].(float32))
+	p.minTimeLapseInterval = ptr.ToFloat32(args[2].(float32))
+	p.maxTimeLapseInterval = ptr.ToFloat32(args[3].(float32))
+	log.WithField(
+		"enabled", args[0].(uint8),
+	).WithField(
+		"interval", *p.timeLapseInterval,
+	).WithField(
+		"minInterval", *p.minTimeLapseInterval,
+	).WithField(
+		"maxInterval", *p.maxTimeLapseInterval,
+	).Debug("time lapse changed")
 	return nil
 }
 
@@ -327,4 +402,74 @@ func (p *pictureSettingsState) Format() (int32, bool) {
 		return 0, false
 	}
 	return *p.format, true
+}
+
+func (p *pictureSettingsState) Saturation() (float32, bool) {
+	if p.saturation == nil {
+		return 0, false
+	}
+	return *p.saturation, true
+}
+
+func (p *pictureSettingsState) MinSaturation() (float32, bool) {
+	if p.minSaturation == nil {
+		return 0, false
+	}
+	return *p.minSaturation, true
+}
+
+func (p *pictureSettingsState) MaxSaturation() (float32, bool) {
+	if p.maxSaturation == nil {
+		return 0, false
+	}
+	return *p.maxSaturation, true
+}
+
+func (p *pictureSettingsState) Exposure() (float32, bool) {
+	if p.exposure == nil {
+		return 0, false
+	}
+	return *p.exposure, true
+}
+
+func (p *pictureSettingsState) MinExposure() (float32, bool) {
+	if p.minExposure == nil {
+		return 0, false
+	}
+	return *p.minExposure, true
+}
+
+func (p *pictureSettingsState) MaxExposure() (float32, bool) {
+	if p.maxExposure == nil {
+		return 0, false
+	}
+	return *p.maxExposure, true
+}
+
+func (p *pictureSettingsState) TimeLapseEnabled() (bool, bool) {
+	if p.timeLapseEnabled == nil {
+		return false, false
+	}
+	return *p.timeLapseEnabled, true
+}
+
+func (p *pictureSettingsState) TimeLapseInterval() (float32, bool) {
+	if p.timeLapseInterval == nil {
+		return 0, false
+	}
+	return *p.timeLapseInterval, true
+}
+
+func (p *pictureSettingsState) MinTimeLapseInterval() (float32, bool) {
+	if p.minTimeLapseInterval == nil {
+		return 0, false
+	}
+	return *p.minTimeLapseInterval, true
+}
+
+func (p *pictureSettingsState) MaxTimeLapseInterval() (float32, bool) {
+	if p.maxTimeLapseInterval == nil {
+		return 0, false
+	}
+	return *p.maxTimeLapseInterval, true
 }
