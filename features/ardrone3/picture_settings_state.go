@@ -15,6 +15,27 @@ const (
 	PictureFormatJPEG        int32 = 1
 	PictureFormatSnapshot    int32 = 2
 	PictureFormatJPEGFisheye int32 = 3
+
+	WhiteBalanceModeAuto      int32 = 0
+	WhiteBalanceModeTungsten  int32 = 1
+	WhiteBalanceModeDaylight  int32 = 2
+	WhiteBalanceModeCloudy    int32 = 3
+	WhiteBalanceModeCoolWhite int32 = 4
+
+	VideoStabilizationModeRollPitch int32 = 0
+	VideoStabilizationModePitch     int32 = 1
+	VideoStabilizationModeRoll      int32 = 2
+	VideoStabilizationModeRollNone  int32 = 3
+
+	VideoRecordingModeQuality int32 = 0
+	VideoRecordingModeTime    int32 = 1
+
+	VideoFramerate24FPS int32 = 0 // 23.976 frames per second
+	VideoFramerate25FPS int32 = 1 // 25 frames per second
+	VideoFramerate30FPS int32 = 2 // 29.97 frames per second
+
+	VideoResolutionRec1080Stream480 int32 = 0
+	VideoResolutionRec720Stream720  int32 = 1
 )
 
 // PictureSettingsState ...
@@ -83,6 +104,46 @@ type PictureSettingsState interface {
 	// the device (true) or a default value (false). This permits callers to
 	// distinguish real zero values from default zero values.
 	MaxTimeLapseInterval() (float32, bool)
+	// WhiteBalanceMode returns the white balance mode. A boolean value is also
+	// returned, indicating whether the first value was reported by the device
+	// (true) or a default value (false). This permits callers to distinguish real
+	// zero values from default zero values.
+	WhiteBalanceMode() (int32, bool)
+	// VideoAutorecordingEnabled returns a boolean value indicating whether video
+	// is automatically being captured. A second boolean value is also returned,
+	// indicating whether the first value was reported by the device (true) or a
+	// default value (false). This permits callers to distinguish real zero values
+	// from default zero values.
+	VideoAutorecordingEnabled() (bool, bool)
+	// VideoAutorecordingMassStorageID returns the mass storage ID for any video
+	// that is automatically being captured. A boolean value is also returned,
+	// indicating whether the first value was reported by the device (true) or a
+	// default value (false). This permits callers to distinguish real zero values
+	// from default zero values.
+	VideoAutorecordingMassStorageID() (uint8, bool)
+	// VideoStabilizationMode returns the video stabilization mode. A boolean
+	// value is also returned, indicating whether the first value was reported by
+	// the device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	VideoStabilizationMode() (int32, bool)
+	// VideoRecordingMode returns the video recording mode. A boolean value is
+	// also returned, indicating whether the first value was reported by the
+	// device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	VideoRecordingMode() (int32, bool)
+	// VideoFramerate returns the video framerate. Be careful! This value maps to
+	// a constant and does not directly represent the number of frames per second.
+	// A boolean value is also returned, indicating whether the first value was
+	// reported by the device (true) or a default value (false). This permits
+	// callers to distinguish real zero values from default zero values.
+	VideoFramerate() (int32, bool)
+	// VideoResolutions returns the recording and streaming resolution mode. Be
+	// careful! This value maps to a constant and does not directly represent
+	// either of these resolutions. A boolean value is also returned, indicating
+	// whether the first value was reported by the device (true) or a default
+	// value (false). This permits callers to distinguish real zero values from
+	// default zero values.
+	VideoResolutions() (int32, bool)
 }
 
 type pictureSettingsState struct {
@@ -108,7 +169,22 @@ type pictureSettingsState struct {
 	minTimeLapseInterval *float32
 	// maxTimeLapseInterval is the maximum time lapse interval in seconds
 	maxTimeLapseInterval *float32
-	lock                 sync.RWMutex
+	// whiteBalanceMode is the white balance mode
+	whiteBalanceMode *int32
+	// videoAutorecordingEnabled indicated whether video is automatically captured
+	videoAutorecordingEnabled *bool
+	// videoAutorecordingMassStorageID is the mass storage id for any video that
+	// is automatically captured
+	videoAutorecordingMassStorageID *uint8
+	// videoStabilizationMode is the video stabilization mode
+	videoStabilizationMode *int32
+	// videoRecordingMode is the video recording mode
+	videoRecordingMode *int32
+	// videoFramerate is the video framerate
+	videoFramerate *int32
+	// videoResolutions represents both the recording an streaming resolution
+	videoResolutions *int32
+	lock             sync.RWMutex
 }
 
 func (p *pictureSettingsState) ID() uint8 {
@@ -224,23 +300,15 @@ func (p *pictureSettingsState) pictureFormatChanged(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: White balance mode
-// Description: White balance mode.
-// Support: 0901;090c;090e
-// Triggered: by [SetWhiteBalanceMode](#1-19-1).
-// Result:
+// autoWhiteBalanceChanged is invoked by the device when the white balance mode
+// is changed.
 func (p *pictureSettingsState) autoWhiteBalanceChanged(
 	args []interface{},
 ) error {
-	// type := args[0].(int32)
-	//   The type auto white balance
-	//   0: auto: Auto guess of best white balance params
-	//   1: tungsten: Tungsten white balance
-	//   2: daylight: Daylight white balance
-	//   3: cloudy: Cloudy white balance
-	//   4: cool_white: White balance for a flash
-	log.Info("ardrone3.autoWhiteBalanceChanged() called")
+	p.whiteBalanceMode = ptr.ToInt32(args[0].(int32))
+	log.WithField(
+		"type", *p.whiteBalanceMode,
+	).Debug("white balance changed")
 	return nil
 }
 
@@ -279,12 +347,8 @@ func (p *pictureSettingsState) saturationChanged(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Timelapse mode
-// Description: Timelapse mode.
-// Support: 0901;090c;090e
-// Triggered: by [SetTimelapseMode](#1-19-4).
-// Result:
+// timelapseChanged is invoked by the device when time lapse photography
+// settings are changed.
 func (p *pictureSettingsState) timelapseChanged(args []interface{}) error {
 	p.lock.Lock()
 	defer p.lock.Unlock()
@@ -304,88 +368,62 @@ func (p *pictureSettingsState) timelapseChanged(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Video Autorecord mode
-// Description: Video Autorecord mode.
-// Support: 0901;090c;090e
-// Triggered: by [SetVideoAutorecordMode](#1-19-5).
-// Result:
+// videoAutorecordChanged is invoked by the device when video autorecording is
+// enabled or disabled.
 func (p *pictureSettingsState) videoAutorecordChanged(args []interface{}) error {
-	// enabled := args[0].(uint8)
-	//   1 if video autorecord is enabled, 0 otherwise
-	// mass_storage_id := args[1].(uint8)
-	//   Mass storage id for the taken video
-	log.Info("ardrone3.videoAutorecordChanged() called")
+	p.videoAutorecordingEnabled = ptr.ToBool(args[0].(uint8) == 1)
+	p.videoAutorecordingMassStorageID = ptr.ToUint8(args[1].(uint8))
+	log.WithField(
+		"enabled", args[0].(uint8),
+	).WithField(
+		"mass_storage_id", *p.videoAutorecordingMassStorageID,
+	).Debug("video autorecording changed")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Video stabilization mode
-// Description: Video stabilization mode.
-// Support: 0901:3.4.0;090c:3.4.0;090e
-// Triggered: by [SetVideoStabilizationMode](#1-19-6).
-// Result:
+// videoStabilizationModeChanged is invoked by the device when the video
+// stabilization mode is changed.
 func (p *pictureSettingsState) videoStabilizationModeChanged(
 	args []interface{},
 ) error {
-	// mode := args[0].(int32)
-	//   Video stabilization mode
-	//   0: roll_pitch: Video flat on roll and pitch
-	//   1: pitch: Video flat on pitch only
-	//   2: roll: Video flat on roll only
-	//   3: none: Video follows drone angles
-	log.Info("ardrone3.videoStabilizationModeChanged() called")
+	p.videoStabilizationMode = ptr.ToInt32(args[0].(int32))
+	log.WithField(
+		"mode", *p.videoStabilizationMode,
+	).Debug("video stabilization mode changed")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Video recording mode
-// Description: Video recording mode.
-// Support: 0901:3.4.0;090c:3.4.0;090e
-// Triggered: by [SetVideoRecordingMode](#1-19-7).
-// Result:
+// videoRecordingModeChanged is invoked by the device when the video recording
+// mode is changed.
 func (p *pictureSettingsState) videoRecordingModeChanged(
 	args []interface{},
 ) error {
-	// mode := args[0].(int32)
-	//   Video recording mode
-	//   0: quality: Maximize recording quality.
-	//   1: time: Maximize recording time.
-	log.Info("ardrone3.videoRecordingModeChanged() called")
+	p.videoRecordingMode = ptr.ToInt32(args[0].(int32))
+	log.WithField(
+		"mode", *p.videoRecordingMode,
+	).Debug("video recording mode changed")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Video framerate
-// Description: Video framerate.
-// Support: 0901:3.4.0;090c:3.4.0;090e
-// Triggered: by [SetVideoFramerateMode](#1-19-8).
-// Result:
+// videoFramerateChanged is invoked by the devide when the video framerate is
+// changed.
 func (p *pictureSettingsState) videoFramerateChanged(args []interface{}) error {
-	// framerate := args[0].(int32)
-	//   Video framerate
-	//   0: 24_FPS: 23.976 frames per second.
-	//   1: 25_FPS: 25 frames per second.
-	//   2: 30_FPS: 29.97 frames per second.
-	log.Info("ardrone3.videoFramerateChanged() called")
+	p.videoFramerate = ptr.ToInt32(args[0].(int32))
+	log.WithField(
+		"framerate", *p.videoFramerate,
+	).Debug("video framerate changed")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Video resolutions
-// Description: Video resolutions.\n This event informs about the recording AND
-//   streaming resolutions.
-// Support: 0901:3.4.0;090c:3.4.0;090e
-// Triggered: by [SetVideResolutions](#1-19-9).
-// Result:
+// videoResolutionsChanged is invoked by the device when the video resolution
+// is changed.
 func (p *pictureSettingsState) videoResolutionsChanged(
 	args []interface{},
 ) error {
-	// type := args[0].(int32)
-	//   Video resolution type.
-	//   0: rec1080_stream480: 1080p recording, 480p streaming.
-	//   1: rec720_stream720: 720p recording, 720p streaming.
-	log.Info("ardrone3.videoResolutionsChanged() called")
+	p.videoResolutions = ptr.ToInt32(args[0].(int32))
+	log.WithField(
+		"type", *p.videoResolutions,
+	).Debug("video resolutions changed")
 	return nil
 }
 
@@ -472,4 +510,53 @@ func (p *pictureSettingsState) MaxTimeLapseInterval() (float32, bool) {
 		return 0, false
 	}
 	return *p.maxTimeLapseInterval, true
+}
+
+func (p *pictureSettingsState) WhiteBalanceMode() (int32, bool) {
+	if p.whiteBalanceMode == nil {
+		return 0, false
+	}
+	return *p.whiteBalanceMode, true
+}
+
+func (p *pictureSettingsState) VideoAutorecordingEnabled() (bool, bool) {
+	if p.videoAutorecordingEnabled == nil {
+		return false, false
+	}
+	return *p.videoAutorecordingEnabled, true
+}
+
+func (p *pictureSettingsState) VideoAutorecordingMassStorageID() (uint8, bool) {
+	if p.videoAutorecordingMassStorageID == nil {
+		return 0, false
+	}
+	return *p.videoAutorecordingMassStorageID, true
+}
+
+func (p *pictureSettingsState) VideoStabilizationMode() (int32, bool) {
+	if p.videoStabilizationMode == nil {
+		return 0, false
+	}
+	return *p.videoStabilizationMode, true
+}
+
+func (p *pictureSettingsState) VideoRecordingMode() (int32, bool) {
+	if p.videoRecordingMode == nil {
+		return 0, false
+	}
+	return *p.videoRecordingMode, true
+}
+
+func (p *pictureSettingsState) VideoFramerate() (int32, bool) {
+	if p.videoFramerate == nil {
+		return 0, false
+	}
+	return *p.videoFramerate, true
+}
+
+func (p *pictureSettingsState) VideoResolutions() (int32, bool) {
+	if p.videoResolutions == nil {
+		return 0, false
+	}
+	return *p.videoResolutions, true
 }
