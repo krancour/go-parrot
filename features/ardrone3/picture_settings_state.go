@@ -49,7 +49,7 @@ type PictureSettingsState interface {
 	// that do not require such guarantees. Callers MUST call RUnlock() or else
 	// picture settings state will never resume updating.
 	RLock()
-	// RUnlock releases a read lock on the GPS state. See RLock().
+	// RUnlock releases a read lock on the picture settings state. See RLock().
 	RUnlock()
 	// Format returns the picture format. A boolean value is also returned,
 	// indicating whether the first value was reported by the device (true) or a
@@ -305,6 +305,8 @@ func (p *pictureSettingsState) pictureFormatChanged(args []interface{}) error {
 func (p *pictureSettingsState) autoWhiteBalanceChanged(
 	args []interface{},
 ) error {
+	p.lock.Lock()
+	defer p.lock.Unlock()
 	p.whiteBalanceMode = ptr.ToInt32(args[0].(int32))
 	log.WithField(
 		"type", *p.whiteBalanceMode,
@@ -370,7 +372,11 @@ func (p *pictureSettingsState) timelapseChanged(args []interface{}) error {
 
 // videoAutorecordChanged is invoked by the device when video autorecording is
 // enabled or disabled.
-func (p *pictureSettingsState) videoAutorecordChanged(args []interface{}) error {
+func (p *pictureSettingsState) videoAutorecordChanged(
+	args []interface{},
+) error {
+	p.lock.Lock()
+	defer p.lock.Unlock()
 	p.videoAutorecordingEnabled = ptr.ToBool(args[0].(uint8) == 1)
 	p.videoAutorecordingMassStorageID = ptr.ToUint8(args[1].(uint8))
 	log.WithField(
@@ -386,6 +392,8 @@ func (p *pictureSettingsState) videoAutorecordChanged(args []interface{}) error 
 func (p *pictureSettingsState) videoStabilizationModeChanged(
 	args []interface{},
 ) error {
+	p.lock.Lock()
+	defer p.lock.Unlock()
 	p.videoStabilizationMode = ptr.ToInt32(args[0].(int32))
 	log.WithField(
 		"mode", *p.videoStabilizationMode,
@@ -398,6 +406,8 @@ func (p *pictureSettingsState) videoStabilizationModeChanged(
 func (p *pictureSettingsState) videoRecordingModeChanged(
 	args []interface{},
 ) error {
+	p.lock.Lock()
+	defer p.lock.Unlock()
 	p.videoRecordingMode = ptr.ToInt32(args[0].(int32))
 	log.WithField(
 		"mode", *p.videoRecordingMode,
@@ -408,6 +418,8 @@ func (p *pictureSettingsState) videoRecordingModeChanged(
 // videoFramerateChanged is invoked by the devide when the video framerate is
 // changed.
 func (p *pictureSettingsState) videoFramerateChanged(args []interface{}) error {
+	p.lock.Lock()
+	defer p.lock.Unlock()
 	p.videoFramerate = ptr.ToInt32(args[0].(int32))
 	log.WithField(
 		"framerate", *p.videoFramerate,
@@ -420,6 +432,8 @@ func (p *pictureSettingsState) videoFramerateChanged(args []interface{}) error {
 func (p *pictureSettingsState) videoResolutionsChanged(
 	args []interface{},
 ) error {
+	p.lock.Lock()
+	defer p.lock.Unlock()
 	p.videoResolutions = ptr.ToInt32(args[0].(int32))
 	log.WithField(
 		"type", *p.videoResolutions,
