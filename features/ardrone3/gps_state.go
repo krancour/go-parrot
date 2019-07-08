@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 	"github.com/krancour/go-parrot/ptr"
 )
@@ -13,16 +14,7 @@ import (
 // GPSState ...
 // TODO: Document this
 type GPSState interface {
-	// RLock blocks until a read lock is obtained. This permits callers to procede
-	// with querying any or all attributes of the GPS state without worry
-	// that some attributes will be overwritten as others are read. i.e. It
-	// permits the possibility of taking an atomic snapshop of GPS state.
-	// Note that use of this function is not obligatory for applications that do
-	// not require such guarantees. Callers MUST call RUnlock() or else GPS
-	// state will never resume updating.
-	RLock()
-	// RUnlock releases a read lock on the GPS state. See RLock().
-	RUnlock()
+	lock.ReadLockable
 	// NumberOfSatellites returns the number of satellites used to determine GPS
 	// coordinates and a boolean value indicating whether the first value was
 	// reported by the device (true) or a default value (false). This permits

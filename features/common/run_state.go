@@ -3,6 +3,8 @@ package common
 import (
 	"sync"
 
+	"github.com/krancour/go-parrot/lock"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 	"github.com/krancour/go-parrot/ptr"
@@ -13,16 +15,7 @@ import (
 // RunState ...
 // TODO: Document this
 type RunState interface {
-	// RLock blocks until a read lock is obtained. This permits callers to procede
-	// with querying any or all attributes of the run state without worry
-	// that some attributes will be overwritten as others are read. i.e. It
-	// permits the possibility of taking an atomic snapshop of run state.
-	// Note that use of this function is not obligatory for applications that do
-	// not require such guarantees. Callers MUST call RUnlock() or else run
-	// state will never resume updating.
-	RLock()
-	// RUnlock releases a read lock on the run state. See RLock().
-	RUnlock()
+	lock.ReadLockable
 	// RunID returns a unique identifier for the current flight. A boolean value
 	// is also returned, indicating whether the first value was reported by the
 	// device (true) or a default value (false). This permits callers to

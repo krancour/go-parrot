@@ -1,7 +1,10 @@
 package ardrone3
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 )
 
@@ -9,9 +12,13 @@ import (
 
 // PilotingEvent ...
 // TODO: Document this
-type PilotingEvent interface{}
+type PilotingEvent interface {
+	lock.ReadLockable
+}
 
-type pilotingEvent struct{}
+type pilotingEvent struct {
+	lock sync.RWMutex
+}
 
 func (p *pilotingEvent) ID() uint8 {
 	return 34
@@ -64,4 +71,12 @@ func (p *pilotingEvent) moveByEnd(args []interface{}) error {
 	//   4: interrupted: Command moveBy interrupted
 	log.Info("ardrone3.oveByEnd() called")
 	return nil
+}
+
+func (p *pilotingEvent) RLock() {
+	p.lock.RLock()
+}
+
+func (p *pilotingEvent) RUnlock() {
+	p.lock.RUnlock()
 }

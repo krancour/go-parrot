@@ -1,7 +1,10 @@
 package ardrone3
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 )
 
@@ -9,9 +12,13 @@ import (
 
 // MediaStreamingState ...
 // TODO: Document this
-type MediaStreamingState interface{}
+type MediaStreamingState interface {
+	lock.ReadLockable
+}
 
-type mediaStreamingState struct{}
+type mediaStreamingState struct {
+	lock sync.RWMutex
+}
 
 func (m *mediaStreamingState) ID() uint8 {
 	return 22
@@ -71,4 +78,12 @@ func (m *mediaStreamingState) videoStreamModeChanged(args []interface{}) error {
 	//      quality is important but not the latency).
 	log.Info("ardrone3.videoStreamModeChanged() called")
 	return nil
+}
+
+func (m *mediaStreamingState) RLock() {
+	m.lock.RLock()
+}
+
+func (m *mediaStreamingState) RUnlock() {
+	m.lock.RUnlock()
 }

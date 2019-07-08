@@ -1,7 +1,10 @@
 package ardrone3
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 )
 
@@ -9,9 +12,13 @@ import (
 
 // MediaRecordEvent ...
 // TODO: Document this
-type MediaRecordEvent interface{}
+type MediaRecordEvent interface {
+	lock.ReadLockable
+}
 
-type mediaRecordEvent struct{}
+type mediaRecordEvent struct {
+	lock sync.RWMutex
+}
 
 func (m *mediaRecordEvent) ID() uint8 {
 	return 3
@@ -95,4 +102,12 @@ func (m *mediaRecordEvent) videoEventChanged(args []interface{}) error {
 	//   6: autoStopped: Video was auto stopped
 	log.Info("ardrone3.videoEventChanged() called")
 	return nil
+}
+
+func (m *mediaRecordEvent) RLock() {
+	m.lock.RLock()
+}
+
+func (m *mediaRecordEvent) RUnlock() {
+	m.lock.RUnlock()
 }

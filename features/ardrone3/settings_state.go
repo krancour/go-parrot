@@ -1,7 +1,10 @@
 package ardrone3
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 )
 
@@ -9,9 +12,13 @@ import (
 
 // SettingsState ...
 // TODO: Document this
-type SettingsState interface{}
+type SettingsState interface {
+	lock.ReadLockable
+}
 
-type settingsState struct{}
+type settingsState struct {
+	lock sync.RWMutex
+}
 
 func (s *settingsState) ID() uint8 {
 	return 16
@@ -245,4 +252,12 @@ func (s *settingsState) cPUID(args []interface{}) error {
 	//   Product main cpu id
 	log.Info("ardrone3.cPUID() called")
 	return nil
+}
+
+func (s *settingsState) RLock() {
+	s.lock.RLock()
+}
+
+func (s *settingsState) RUnlock() {
+	s.lock.RUnlock()
 }

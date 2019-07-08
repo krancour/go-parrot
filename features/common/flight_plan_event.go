@@ -1,7 +1,10 @@
 package common
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 )
 
@@ -9,9 +12,13 @@ import (
 
 // FlightPlanEvent ...
 // TODO: Document this
-type FlightPlanEvent interface{}
+type FlightPlanEvent interface {
+	lock.ReadLockable
+}
 
-type flightPlanEvent struct{}
+type flightPlanEvent struct {
+	lock sync.RWMutex
+}
 
 func (f *flightPlanEvent) ID() uint8 {
 	return 19
@@ -63,3 +70,11 @@ func (f *flightPlanEvent) startingErrorEvent(args []interface{}) error {
 // 	log.Info("common.speedBridleEvent() called")
 // 	return nil
 // }
+
+func (f *flightPlanEvent) RLock() {
+	f.lock.RLock()
+}
+
+func (f *flightPlanEvent) RUnlock() {
+	f.lock.RUnlock()
+}

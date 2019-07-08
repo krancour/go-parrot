@@ -1,7 +1,10 @@
 package ardrone3
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 )
 
@@ -9,9 +12,13 @@ import (
 
 // NetworkState ...
 // TODO: Document this
-type NetworkState interface{}
+type NetworkState interface {
+	lock.ReadLockable
+}
 
-type networkState struct{}
+type networkState struct {
+	lock sync.RWMutex
+}
 
 func (n *networkState) ID() uint8 {
 	return 14
@@ -126,4 +133,12 @@ func (n *networkState) wifiAuthChannelListChanged(args []interface{}) error {
 func (n *networkState) allWifiAuthChannelChanged(args []interface{}) error {
 	log.Info("ardrone3.allWifiAuthChannelChanged() called")
 	return nil
+}
+
+func (n *networkState) RLock() {
+	n.lock.RLock()
+}
+
+func (n *networkState) RUnlock() {
+	n.lock.RUnlock()
 }

@@ -1,7 +1,10 @@
 package ardrone3
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 )
 
@@ -9,9 +12,13 @@ import (
 
 // MediaRecordState ...
 // TODO: Document this
-type MediaRecordState interface{}
+type MediaRecordState interface {
+	lock.ReadLockable
+}
 
-type mediaRecordState struct{}
+type mediaRecordState struct {
+	lock sync.RWMutex
+}
 
 func (m *mediaRecordState) ID() uint8 {
 	return 8
@@ -179,3 +186,11 @@ func (m *mediaRecordState) videoStateChangedV2(args []interface{}) error {
 // 	log.Info("ardrone3.videoResolutionState() called")
 // 	return nil
 // }
+
+func (m *mediaRecordState) RLock() {
+	m.lock.RLock()
+}
+
+func (m *mediaRecordState) RUnlock() {
+	m.lock.RUnlock()
+}

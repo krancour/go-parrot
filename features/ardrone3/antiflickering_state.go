@@ -1,7 +1,10 @@
 package ardrone3
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 )
 
@@ -9,9 +12,13 @@ import (
 
 // AntiflickeringState ...
 // TODO: Document this
-type AntiflickeringState interface{}
+type AntiflickeringState interface {
+	lock.ReadLockable
+}
 
-type antiflickeringState struct{}
+type antiflickeringState struct {
+	lock sync.RWMutex
+}
 
 func (a *antiflickeringState) ID() uint8 {
 	return 30
@@ -74,4 +81,12 @@ func (a *antiflickeringState) modeChanged(args []interface{}) error {
 	//   2: FixedSixtyHertz: Anti flickering based on a fixed frequency of 60Hz
 	log.Info("ardrone3.modeChanged() called")
 	return nil
+}
+
+func (a *antiflickeringState) RLock() {
+	a.lock.RLock()
+}
+
+func (a *antiflickeringState) RUnlock() {
+	a.lock.RUnlock()
 }

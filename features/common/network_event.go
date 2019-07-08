@@ -1,7 +1,10 @@
 package common
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 )
 
@@ -9,9 +12,13 @@ import (
 
 // NetworkEvent ...
 // TODO: Document this
-type NetworkEvent interface{}
+type NetworkEvent interface {
+	lock.ReadLockable
+}
 
-type networkEvent struct{}
+type networkEvent struct {
+	lock sync.RWMutex
+}
 
 func (n *networkEvent) ID() uint8 {
 	return 1
@@ -50,4 +57,12 @@ func (n *networkEvent) disconnection(args []interface{}) error {
 	//   1: unknown: Unknown generic cause
 	log.Info("common.disconnection() called")
 	return nil
+}
+
+func (n *networkEvent) RLock() {
+	n.lock.RLock()
+}
+
+func (n *networkEvent) RUnlock() {
+	n.lock.RUnlock()
 }

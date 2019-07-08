@@ -1,7 +1,10 @@
 package ardrone3
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 )
 
@@ -9,9 +12,13 @@ import (
 
 // SoundState ...
 // TODO: Document this
-type SoundState interface{}
+type SoundState interface {
+	lock.ReadLockable
+}
 
-type soundState struct{}
+type soundState struct {
+	lock sync.RWMutex
+}
 
 func (s *soundState) ID() uint8 {
 	return 36
@@ -48,4 +55,12 @@ func (s *soundState) alertSound(args []interface{}) error {
 	//   1: playing: Alert sound is playing
 	log.Info("ardrone3.alertSound() called")
 	return nil
+}
+
+func (s *soundState) RLock() {
+	s.lock.RLock()
+}
+
+func (s *soundState) RUnlock() {
+	s.lock.RUnlock()
 }

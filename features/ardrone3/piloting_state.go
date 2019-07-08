@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 	"github.com/krancour/go-parrot/ptr"
 )
@@ -40,16 +41,7 @@ const (
 // PilotingState ...
 // TODO: Document this
 type PilotingState interface {
-	// RLock blocks until a read lock is obtained. This permits callers to procede
-	// with querying any or all attributes of the piloting state without worry
-	// that some attributes will be overwritten as others are read. i.e. It
-	// permits the possibility of taking an atomic snapshop of piloting state.
-	// Note that use of this function is not obligatory for applications that do
-	// not require such guarantees. Callers MUST call RUnlock() or else piloting
-	// state will never resume updating.
-	RLock()
-	// RUnlock releases a read lock on the piloting state. See RLock().
-	RUnlock()
+	lock.ReadLockable
 	// SpeedX returns the velocity relative to the north in m/s. When the drone
 	// moves to the north, the value is > 0. A boolean value is also returned,
 	// indicating whether the first value was reported by the device (true) or a

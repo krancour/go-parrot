@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 	"github.com/krancour/go-parrot/ptr"
 )
@@ -20,16 +21,7 @@ const (
 // CalibrationState ...
 // TODO: Document this
 type CalibrationState interface {
-	// RLock blocks until a read lock is obtained. This permits callers to procede
-	// with querying any or all attributes of the calibration state without worry
-	// that some attributes will be overwritten as others are read. i.e. It
-	// permits the possibility of taking an atomic snapshop of calibration state.
-	// Note that use of this function is not obligatory for applications that do
-	// not require such guarantees. Callers MUST call RUnlock() or else
-	// calibration state will never resume updating.
-	RLock()
-	// RUnlock releases a read lock on the calibration state. See RLock().
-	RUnlock()
+	lock.ReadLockable
 	// MagnetoCalibrationRequired returns a boolean indicating whether the device
 	// requires magneto calibrartion to be performed. A boolean value is also
 	// returned, indicating whether the first value was reported by the device

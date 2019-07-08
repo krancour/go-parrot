@@ -1,7 +1,10 @@
 package ardrone3
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 )
 
@@ -9,9 +12,13 @@ import (
 
 // CameraState ...
 // TODO: Document this
-type CameraState interface{}
+type CameraState interface {
+	lock.ReadLockable
+}
 
-type cameraState struct{}
+type cameraState struct {
+	lock sync.RWMutex
+}
 
 func (c *cameraState) ID() uint8 {
 	return 25
@@ -144,4 +151,12 @@ func (c *cameraState) velocityRange(args []interface{}) error {
 	//   Absolute max pan velocity [deg/s]
 	log.Info("ardrone3.velocityRange() called")
 	return nil
+}
+
+func (c *cameraState) RLock() {
+	c.lock.RLock()
+}
+
+func (c *cameraState) RUnlock() {
+	c.lock.RUnlock()
 }

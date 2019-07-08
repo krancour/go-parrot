@@ -1,17 +1,22 @@
 package common
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 )
 
-//
-
 // FlightPlanSettingsState ...
 // TODO: Document this
-type FlightPlanSettingsState interface{}
+type FlightPlanSettingsState interface {
+	lock.ReadLockable
+}
 
-type flightPlanSettingsState struct{}
+type flightPlanSettingsState struct {
+	lock sync.RWMutex
+}
 
 func (f *flightPlanSettingsState) ID() uint8 {
 	return 33
@@ -49,4 +54,12 @@ func (f *flightPlanSettingsState) returnHomeOnDisconnectChanged(args []interface
 	//   1 if readOnly, 0 if writable
 	log.Info("common.returnHomeOnDisconnectChanged() called")
 	return nil
+}
+
+func (f *flightPlanSettingsState) RLock() {
+	f.lock.RLock()
+}
+
+func (f *flightPlanSettingsState) RUnlock() {
+	f.lock.RUnlock()
 }

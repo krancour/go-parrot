@@ -1,7 +1,10 @@
 package ardrone3
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 )
 
@@ -9,9 +12,13 @@ import (
 
 // GPSSettingsState ...
 // TODO: Document this
-type GPSSettingsState interface{}
+type GPSSettingsState interface {
+	lock.ReadLockable
+}
 
-type gpsSettingsState struct{}
+type gpsSettingsState struct {
+	lock sync.RWMutex
+}
 
 func (g *gpsSettingsState) ID() uint8 {
 	return 24
@@ -204,3 +211,11 @@ func (g *gpsSettingsState) returnHomeDelayChanged(args []interface{}) error {
 // 	log.Info("ardrone3.geofenceCenterChanged() called")
 // 	return nil
 // }
+
+func (g *gpsSettingsState) RLock() {
+	g.lock.RLock()
+}
+
+func (g *gpsSettingsState) RUnlock() {
+	g.lock.RUnlock()
+}

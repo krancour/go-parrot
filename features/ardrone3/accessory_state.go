@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 )
 
@@ -12,16 +13,7 @@ import (
 // AccessoryState ...
 // TODO: Document this
 type AccessoryState interface {
-	// RLock blocks until a read lock is obtained. This permits callers to procede
-	// with querying any or all attributes of the accessory state without worry
-	// that some attributes will be overwritten as others are read. i.e. It
-	// permits the possibility of taking an atomic snapshop of accessory state.
-	// Note that use of this function is not obligatory for applications that do
-	// not require such guarantees. Callers MUST call RUnlock() or else accessory
-	// state will never resume updating.
-	RLock()
-	// RUnlock releases a read lock on the accessory state. See RLock().
-	RUnlock()
+	lock.ReadLockable
 	// Accessories returns a map of Accessories indexed by ID.
 	Accessories() map[uint8]Accessory
 }

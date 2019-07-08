@@ -1,7 +1,10 @@
 package ardrone3
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 )
 
@@ -9,9 +12,13 @@ import (
 
 // PROState ...
 // TODO: Document this
-type PROState interface{}
+type PROState interface {
+	lock.ReadLockable
+}
 
-type proState struct{}
+type proState struct {
+	lock sync.RWMutex
+}
 
 func (p *proState) ID() uint8 {
 	return 32
@@ -43,4 +50,12 @@ func (p *proState) features(args []interface{}) error {
 	//   Bitfield representing enabled features.
 	log.Debug("features changed-- this is a no-op")
 	return nil
+}
+
+func (p *proState) RLock() {
+	p.lock.RLock()
+}
+
+func (p *proState) RUnlock() {
+	p.lock.RUnlock()
 }
