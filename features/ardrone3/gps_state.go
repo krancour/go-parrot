@@ -11,6 +11,21 @@ import (
 
 // GPS related States
 
+const (
+	// ReturnToHomeTypeTakeoff represents a return home type wherein the drone
+	// will return to the take off position
+	ReturnToHomeTypeTakeoff int32 = 0
+	// ReturnToHomeTypePilot represents a return home type wherein the drone will
+	// return to the pilot position
+	ReturnToHomeTypePilot int32 = 1
+	// ReturnToHomeTypeFirstFix represents a return home type wherein the drone
+	// will return to the first GPS fix
+	ReturnToHomeTypeFirstFix int32 = 2
+	// ReturnToHomeTypeFollowee represents a return home type wherein the drone
+	// will return to the current (or last) "follow me" target
+	ReturnToHomeTypeFollowee int32 = 3
+)
+
 // GPSState ...
 // TODO: Document this
 type GPSState interface {
@@ -20,13 +35,48 @@ type GPSState interface {
 	// reported by the device (true) or a default value (false). This permits
 	// callers to distinguish real zero values from default zero values.
 	NumberOfSatellites() (uint8, bool)
+	// IsReturnToTakeoffAvailable returns a boolean indicating whether the device
+	// has enough information to return to the takeoff position. A second boolean
+	// value is also returned, indicating whether the first value was reported by
+	// the device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	IsReturnToTakeoffAvailable() (bool, bool)
+	// IsReturnToTakeoffAvailable returns a boolean indicating whether the device
+	// has enough information to return to the pilot's position. A second boolean
+	// value is also returned, indicating whether the first value was reported by
+	// the device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	IsReturnToPilotAvailable() (bool, bool)
+	// IsReturnToTakeoffAvailable returns a boolean indicating whether the device
+	// has enough information to return to the first GPS fix. A second boolean
+	// value is also returned, indicating whether the first value was reported by
+	// the device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	IsReturnToFirstFixAvailable() (bool, bool)
+	// IsReturnToTakeoffAvailable returns a boolean indicating whether the device
+	// has enough information to return to the current (or last) "follow me"
+	// target. A second boolean value is also returned, indicating whether the
+	// first value was reported by the device (true) or a default value (false).
+	// This permits callers to distinguish real zero values from default zero
+	// values.
+	IsReturnToFolloweeAvailable() (bool, bool)
+	// ReturnToHomeType returns the current return to home type. A boolean value
+	// is also returned, indicating whether the first value was reported by the
+	// device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	ReturnToHomeType() (int32, bool)
 }
 
 type gpsState struct {
 	sync.RWMutex
 	// numberOfSatellites is the number of satellites used to determine GPS
 	// coordinates.
-	numberOfSatellites *uint8
+	numberOfSatellites        *uint8
+	returnToTakeoffAvailable  *bool
+	returnToPilotAvailable    *bool
+	returnToFirstFixAvailable *bool
+	returnToFolloweeAvailable *bool
+	returnToHomeType          *int32
 }
 
 func (g *gpsState) ID() uint8 {
@@ -79,56 +129,44 @@ func (g *gpsState) numberOfSatellitesChanged(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Home type availability
-// Description: Home type availability.
-// Support: 0901;090c;090e
-// Triggered: when the availability of, at least, one type changes.\n This might
-//   be due to controller position availability, gps fix before take off or
-//   other reason.
-// Result:
+// homeTypeAvailabilityChanged is invoked by the device when the availability
+// of different return to home types is changed.
 func (g *gpsState) homeTypeAvailabilityChanged(args []interface{}) error {
-	// type := args[0].(int32)
-	//   The type of the return home
-	//   0: TAKEOFF: The drone has enough information to return to the take off
-	//      position
-	//   1: PILOT: The drone has enough information to return to the pilot
-	//      position
-	//   2: FIRST_FIX: The drone has not enough information, it will return to the
-	//      first GPS fix
-	//   3: FOLLOWEE: The drone has enough information to return to the target of
-	//      the current (or last) follow me
-	// available := args[1].(uint8)
-	//   1 if this type is available, 0 otherwise
-	log.Info("ardrone3.homeTypeAvailabilityChanged() called")
+	g.Lock()
+	defer g.Unlock()
+	tipe := args[0].(int32)
+	available := args[1].(uint8) == 1
+	switch tipe {
+	case ReturnToHomeTypeTakeoff:
+		g.returnToTakeoffAvailable = ptr.ToBool(available)
+	case ReturnToHomeTypePilot:
+		g.returnToPilotAvailable = ptr.ToBool(available)
+	case ReturnToHomeTypeFirstFix:
+		g.returnToFirstFixAvailable = ptr.ToBool(available)
+	case ReturnToHomeTypeFollowee:
+		g.returnToFolloweeAvailable = ptr.ToBool(available)
+	}
+	log.WithField(
+		"type", tipe,
+	).WithField(
+		"available", available,
+	).Debug("home type availability changed")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Home type
-// Description: Home type.\n This choice is made by the drone, according to the
-//   [PreferredHomeType](#1-24-4) and the [HomeTypeAvailability](#1-31-1). The
-//   drone will choose the type matching with the user preference only if this
-//   type is available. If not, it will chose a type in this order:\n FOLLOWEE ;
-//   TAKEOFF ; PILOT ; FIRST_FIX
-// Support: 0901;090c;090e
-// Triggered: when the return home type chosen by the drone changes.\n This
-//   might be produced by a user preference triggered by
-//   [SetPreferedHomeType](#1-23-3) or by a change in the
-//   [HomeTypesAvailabilityChanged](#1-31-1).
-// Result:
+// homeTypeChosenChanged is invoked by the device when the return to home type
+// is changed. This may be changed due to a change in user preferences or
+// because of the availability of various types based on GPS information
+// available. Note that if the user's preferred type is unavailable, the device
+// will choose the first available type in this order: FOLLOWEE, TAKEOFF, PILOT,
+// FIRST_FIX.
 func (g *gpsState) homeTypeChosenChanged(args []interface{}) error {
-	// type := args[0].(int32)
-	//   The type of the return home chosen
-	//   0: TAKEOFF: The drone will return to the take off position
-	//   1: PILOT: The drone will return to the pilot position In this case, the
-	//      drone will use the position given by ARDrone3-SendControllerGPS
-	//   2: FIRST_FIX: The drone has not enough information, it will return to the
-	//      first GPS fix
-	//   3: FOLLOWEE: The drone will return to the target of the current (or last)
-	//      follow me In this case, the drone will use the position of the target
-	//      of the followMe (given by ControllerInfo-GPS)
-	log.Info("ardrone3.homeTypeChosenChanged() called")
+	g.Lock()
+	defer g.Unlock()
+	g.returnToHomeType = ptr.ToInt32(args[0].(int32))
+	log.WithField(
+		"type", *g.returnToHomeType,
+	).Debug("return home type changed")
 	return nil
 }
 
@@ -137,4 +175,39 @@ func (g *gpsState) NumberOfSatellites() (uint8, bool) {
 		return 0, false
 	}
 	return *g.numberOfSatellites, true
+}
+
+func (g *gpsState) IsReturnToTakeoffAvailable() (bool, bool) {
+	if g.returnToTakeoffAvailable == nil {
+		return false, false
+	}
+	return *g.returnToTakeoffAvailable, true
+}
+
+func (g *gpsState) IsReturnToPilotAvailable() (bool, bool) {
+	if g.returnToPilotAvailable == nil {
+		return false, false
+	}
+	return *g.returnToPilotAvailable, true
+}
+
+func (g *gpsState) IsReturnToFirstFixAvailable() (bool, bool) {
+	if g.returnToFirstFixAvailable == nil {
+		return false, false
+	}
+	return *g.returnToFirstFixAvailable, true
+}
+
+func (g *gpsState) IsReturnToFolloweeAvailable() (bool, bool) {
+	if g.returnToFolloweeAvailable == nil {
+		return false, false
+	}
+	return *g.returnToFolloweeAvailable, true
+}
+
+func (g *gpsState) ReturnToHomeType() (int32, bool) {
+	if g.returnToHomeType == nil {
+		return 0, false
+	}
+	return *g.returnToHomeType, true
 }

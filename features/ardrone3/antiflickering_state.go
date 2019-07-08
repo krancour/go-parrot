@@ -6,18 +6,41 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
+	"github.com/krancour/go-parrot/ptr"
 )
 
 // Anti-flickering related states
+
+const (
+	ElectricFrequency50Hz int32 = 0
+	ElectricFrequency60Hz int32 = 1
+
+	AntiflickeringModeAuto int32 = 0
+	AntiflickeringMode50Hz int32 = 1
+	AntiflickeringMode60Hz int32 = 1
+)
 
 // AntiflickeringState ...
 // TODO: Document this
 type AntiflickeringState interface {
 	lock.ReadLockable
+	// ElectricFrequency returns the electrical frequency used by the camera. This
+	// value maps to a constant and does not directly represent the frequency. A
+	// boolean value is also returned, indicating whether the first value was
+	// reported by the device (true) or a default value (false). This permits
+	// callers to distinguish real zero values from default zero values.
+	ElectricFrequency() (int32, bool)
+	// Mode returns the antiflickering mode. A boolean value is also returned,
+	// indicating whether the first value was reported by the device (true) or a
+	// default value (false). This permits callers to distinguish real zero values
+	// from default zero values.
+	Mode() (int32, bool)
 }
 
 type antiflickeringState struct {
 	sync.RWMutex
+	electricFrequency *int32
+	mode              *int32
 }
 
 func (a *antiflickeringState) ID() uint8 {
@@ -49,36 +72,41 @@ func (a *antiflickeringState) D2CCommands() []arcommands.D2CCommand {
 	}
 }
 
-// TODO: Implement this
-// Title: Electric frequency
-// Description: Electric frequency.\n This piece of information is used for the
-//   antiflickering when the [AntiflickeringMode](#1-30-1) is set to *auto*.
-// Support: 0901;090c
-// Triggered: by [SetElectricFrequency](#1-29-0).
-// Result:
+// electricFrequencyChanged is invoked by the device when the electric frequency
+// is changed.
 func (a *antiflickeringState) electricFrequencyChanged(
 	args []interface{},
 ) error {
-	// frequency := args[0].(int32)
-	//   Type of the electric frequency
-	//   0: fiftyHertz: Electric frequency of the country is 50hz
-	//   1: sixtyHertz: Electric frequency of the country is 60hz
-	log.Info("ardrone3.electricFrequencyChanged() called")
+	a.Lock()
+	defer a.Unlock()
+	a.electricFrequency = ptr.ToInt32(args[0].(int32))
+	log.WithField(
+		"frequency", *a.electricFrequency,
+	).Debug("electric frequency changed")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Antiflickering mode
-// Description: Antiflickering mode.
-// Support: 0901;090c
-// Triggered: by [SetAntiflickeringMode](#1-29-1).
-// Result:
+// modeChanged is invoked by the device when the antiflickering mode is changed.
 func (a *antiflickeringState) modeChanged(args []interface{}) error {
-	// mode := args[0].(int32)
-	//   Mode of the anti flickering functionnality
-	//   0: auto: Anti flickering based on the electric frequency previously sent
-	//   1: FixedFiftyHertz: Anti flickering based on a fixed frequency of 50Hz
-	//   2: FixedSixtyHertz: Anti flickering based on a fixed frequency of 60Hz
-	log.Info("ardrone3.modeChanged() called")
+	a.Lock()
+	defer a.Unlock()
+	a.mode = ptr.ToInt32(args[0].(int32))
+	log.WithField(
+		"mode", *a.mode,
+	).Debug("antiflickeringn mode changed")
 	return nil
+}
+
+func (a *antiflickeringState) ElectricFrequency() (int32, bool) {
+	if a.electricFrequency == nil {
+		return 0, false
+	}
+	return *a.electricFrequency, true
+}
+
+func (a *antiflickeringState) Mode() (int32, bool) {
+	if a.mode == nil {
+		return 0, false
+	}
+	return *a.mode, true
 }

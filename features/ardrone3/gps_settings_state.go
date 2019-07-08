@@ -6,18 +6,81 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
+	"github.com/krancour/go-parrot/ptr"
 )
 
 // GPS settings state
+
+const (
+	// HomeTypeTakeoff represents a setting where the drone will return to the
+	// takeoff position when instructed to return home.
+	HomeTypeTakeoff int32 = 0
+	// HomeTypePilot represents a setting where the drone will return to the
+	// pilot's position when instructed to return home.
+	HomeTypePilot int32 = 1
+	// HomeTypeFollowee represents a setting where the drone will return to the
+	// current (or last) "follow me" target when instructed to return home.
+	HomeTypeFollowee int32 = 2
+)
 
 // GPSSettingsState ...
 // TODO: Document this
 type GPSSettingsState interface {
 	lock.ReadLockable
+	// HomeLatitude returns the home (the place the drone will return to) latitude
+	// in degrees. A boolean value is also returned, indicating whether the first
+	// value was reported by the device (true) or a default value (false). This
+	// permits callers to distinguish real zero values from default zero values.
+	HomeLatitude() (float64, bool)
+	// HomeLatitude returns the home (the place the drone will return to)
+	// longitude in degrees. A boolean value is also returned, indicating whether
+	// the first value was reported by the device (true) or a default value
+	// (false). This permits callers to distinguish real zero values from default
+	// zero values.
+	HomeLongitude() (float64, bool)
+	// HomeLatitude returns the home (the place the drone will return to) altitude
+	// in meters. A boolean value is also returned, indicating whether the first
+	// value was reported by the device (true) or a default value (false). This
+	// permits callers to distinguish real zero values from default zero values.
+	HomeAltitude() (float64, bool)
+	// HomeType returns the home type, which represents whether the drone should
+	// return to the takeoff position, pilot position, or followee when instructed
+	// to return home. A boolean value is also returned, indicating whether the
+	// first value was reported by the device (true) or a default value (false).
+	// This permits callers to distinguish real zero values from default zero
+	// values.
+	HomeType() (int32, bool)
+	// IsGPSFixed returns a boolean indicating whether the device's GPS is
+	// currently fixed. A second boolean value is also returned, indicating
+	// whether the first value was reported by the device (true) or a default
+	// value (false). This permits callers to distinguish real zero values from
+	// default zero values.
+	IsGPSFixed() (bool, bool)
+	// ReturnHomeDelay returns the return home delay (the time after which return
+	// to home is automatically triggered after a disconnection) in seconds. A
+	// boolean value is also returned, indicating whether the first value was
+	// reported by the device (true) or a default value (false). This permits
+	// callers to distinguish real zero values from default zero values.
+	ReturnHomeDelay() (uint16, bool)
 }
 
 type gpsSettingsState struct {
 	sync.RWMutex
+	// homeLatitude is the home latitude in degrees
+	homeLatitude *float64
+	// homeLongitude is the home longitude in degrees
+	homeLongitude *float64
+	// homeAltitude is the home altitude in meters
+	homeAltitude *float64
+	// homeType represents whether the drone should return to the takeoff
+	// position, pilot position, or followee when instructed to return home
+	homeType *int32
+	// gpsFixed represents whether the device's GPS is currently fixed
+	gpsFixed *bool
+	// returnHomeDelay represents the return home delay (the time after which
+	// return to home is automatically triggered after a disconnection) in
+	// seconds
+	returnHomeDelay *uint16
 }
 
 func (g *gpsSettingsState) ID() uint8 {
@@ -40,16 +103,6 @@ func (g *gpsSettingsState) D2CCommands() []arcommands.D2CCommand {
 			},
 			g.homeChanged,
 		),
-		// arcommands.NewD2CCommand(
-		// 	1,
-		// 	"ResetHomeChanged",
-		// 	[]interface{}{
-		// 		float64(0), // latitude,
-		// 		float64(0), // longitude,
-		// 		float64(0), // altitude,
-		// 	},
-		// 	g.resetHomeChanged,
-		// ),
 		arcommands.NewD2CCommand(
 			2,
 			"GPSFixStateChanged",
@@ -58,14 +111,6 @@ func (g *gpsSettingsState) D2CCommands() []arcommands.D2CCommand {
 			},
 			g.gPSFixStateChanged,
 		),
-		// arcommands.NewD2CCommand(
-		// 	3,
-		// 	"GPSUpdateStateChanged",
-		// 	[]interface{}{
-		// 		int32(0), // state,
-		// 	},
-		// 	g.gpsUpdateStateChanged,
-		// ),
 		arcommands.NewD2CCommand(
 			4,
 			"HomeTypeChanged",
@@ -94,104 +139,56 @@ func (g *gpsSettingsState) D2CCommands() []arcommands.D2CCommand {
 	}
 }
 
-// TODO: Implement this
-// Title: Home location
-// Description: Home location.
-// Support: 0901;090c;090e
-// Triggered: when [HomeType](#1-31-2) changes. Or by [SetHomeLocation](#1-23-2)
-//   when [HomeType](#1-31-2) is Pilot. Or regularly after
-//   [SetControllerGPS](#140-1) when [HomeType](#1-31-2) is FollowMeTarget. Or
-//   at take off [HomeType](#1-31-2) is Takeoff. Or when the first fix occurs
-//   and the [HomeType](#1-31-2) is FirstFix.
-// Result:
+// homeChanged is invoked by the device when the home location (the place the
+// drone will return to) is changed.
 func (g *gpsSettingsState) homeChanged(args []interface{}) error {
-	// latitude := args[0].(float64)
-	//   Home latitude in decimal degrees
-	// longitude := args[1].(float64)
-	//   Home longitude in decimal degrees
-	// altitude := args[2].(float64)
-	//   Home altitude in meters
-	log.Info("ardrone3.homeChanged() called")
+	g.Lock()
+	defer g.Unlock()
+	g.homeLatitude = ptr.ToFloat64(args[0].(float64))
+	g.homeLongitude = ptr.ToFloat64(args[1].(float64))
+	g.homeAltitude = ptr.ToFloat64(args[2].(float64))
+	log.WithField(
+		"latitude", *g.homeLatitude,
+	).WithField(
+		"longitude", *g.homeLongitude,
+	).WithField(
+		"altitude", *g.homeAltitude,
+	).Debug("home location changed")
 	return nil
 }
 
-// // TODO: Implement this
-// // Title: Home location has been reset
-// // Description: Home location has been reset.
-// // Support: 0901;090c
-// // Triggered: by [ResetHomeLocation](#1-23-1).
-// // Result:
-// // WARNING: Deprecated
-// func (g *gpsSettingsState) resetHomeChanged(args []interface{}) error {
-// 	// latitude := args[0].(float64)
-// 	//   Home latitude in decimal degrees
-// 	// longitude := args[1].(float64)
-// 	//   Home longitude in decimal degrees
-// 	// altitude := args[2].(float64)
-// 	//   Home altitude in meters
-// 	log.Info("ardrone3.resetHomeChanged() called")
-// 	return nil
-// }
-
-// TODO: Implement this
-// Title: Gps fix info
-// Description: Gps fix info.
-// Support: 0901;090c;090e
-// Triggered: on change.
-// Result:
+// gPSFixStateChanged is invoked by the device when the GPS fix is changed.
 func (g *gpsSettingsState) gPSFixStateChanged(args []interface{}) error {
-	// fixed := args[0].(uint8)
-	//   1 if gps on drone is fixed, 0 otherwise
-	log.Info("ardrone3.gPSFixStateChanged() called")
+	g.Lock()
+	defer g.Unlock()
+	g.gpsFixed = ptr.ToBool(args[0].(uint8) == 1)
+	log.WithField(
+		"fixed", *g.gpsFixed,
+	).Debug("GPS fixed state changed")
 	return nil
 }
 
-// // TODO: Implement this
-// // Title: Gps update state
-// // Description: Gps update state.
-// // Support: 0901;090c;090e
-// // Triggered: on change.
-// // Result:
-// // WARNING: Deprecated
-// func (g *gpsSettingsState) gpsUpdateStateChanged(args []interface{}) error {
-// 	// state := args[0].(int32)
-// 	//   The state of the gps update
-// 	//   0: updated: Drone GPS update succeed
-// 	//   1: inProgress: Drone GPS update In progress
-// 	//   2: failed: Drone GPS update failed
-// 	log.Info("ardrone3.gpsUpdateStateChanged() called")
-// 	return nil
-// }
-
-// TODO: Implement this
-// Title: Preferred home type
-// Description: User preference for the home type.\n See [HomeType](#1-31-2) to
-//   get the drone actual home type.
-// Support: 0901;090c;090e
-// Triggered: by [SetPreferredHomeType](#1-23-3).
-// Result:
+// homeTypeChanged is invoked by the device when the home type is changed.
 func (g *gpsSettingsState) homeTypeChanged(args []interface{}) error {
-	// type := args[0].(int32)
-	//   The type of the home position
-	//   0: TAKEOFF: The drone will try to return to the take off position
-	//   1: PILOT: The drone will try to return to the pilot position
-	//   2: FOLLOWEE: The drone will try to return to the target of the current
-	//      (or last) follow me
-	log.Info("ardrone3.homeTypeChanged() called")
+	g.Lock()
+	defer g.Unlock()
+	g.homeType = ptr.ToInt32(args[0].(int32))
+	log.WithField(
+		"type", *g.homeType,
+	).Debug("home type changed")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Return home delay
-// Description: Return home trigger delay. This delay represents the time after
-//   which the return home is automatically triggered after a disconnection.
-// Support: 0901;090c;090e
-// Triggered: by [SetReturnHomeDelay](#1-23-4).
-// Result:
+// returnHomeDelayChanged is triggered by the device when the return home delay
+// (the time after which return to home is automatically triggered after a
+// disconnection) is changed.
 func (g *gpsSettingsState) returnHomeDelayChanged(args []interface{}) error {
-	// delay := args[0].(uint16)
-	//   Delay in second
-	log.Info("ardrone3.returnHomeDelayChanged() called")
+	g.Lock()
+	defer g.Unlock()
+	g.returnHomeDelay = ptr.ToUint16(args[0].(uint16))
+	log.WithField(
+		"delay", *g.returnHomeDelay,
+	).Debug("return home delay changed")
 	return nil
 }
 
@@ -211,3 +208,45 @@ func (g *gpsSettingsState) returnHomeDelayChanged(args []interface{}) error {
 // 	log.Info("ardrone3.geofenceCenterChanged() called")
 // 	return nil
 // }
+
+func (g *gpsSettingsState) HomeLatitude() (float64, bool) {
+	if g.homeLatitude == nil {
+		return 0, false
+	}
+	return *g.homeLatitude, true
+}
+
+func (g *gpsSettingsState) HomeLongitude() (float64, bool) {
+	if g.homeLongitude == nil {
+		return 0, false
+	}
+	return *g.homeLongitude, true
+}
+
+func (g *gpsSettingsState) HomeAltitude() (float64, bool) {
+	if g.homeAltitude == nil {
+		return 0, false
+	}
+	return *g.homeAltitude, true
+}
+
+func (g *gpsSettingsState) HomeType() (int32, bool) {
+	if g.homeType == nil {
+		return 0, false
+	}
+	return *g.homeType, true
+}
+
+func (g *gpsSettingsState) IsGPSFixed() (bool, bool) {
+	if g.gpsFixed == nil {
+		return false, false
+	}
+	return *g.gpsFixed, true
+}
+
+func (g *gpsSettingsState) ReturnHomeDelay() (uint16, bool) {
+	if g.returnHomeDelay == nil {
+		return 0, false
+	}
+	return *g.returnHomeDelay, true
+}
