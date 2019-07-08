@@ -15,7 +15,7 @@ type FlightPlanSettingsState interface {
 }
 
 type flightPlanSettingsState struct {
-	lock sync.RWMutex
+	sync.RWMutex
 }
 
 func (f *flightPlanSettingsState) ID() uint8 {
@@ -54,12 +54,4 @@ func (f *flightPlanSettingsState) returnHomeOnDisconnectChanged(args []interface
 	//   1 if readOnly, 0 if writable
 	log.Info("common.returnHomeOnDisconnectChanged() called")
 	return nil
-}
-
-func (f *flightPlanSettingsState) RLock() {
-	f.lock.RLock()
-}
-
-func (f *flightPlanSettingsState) RUnlock() {
-	f.lock.RUnlock()
 }

@@ -64,6 +64,7 @@ type NetworkSettingsState interface {
 }
 
 type networkSettingsState struct {
+	sync.RWMutex
 	// tipe represents the type of wifi selection settings
 	tipe *int32
 	// band represents actual wifi band state
@@ -76,7 +77,6 @@ type networkSettingsState struct {
 	securityKey *string
 	// securityKeyType represents the type of wifi security key in use
 	securityKeyType *int32
-	lock            sync.RWMutex
 }
 
 func (n *networkSettingsState) ID() uint8 {
@@ -122,8 +122,8 @@ func (n *networkSettingsState) D2CCommands() []arcommands.D2CCommand {
 
 // wifiSelectionChanged is invoked by the device when wifi selection changes.
 func (n *networkSettingsState) wifiSelectionChanged(args []interface{}) error {
-	n.lock.Lock()
-	defer n.lock.Unlock()
+	n.Lock()
+	defer n.Unlock()
 	n.tipe = ptr.ToInt32(args[0].(int32))
 	n.band = ptr.ToInt32(args[1].(int32))
 	n.channel = ptr.ToUint8(args[2].(uint8))
@@ -153,8 +153,8 @@ func (n *networkSettingsState) wifiSecurityChanged(args []interface{}) error {
 
 // wifiSecurity is invoked by the device when wifi security changes.
 func (n *networkSettingsState) wifiSecurity(args []interface{}) error {
-	n.lock.Lock()
-	defer n.lock.Unlock()
+	n.Lock()
+	defer n.Unlock()
 	n.securityType = ptr.ToInt32(args[0].(int32))
 	n.securityKey = ptr.ToString(args[1].(string))
 	n.securityKeyType = ptr.ToInt32(args[2].(int32))
@@ -166,14 +166,6 @@ func (n *networkSettingsState) wifiSecurity(args []interface{}) error {
 		"keyType", *n.securityKeyType,
 	).Debug("wifi security changed")
 	return nil
-}
-
-func (n *networkSettingsState) RLock() {
-	n.lock.RLock()
-}
-
-func (n *networkSettingsState) RUnlock() {
-	n.lock.RUnlock()
 }
 
 func (n *networkSettingsState) Type() (int32, bool) {

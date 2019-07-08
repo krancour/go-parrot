@@ -3,6 +3,8 @@ package common
 import (
 	"sync"
 
+	"github.com/krancour/go-parrot/lock"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/protocols/arcommands"
 	"github.com/krancour/go-parrot/ptr"
@@ -15,16 +17,7 @@ import (
 // CommonState ...
 // TODO: Document this
 type CommonState interface {
-	// RLock blocks until a read lock is obtained. This permits callers to procede
-	// with querying any or all attributes of the common state without worry
-	// that some attributes will be overwritten as others are read. i.e. It
-	// permits the possibility of taking an atomic snapshop of common state.
-	// Note that use of this function is not obligatory for applications that do
-	// not require such guarantees. Callers MUST call RUnlock() or else common
-	// state will never resume updating.
-	RLock()
-	// RUnlock releases a read lock on the common state. See RLock().
-	RUnlock()
+	lock.ReadLockable
 	// RSSI returns the relative signal stength between the client and the device
 	// in dbm. A boolean value is also returned, indicating whether the first
 	// value was reported by the device (true) or a default value (false). This
@@ -81,6 +74,7 @@ type CommonState interface {
 }
 
 type commonState struct {
+	sync.RWMutex
 	// TODO: Is this right? I thought RSSI is a relative measure, while dbm
 	// would seem to indicate an absolute measure.
 	// rssi is the relative signal stength between the client and the device
@@ -95,7 +89,6 @@ type commonState struct {
 	magnetomenterOK    *bool
 	verticalCameraOK   *bool
 	allStatesSent      *bool
-	lock               sync.RWMutex
 }
 
 func (c *commonState) ID() uint8 {
@@ -254,8 +247,8 @@ func (c *commonState) D2CCommands() []arcommands.D2CCommand {
 
 // allStatesChanged is invoked by the device when all states have been sent.
 func (c *commonState) allStatesChanged(args []interface{}) error {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.Lock()
+	defer c.Unlock()
 	c.allStatesSent = ptr.ToBool(true)
 	log.Debug("all states have been sent by the device")
 	return nil
@@ -263,8 +256,8 @@ func (c *commonState) allStatesChanged(args []interface{}) error {
 
 // batteryStateChanged is invoked by the device when the battery state changes.
 func (c *commonState) batteryStateChanged(args []interface{}) error {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.Lock()
+	defer c.Unlock()
 	c.batteryPercent = ptr.ToUint8(args[0].(uint8))
 	log.WithField(
 		"batteryPercent", *c.batteryPercent,
@@ -275,8 +268,8 @@ func (c *commonState) batteryStateChanged(args []interface{}) error {
 // massStorageStateListChanged is invoked by the device when a mass storage
 // device is inserted or ejected.
 func (c *commonState) massStorageStateListChanged(args []interface{}) error {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.Lock()
+	defer c.Unlock()
 	massStorageID := args[0].(uint8)
 	msdIface, ok := c.massStorageDevices[massStorageID]
 	var msd *massStorageDevice
@@ -300,8 +293,8 @@ func (c *commonState) massStorageStateListChanged(args []interface{}) error {
 // massStorageInfoStateListChanged is invoked by the devicde when mass storage
 // info changes.
 func (c *commonState) massStorageInfoStateListChanged(args []interface{}) error {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.Lock()
+	defer c.Unlock()
 	massStorageID := args[0].(uint8)
 	msdIface, ok := c.massStorageDevices[massStorageID]
 	var msd *massStorageDevice
@@ -389,8 +382,8 @@ func (c *commonState) currentTimeChanged(args []interface{}) error {
 // wifiSignalChanged is invoked when the device reports relative wifi signal
 // strength at regular intervals.
 func (c *commonState) wifiSignalChanged(args []interface{}) error {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.Lock()
+	defer c.Unlock()
 	c.rssi = ptr.ToInt16(args[0].(int16))
 	log.WithField(
 		"rssi", *c.rssi,
@@ -405,8 +398,8 @@ func (c *commonState) wifiSignalChanged(args []interface{}) error {
 // Triggered: at connection and when a sensor state changes.
 // Result:
 func (c *commonState) sensorsStatesListChanged(args []interface{}) error {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.Lock()
+	defer c.Unlock()
 	sensorID := args[0].(int32)
 	state := ptr.ToBool(args[1].(uint8) == 1)
 	log := log.WithField(
@@ -516,8 +509,8 @@ func (c *commonState) deprecatedMassStorageContentChanged(
 // massStorageContent is invoked when the device reports that the content of the
 // mass storage has changed.
 func (c *commonState) massStorageContent(args []interface{}) error {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.Lock()
+	defer c.Unlock()
 	massStorageID := args[0].(uint8)
 	msdIface, ok := c.massStorageDevices[massStorageID]
 	var msd *massStorageDevice
@@ -556,8 +549,8 @@ func (c *commonState) massStorageContent(args []interface{}) error {
 func (c *commonState) massStorageContentForCurrentRun(
 	args []interface{},
 ) error {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.Lock()
+	defer c.Unlock()
 	massStorageID := args[0].(uint8)
 	msdIface, ok := c.massStorageDevices[massStorageID]
 	var msd *massStorageDevice
@@ -594,14 +587,6 @@ func (c *commonState) videoRecordingTimestamp(args []interface{}) error {
 	//   that video is still recording.
 	log.Info("common.videoRecordingTimestamp() called")
 	return nil
-}
-
-func (c *commonState) RLock() {
-	c.lock.RLock()
-}
-
-func (c *commonState) RUnlock() {
-	c.lock.RUnlock()
 }
 
 func (c *commonState) RSSI() (int16, bool) {

@@ -44,10 +44,10 @@ type MavlinkState interface {
 }
 
 type mavlinkState struct {
+	sync.RWMutex
 	mavlinkState    *int32
 	mavlinkFilePath *string
 	mavlinkType     *int32
-	lock            sync.RWMutex
 }
 
 func (m *mavlinkState) ID() uint8 {
@@ -92,8 +92,8 @@ func (m *mavlinkState) D2CCommands() []arcommands.D2CCommand {
 // mavlinkFilePlayingStateChanged is invoked by the device when a flight plan
 // is started, paused, or stopped.
 func (m *mavlinkState) mavlinkFilePlayingStateChanged(args []interface{}) error {
-	m.lock.Lock()
-	defer m.lock.Unlock()
+	m.Lock()
+	defer m.Unlock()
 	m.mavlinkState = ptr.ToInt32(args[0].(int32))
 	m.mavlinkFilePath = ptr.ToString(args[1].(string))
 	m.mavlinkType = ptr.ToInt32(args[2].(int32))
@@ -138,14 +138,6 @@ func (m *mavlinkState) mavlinkFilePlayingStateChanged(args []interface{}) error 
 // 	log.Info("common.missionItemExecuted() called")
 // 	return nil
 // }
-
-func (m *mavlinkState) RLock() {
-	m.lock.RLock()
-}
-
-func (m *mavlinkState) RUnlock() {
-	m.lock.RUnlock()
-}
 
 func (m *mavlinkState) MavlinkState() (int32, bool) {
 	if m.mavlinkState == nil {

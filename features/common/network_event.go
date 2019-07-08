@@ -17,7 +17,7 @@ type NetworkEvent interface {
 }
 
 type networkEvent struct {
-	lock sync.RWMutex
+	sync.RWMutex
 }
 
 func (n *networkEvent) ID() uint8 {
@@ -57,12 +57,4 @@ func (n *networkEvent) disconnection(args []interface{}) error {
 	//   1: unknown: Unknown generic cause
 	log.Info("common.disconnection() called")
 	return nil
-}
-
-func (n *networkEvent) RLock() {
-	n.lock.RLock()
-}
-
-func (n *networkEvent) RUnlock() {
-	n.lock.RUnlock()
 }

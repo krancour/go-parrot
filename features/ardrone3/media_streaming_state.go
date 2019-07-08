@@ -17,7 +17,7 @@ type MediaStreamingState interface {
 }
 
 type mediaStreamingState struct {
-	lock sync.RWMutex
+	sync.RWMutex
 }
 
 func (m *mediaStreamingState) ID() uint8 {
@@ -78,12 +78,4 @@ func (m *mediaStreamingState) videoStreamModeChanged(args []interface{}) error {
 	//      quality is important but not the latency).
 	log.Info("ardrone3.videoStreamModeChanged() called")
 	return nil
-}
-
-func (m *mediaStreamingState) RLock() {
-	m.lock.RLock()
-}
-
-func (m *mediaStreamingState) RUnlock() {
-	m.lock.RUnlock()
 }

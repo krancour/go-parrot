@@ -124,6 +124,7 @@ type PilotingState interface {
 }
 
 type pilotingState struct {
+	sync.RWMutex
 	// speedX is velocity relative to the north in m/s. When the drone moves to
 	// the north, the value is > 0
 	speedX *float32
@@ -160,7 +161,6 @@ type pilotingState struct {
 	// flyingState represents the current flying state of the device-- whether it
 	// is landed, taking off, landed, etc.
 	flyingState *int32
-	lock        sync.RWMutex
 }
 
 func (p *pilotingState) ID() uint8 {
@@ -341,8 +341,8 @@ func (p *pilotingState) flatTrimChanged(args []interface{}) error {
 
 // flyingStateChanged is invoked by the device when the flying state changes
 func (p *pilotingState) flyingStateChanged(args []interface{}) error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
+	p.Lock()
+	defer p.Unlock()
 	p.flyingState = ptr.ToInt32(args[0].(int32))
 	log.WithField(
 		"flyingState", *p.flyingState,
@@ -421,8 +421,8 @@ func (p *pilotingState) positionChanged(args []interface{}) error {
 // speedChanged is invoked when the the device reports velocity at regular
 // intervals.
 func (p *pilotingState) speedChanged(args []interface{}) error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
+	p.Lock()
+	defer p.Unlock()
 	p.speedX = ptr.ToFloat32(args[0].(float32))
 	p.speedY = ptr.ToFloat32(args[1].(float32))
 	p.speedZ = ptr.ToFloat32(args[2].(float32))
@@ -439,8 +439,8 @@ func (p *pilotingState) speedChanged(args []interface{}) error {
 // attitudeChanged is invoked when the device reports attitude at regular
 // intervals.
 func (p *pilotingState) attitudeChanged(args []interface{}) error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
+	p.Lock()
+	defer p.Unlock()
 	p.roll = ptr.ToFloat32(args[0].(float32))
 	p.pitch = ptr.ToFloat32(args[1].(float32))
 	p.yaw = ptr.ToFloat32(args[2].(float32))
@@ -471,8 +471,8 @@ func (p *pilotingState) attitudeChanged(args []interface{}) error {
 // altitudeChanged is invoked when the device reports attitude relative to the
 // take off point at regular intervals.
 func (p *pilotingState) altitudeChanged(args []interface{}) error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
+	p.Lock()
+	defer p.Unlock()
 	p.altitude = ptr.ToFloat64(args[0].(float64))
 	log.WithField(
 		"altitude", *p.altitude,
@@ -483,8 +483,8 @@ func (p *pilotingState) altitudeChanged(args []interface{}) error {
 // gpsLocationChanged is invoked when the device reports gps coordinates at
 // regular intervals.
 func (p *pilotingState) gpsLocationChanged(args []interface{}) error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
+	p.Lock()
+	defer p.Unlock()
 	p.latitude = ptr.ToFloat64(args[0].(float64))
 	p.longitude = ptr.ToFloat64(args[1].(float64))
 	p.gpsAltitude = ptr.ToFloat64(args[2].(float64))
@@ -644,14 +644,6 @@ func (p *pilotingState) pilotedPOI(args []interface{}) error {
 // 	log.Info("ardrone3.returnHomeBatteryCapacity() called")
 // 	return nil
 // }
-
-func (p *pilotingState) RLock() {
-	p.lock.RLock()
-}
-
-func (p *pilotingState) RUnlock() {
-	p.lock.RUnlock()
-}
 
 func (p *pilotingState) SpeedX() (float32, bool) {
 	if p.speedX == nil {

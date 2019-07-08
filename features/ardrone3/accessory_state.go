@@ -19,8 +19,8 @@ type AccessoryState interface {
 }
 
 type accessoryState struct {
+	sync.RWMutex
 	accessories map[uint8]Accessory
-	lock        sync.RWMutex
 }
 
 func (a *accessoryState) ID() uint8 {
@@ -61,8 +61,8 @@ func (a *accessoryState) D2CCommands() []arcommands.D2CCommand {
 // connectedAccessories is invoked by the device to list all connected
 // accessories.
 func (a *accessoryState) connectedAccessories(args []interface{}) error {
-	a.lock.Lock()
-	defer a.lock.Unlock()
+	a.Lock()
+	defer a.Unlock()
 	flags := args[4].(uint8)
 	// 0x01: First: indicates it's the first element of the list.
 	// 0x02: Last: indicates it's the last element of the list.
@@ -110,8 +110,8 @@ func (a *accessoryState) connectedAccessories(args []interface{}) error {
 // battery is invoked by the device when the battery level of a connected
 // accessory changes.
 func (a *accessoryState) battery(args []interface{}) error {
-	a.lock.Lock()
-	defer a.lock.Unlock()
+	a.Lock()
+	defer a.Unlock()
 	flags := args[2].(uint8)
 	// 0x01: First: indicates it's the first element of the list.
 	// 0x02: Last: indicates it's the last element of the list.
@@ -148,14 +148,6 @@ func (a *accessoryState) battery(args []interface{}) error {
 		"batteryLevel", acc.batteryPercent,
 	).Debug("accessory battery level added or updated")
 	return nil
-}
-
-func (a *accessoryState) RLock() {
-	a.lock.RLock()
-}
-
-func (a *accessoryState) RUnlock() {
-	a.lock.RUnlock()
 }
 
 func (a *accessoryState) Accessories() map[uint8]Accessory {

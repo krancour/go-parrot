@@ -61,6 +61,7 @@ type SettingsState interface {
 }
 
 type settingsState struct {
+	sync.RWMutex
 	productName        *string
 	serialHigh         *string
 	serialLow          *string
@@ -69,7 +70,6 @@ type settingsState struct {
 	autoCountryEnabled *bool
 	countryCode        *string
 	allSettingsSent    *bool
-	lock               sync.RWMutex
 }
 
 func (s *settingsState) ID() uint8 {
@@ -148,8 +148,8 @@ func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 
 // Invoked by the device to indicate all settings have been sent.
 func (s *settingsState) allSettingsChanged(args []interface{}) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.Lock()
+	defer s.Unlock()
 	s.allSettingsSent = ptr.ToBool(true)
 	log.Debug("all settings have been sent by the device")
 	return nil
@@ -168,8 +168,8 @@ func (s *settingsState) resetChanged(args []interface{}) error {
 
 // productNameChanged is invoked by the device to indicate its name has changed.
 func (s *settingsState) productNameChanged(args []interface{}) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.Lock()
+	defer s.Unlock()
 	s.productName = ptr.ToString(args[0].(string))
 	log.WithField(
 		"productName", *s.productName,
@@ -180,8 +180,8 @@ func (s *settingsState) productNameChanged(args []interface{}) error {
 // productVersionChanged is invoked during the connection process to report
 // the product version.
 func (s *settingsState) productVersionChanged(args []interface{}) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.Lock()
+	defer s.Unlock()
 	s.softwareVersion = ptr.ToString(args[0].(string))
 	s.hardwareVersion = ptr.ToString(args[1].(string))
 	log.WithField(
@@ -195,8 +195,8 @@ func (s *settingsState) productVersionChanged(args []interface{}) error {
 // productSerialHighChanged is invoked during the connection process to report
 // the the high end of the device's serial number.
 func (s *settingsState) productSerialHighChanged(args []interface{}) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.Lock()
+	defer s.Unlock()
 	s.serialHigh = ptr.ToString(args[0].(string))
 	log.WithField(
 		"serialHigh", *s.serialHigh,
@@ -207,8 +207,8 @@ func (s *settingsState) productSerialHighChanged(args []interface{}) error {
 // productSerialLowChanged is invoked during the connection process to report
 // the the low end of the device's serial number.
 func (s *settingsState) productSerialLowChanged(args []interface{}) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.Lock()
+	defer s.Unlock()
 	s.serialLow = ptr.ToString(args[0].(string))
 	log.WithField(
 		"serialLow", *s.serialLow,
@@ -223,8 +223,8 @@ func (s *settingsState) productSerialLowChanged(args []interface{}) error {
 // Triggered: by [SetCountry](#0-2-3).
 // Result:
 func (s *settingsState) countryChanged(args []interface{}) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.Lock()
+	defer s.Unlock()
 	s.countryCode = ptr.ToString(args[0].(string))
 	//   Country code with ISO 3166 format, empty string means unknown country.
 	log.WithField(
@@ -236,21 +236,13 @@ func (s *settingsState) countryChanged(args []interface{}) error {
 // autoCountryChanged is invoked by the device to indicate whether auto country
 // is enabled.
 func (s *settingsState) autoCountryChanged(args []interface{}) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.Lock()
+	defer s.Unlock()
 	s.autoCountryEnabled = ptr.ToBool(args[0].(uint8) == 1)
 	log.WithField(
 		"autoCountryEnabled", *s.autoCountryEnabled,
 	).Debug("autoCountry changed")
 	return nil
-}
-
-func (s *settingsState) RLock() {
-	s.lock.RLock()
-}
-
-func (s *settingsState) RUnlock() {
-	s.lock.RUnlock()
 }
 
 func (s *settingsState) ProductName() (string, bool) {

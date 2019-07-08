@@ -17,7 +17,7 @@ type SoundState interface {
 }
 
 type soundState struct {
-	lock sync.RWMutex
+	sync.RWMutex
 }
 
 func (s *soundState) ID() uint8 {
@@ -55,12 +55,4 @@ func (s *soundState) alertSound(args []interface{}) error {
 	//   1: playing: Alert sound is playing
 	log.Info("ardrone3.alertSound() called")
 	return nil
-}
-
-func (s *soundState) RLock() {
-	s.lock.RLock()
-}
-
-func (s *soundState) RUnlock() {
-	s.lock.RUnlock()
 }

@@ -17,7 +17,7 @@ type FlightPlanEvent interface {
 }
 
 type flightPlanEvent struct {
-	lock sync.RWMutex
+	sync.RWMutex
 }
 
 func (f *flightPlanEvent) ID() uint8 {
@@ -70,11 +70,3 @@ func (f *flightPlanEvent) startingErrorEvent(args []interface{}) error {
 // 	log.Info("common.speedBridleEvent() called")
 // 	return nil
 // }
-
-func (f *flightPlanEvent) RLock() {
-	f.lock.RLock()
-}
-
-func (f *flightPlanEvent) RUnlock() {
-	f.lock.RUnlock()
-}

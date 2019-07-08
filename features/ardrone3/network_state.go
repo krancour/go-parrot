@@ -17,7 +17,7 @@ type NetworkState interface {
 }
 
 type networkState struct {
-	lock sync.RWMutex
+	sync.RWMutex
 }
 
 func (n *networkState) ID() uint8 {
@@ -133,12 +133,4 @@ func (n *networkState) wifiAuthChannelListChanged(args []interface{}) error {
 func (n *networkState) allWifiAuthChannelChanged(args []interface{}) error {
 	log.Info("ardrone3.allWifiAuthChannelChanged() called")
 	return nil
-}
-
-func (n *networkState) RLock() {
-	n.lock.RLock()
-}
-
-func (n *networkState) RUnlock() {
-	n.lock.RUnlock()
 }

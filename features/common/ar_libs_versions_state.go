@@ -23,8 +23,8 @@ type ARLibsVersionsState interface {
 }
 
 type arLibsVersionsState struct {
+	sync.RWMutex
 	deviceARLibsVersion *string
-	lock                sync.RWMutex
 }
 
 func (a *arLibsVersionsState) ID() uint8 {
@@ -89,21 +89,13 @@ func (a *arLibsVersionsState) skyControllerLibARCommandsVersion(
 func (a *arLibsVersionsState) deviceLibARCommandsVersion(
 	args []interface{},
 ) error {
-	a.lock.Lock()
-	defer a.lock.Unlock()
+	a.Lock()
+	defer a.Unlock()
 	a.deviceARLibsVersion = ptr.ToString(args[0].(string))
 	log.WithField(
 		"deviceARLibsVersion", *a.deviceARLibsVersion,
 	).Debug("device ARLibs version changed")
 	return nil
-}
-
-func (a *arLibsVersionsState) RLock() {
-	a.lock.RLock()
-}
-
-func (a *arLibsVersionsState) RUnlock() {
-	a.lock.RUnlock()
 }
 
 func (a *arLibsVersionsState) DeviceARLibsVersion() (string, bool) {

@@ -17,7 +17,7 @@ type MediaRecordState interface {
 }
 
 type mediaRecordState struct {
-	lock sync.RWMutex
+	sync.RWMutex
 }
 
 func (m *mediaRecordState) ID() uint8 {
@@ -186,11 +186,3 @@ func (m *mediaRecordState) videoStateChangedV2(args []interface{}) error {
 // 	log.Info("ardrone3.videoResolutionState() called")
 // 	return nil
 // }
-
-func (m *mediaRecordState) RLock() {
-	m.lock.RLock()
-}
-
-func (m *mediaRecordState) RUnlock() {
-	m.lock.RUnlock()
-}

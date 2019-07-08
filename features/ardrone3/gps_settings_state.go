@@ -17,7 +17,7 @@ type GPSSettingsState interface {
 }
 
 type gpsSettingsState struct {
-	lock sync.RWMutex
+	sync.RWMutex
 }
 
 func (g *gpsSettingsState) ID() uint8 {
@@ -211,11 +211,3 @@ func (g *gpsSettingsState) returnHomeDelayChanged(args []interface{}) error {
 // 	log.Info("ardrone3.geofenceCenterChanged() called")
 // 	return nil
 // }
-
-func (g *gpsSettingsState) RLock() {
-	g.lock.RLock()
-}
-
-func (g *gpsSettingsState) RUnlock() {
-	g.lock.RUnlock()
-}

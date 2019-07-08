@@ -17,7 +17,7 @@ type AntiflickeringState interface {
 }
 
 type antiflickeringState struct {
-	lock sync.RWMutex
+	sync.RWMutex
 }
 
 func (a *antiflickeringState) ID() uint8 {
@@ -81,12 +81,4 @@ func (a *antiflickeringState) modeChanged(args []interface{}) error {
 	//   2: FixedSixtyHertz: Anti flickering based on a fixed frequency of 60Hz
 	log.Info("ardrone3.modeChanged() called")
 	return nil
-}
-
-func (a *antiflickeringState) RLock() {
-	a.lock.RLock()
-}
-
-func (a *antiflickeringState) RUnlock() {
-	a.lock.RUnlock()
 }

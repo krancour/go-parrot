@@ -24,13 +24,13 @@ type FlightPlanState interface {
 }
 
 type flightPlanState struct {
+	sync.RWMutex
 	gpsOK                      *bool
 	calibrationOK              *bool
 	mavlinkFileOK              *bool
 	takeOffOK                  *bool
 	waypointBeyondGeofenceOK   *bool
 	runFlightPlanFileAvailable *bool
-	lock                       sync.RWMutex
 }
 
 func (f *flightPlanState) ID() uint8 {
@@ -74,8 +74,8 @@ func (f *flightPlanState) D2CCommands() []arcommands.D2CCommand {
 // availabilityStateChanged is invoked by the device to indicate whether
 // running a flight plan file is available.
 func (f *flightPlanState) availabilityStateChanged(args []interface{}) error {
-	f.lock.Lock()
-	defer f.lock.Unlock()
+	f.Lock()
+	defer f.Unlock()
 	f.runFlightPlanFileAvailable = ptr.ToBool(args[0].(uint8) == 1)
 	log.WithField(
 		"runFlightPlanFileAvailable", *f.runFlightPlanFileAvailable,
@@ -97,8 +97,8 @@ func (f *flightPlanState) availabilityStateChanged(args []interface{}) error {
 //   [StartFlightPlan](#0-11-0) is received.
 // Result:
 func (f *flightPlanState) componentStateListChanged(args []interface{}) error {
-	f.lock.Lock()
-	defer f.lock.Unlock()
+	f.Lock()
+	defer f.Unlock()
 	componentID := args[0].(int32)
 	state := ptr.ToBool(args[1].(uint8) == 1)
 	log := log.WithField(
@@ -143,14 +143,6 @@ func (f *flightPlanState) lockStateChanged(args []interface{}) error {
 	//   FlightPlan is unlocked: pause or stop available.
 	log.Info("common.lockStateChanged() called")
 	return nil
-}
-
-func (f *flightPlanState) RLock() {
-	f.lock.RLock()
-}
-
-func (f *flightPlanState) RUnlock() {
-	f.lock.RUnlock()
 }
 
 func (f *flightPlanState) GPSOK() (bool, bool) {

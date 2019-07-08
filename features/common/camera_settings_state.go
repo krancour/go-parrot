@@ -43,12 +43,12 @@ type CameraSettingsState interface {
 }
 
 type cameraSettingsState struct {
+	sync.RWMutex
 	fov     *float32
 	panMax  *float32
 	panMin  *float32
 	tiltMax *float32
 	tiltMin *float32
-	lock    sync.RWMutex
 }
 
 func (c *cameraSettingsState) ID() uint8 {
@@ -78,8 +78,8 @@ func (c *cameraSettingsState) D2CCommands() []arcommands.D2CCommand {
 
 // cameraSettingsChanged is invoked by the device at connection time.
 func (c *cameraSettingsState) cameraSettingsChanged(args []interface{}) error {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.Lock()
+	defer c.Unlock()
 	c.fov = ptr.ToFloat32(args[0].(float32))
 	c.panMax = ptr.ToFloat32(args[1].(float32))
 	c.panMin = ptr.ToFloat32(args[2].(float32))
@@ -97,14 +97,6 @@ func (c *cameraSettingsState) cameraSettingsChanged(args []interface{}) error {
 		"tiltMin", *c.tiltMin,
 	).Debug("camera settings changed")
 	return nil
-}
-
-func (c *cameraSettingsState) RLock() {
-	c.lock.RLock()
-}
-
-func (c *cameraSettingsState) RUnlock() {
-	c.lock.RUnlock()
 }
 
 func (c *cameraSettingsState) FOV() (float32, bool) {

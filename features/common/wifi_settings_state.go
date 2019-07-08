@@ -25,8 +25,8 @@ type WifiSettingsState interface {
 }
 
 type wifiSettingsState struct {
+	sync.RWMutex
 	outdoors *bool
-	lock     sync.RWMutex
 }
 
 func (w *wifiSettingsState) ID() uint8 {
@@ -52,21 +52,13 @@ func (w *wifiSettingsState) D2CCommands() []arcommands.D2CCommand {
 
 // Invoked by the device to indicate whether it is using outdoor wifi settings.
 func (w *wifiSettingsState) outdoorSettingsChanged(args []interface{}) error {
-	w.lock.Lock()
-	defer w.lock.Unlock()
+	w.Lock()
+	defer w.Unlock()
 	w.outdoors = ptr.ToBool(args[0].(uint8) == 1)
 	log.WithField(
 		"outdoors", *w.outdoors,
 	).Debug("outdoor settings changed")
 	return nil
-}
-
-func (w *wifiSettingsState) RLock() {
-	w.lock.RLock()
-}
-
-func (w *wifiSettingsState) RUnlock() {
-	w.lock.RUnlock()
 }
 
 func (w *wifiSettingsState) Outdoors() (bool, bool) {

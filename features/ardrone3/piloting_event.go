@@ -17,7 +17,7 @@ type PilotingEvent interface {
 }
 
 type pilotingEvent struct {
-	lock sync.RWMutex
+	sync.RWMutex
 }
 
 func (p *pilotingEvent) ID() uint8 {
@@ -71,12 +71,4 @@ func (p *pilotingEvent) moveByEnd(args []interface{}) error {
 	//   4: interrupted: Command moveBy interrupted
 	log.Info("ardrone3.oveByEnd() called")
 	return nil
-}
-
-func (p *pilotingEvent) RLock() {
-	p.lock.RLock()
-}
-
-func (p *pilotingEvent) RUnlock() {
-	p.lock.RUnlock()
 }

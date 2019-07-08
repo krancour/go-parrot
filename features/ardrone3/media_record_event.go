@@ -17,7 +17,7 @@ type MediaRecordEvent interface {
 }
 
 type mediaRecordEvent struct {
-	lock sync.RWMutex
+	sync.RWMutex
 }
 
 func (m *mediaRecordEvent) ID() uint8 {
@@ -102,12 +102,4 @@ func (m *mediaRecordEvent) videoEventChanged(args []interface{}) error {
 	//   6: autoStopped: Video was auto stopped
 	log.Info("ardrone3.videoEventChanged() called")
 	return nil
-}
-
-func (m *mediaRecordEvent) RLock() {
-	m.lock.RLock()
-}
-
-func (m *mediaRecordEvent) RUnlock() {
-	m.lock.RUnlock()
 }

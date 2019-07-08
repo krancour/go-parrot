@@ -17,7 +17,7 @@ type SettingsState interface {
 }
 
 type settingsState struct {
-	lock sync.RWMutex
+	sync.RWMutex
 }
 
 func (s *settingsState) ID() uint8 {
@@ -252,12 +252,4 @@ func (s *settingsState) cPUID(args []interface{}) error {
 	//   Product main cpu id
 	log.Info("ardrone3.cPUID() called")
 	return nil
-}
-
-func (s *settingsState) RLock() {
-	s.lock.RLock()
-}
-
-func (s *settingsState) RUnlock() {
-	s.lock.RUnlock()
 }

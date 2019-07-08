@@ -23,10 +23,10 @@ type GPSState interface {
 }
 
 type gpsState struct {
+	sync.RWMutex
 	// numberOfSatellites is the number of satellites used to determine GPS
 	// coordinates.
 	numberOfSatellites *uint8
-	lock               sync.RWMutex
 }
 
 func (g *gpsState) ID() uint8 {
@@ -70,8 +70,8 @@ func (g *gpsState) D2CCommands() []arcommands.D2CCommand {
 // numberOfSatellitesChanged is invoked when the the device reports that the
 // number of satellites being used to determine GPS coordinates has changed.
 func (g *gpsState) numberOfSatellitesChanged(args []interface{}) error {
-	g.lock.Lock()
-	defer g.lock.Unlock()
+	g.Lock()
+	defer g.Unlock()
 	g.numberOfSatellites = ptr.ToUint8(args[0].(uint8))
 	log.WithField(
 		"numberOfSatellites", *g.numberOfSatellites,
@@ -130,14 +130,6 @@ func (g *gpsState) homeTypeChosenChanged(args []interface{}) error {
 	//      of the followMe (given by ControllerInfo-GPS)
 	log.Info("ardrone3.homeTypeChosenChanged() called")
 	return nil
-}
-
-func (g *gpsState) RLock() {
-	g.lock.RLock()
-}
-
-func (g *gpsState) RUnlock() {
-	g.lock.RUnlock()
 }
 
 func (g *gpsState) NumberOfSatellites() (uint8, bool) {

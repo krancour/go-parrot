@@ -17,7 +17,7 @@ type PROState interface {
 }
 
 type proState struct {
-	lock sync.RWMutex
+	sync.RWMutex
 }
 
 func (p *proState) ID() uint8 {
@@ -50,12 +50,4 @@ func (p *proState) features(args []interface{}) error {
 	//   Bitfield representing enabled features.
 	log.Debug("features changed-- this is a no-op")
 	return nil
-}
-
-func (p *proState) RLock() {
-	p.lock.RLock()
-}
-
-func (p *proState) RUnlock() {
-	p.lock.RUnlock()
 }

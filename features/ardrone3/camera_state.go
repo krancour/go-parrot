@@ -17,7 +17,7 @@ type CameraState interface {
 }
 
 type cameraState struct {
-	lock sync.RWMutex
+	sync.RWMutex
 }
 
 func (c *cameraState) ID() uint8 {
@@ -151,12 +151,4 @@ func (c *cameraState) velocityRange(args []interface{}) error {
 	//   Absolute max pan velocity [deg/s]
 	log.Info("ardrone3.velocityRange() called")
 	return nil
-}
-
-func (c *cameraState) RLock() {
-	c.lock.RLock()
-}
-
-func (c *cameraState) RUnlock() {
-	c.lock.RUnlock()
 }

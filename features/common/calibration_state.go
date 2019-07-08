@@ -43,10 +43,10 @@ type CalibrationState interface {
 }
 
 type calibrationState struct {
+	sync.RWMutex
 	magnetoCalibrationRequired *bool
 	magnetoCalibrationStarted  *bool
 	magnetoCalibrationAxis     *int32
-	lock                       sync.RWMutex
 }
 
 func (c *calibrationState) ID() uint8 {
@@ -138,8 +138,8 @@ func (c *calibrationState) magnetoCalibrationStateChanged(
 func (c *calibrationState) magnetoCalibrationRequiredState(
 	args []interface{},
 ) error {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.Lock()
+	defer c.Unlock()
 	c.magnetoCalibrationRequired = ptr.ToBool(args[0].(uint8) == 1)
 	log.WithField(
 		"magnetoCalibrationRequired", *c.magnetoCalibrationRequired,
@@ -152,8 +152,8 @@ func (c *calibrationState) magnetoCalibrationRequiredState(
 func (c *calibrationState) magnetoCalibrationAxisToCalibrateChanged(
 	args []interface{},
 ) error {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.Lock()
+	defer c.Unlock()
 	c.magnetoCalibrationAxis = ptr.ToInt32(args[0].(int32))
 	log.WithField(
 		"magnetoCalibrationAxis", *c.magnetoCalibrationAxis,
@@ -166,8 +166,8 @@ func (c *calibrationState) magnetoCalibrationAxisToCalibrateChanged(
 func (c *calibrationState) magnetoCalibrationStartedChanged(
 	args []interface{},
 ) error {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.Lock()
+	defer c.Unlock()
 	c.magnetoCalibrationStarted = ptr.ToBool(args[0].(uint8) == 1)
 	log.WithField(
 		"magnetoCalibrationStarted", *c.magnetoCalibrationStarted,
@@ -189,14 +189,6 @@ func (c *calibrationState) pitotCalibrationStateChanged(
 	//   lastError : 1 if an error occured and 0 if not
 	log.Info("common.pitotCalibrationStateChanged() called")
 	return nil
-}
-
-func (c *calibrationState) RLock() {
-	c.lock.RLock()
-}
-
-func (c *calibrationState) RUnlock() {
-	c.lock.RUnlock()
 }
 
 func (c *calibrationState) MagnetoCalibrationRequired() (bool, bool) {

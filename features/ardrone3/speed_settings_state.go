@@ -79,6 +79,7 @@ type SpeedSettingsState interface {
 }
 
 type speedSettingsState struct {
+	sync.RWMutex
 	// maxVerticalSpeed is the configured maximum vertical speed of the device in
 	// meters per second.
 	maxVerticalSpeed *float32
@@ -111,7 +112,6 @@ type speedSettingsState struct {
 	// hullProtection indicates whether the drone knows that it has hull
 	// protection.
 	hullProtection *bool
-	lock           sync.RWMutex
 }
 
 func (s *speedSettingsState) ID() uint8 {
@@ -180,8 +180,8 @@ func (s *speedSettingsState) D2CCommands() []arcommands.D2CCommand {
 // Triggered: by [SetMaxVerticalSpeed](#1-11-0).
 // Result:
 func (s *speedSettingsState) maxVerticalSpeedChanged(args []interface{}) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.Lock()
+	defer s.Unlock()
 	s.maxVerticalSpeed = ptr.ToFloat32(args[0].(float32))
 	s.maxVerticalSpeedRangeMin = ptr.ToFloat32(args[1].(float32))
 	s.maxVerticalSpeedRangeMax = ptr.ToFloat32(args[2].(float32))
@@ -202,8 +202,8 @@ func (s *speedSettingsState) maxVerticalSpeedChanged(args []interface{}) error {
 // Triggered: by [SetMaxRotationSpeed](#1-11-1).
 // Result:
 func (s *speedSettingsState) maxRotationSpeedChanged(args []interface{}) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.Lock()
+	defer s.Unlock()
 	s.maxRotationSpeed = ptr.ToFloat32(args[0].(float32))
 	s.maxRotationSpeedRangeMin = ptr.ToFloat32(args[1].(float32))
 	s.maxRotationSpeedRangeMax = ptr.ToFloat32(args[2].(float32))
@@ -219,8 +219,8 @@ func (s *speedSettingsState) maxRotationSpeedChanged(args []interface{}) error {
 
 // hullProtectionChanged is invoked by the device when hull protection changes.
 func (s *speedSettingsState) hullProtectionChanged(args []interface{}) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.Lock()
+	defer s.Unlock()
 	s.hullProtection = ptr.ToBool(args[0].(uint8) == 1)
 	log.WithField(
 		"hullProtection", args[0].(uint8),
@@ -244,8 +244,8 @@ func (s *speedSettingsState) outdoorChanged(args []interface{}) error {
 func (s *speedSettingsState) maxPitchRollRotationSpeedChanged(
 	args []interface{},
 ) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.Lock()
+	defer s.Unlock()
 	s.maxPitchRollRotationSpeed = ptr.ToFloat32(args[0].(float32))
 	s.maxPitchRollRotationSpeedRangeMin = ptr.ToFloat32(args[1].(float32))
 	s.maxPitchRollRotationSpeedRangeMax = ptr.ToFloat32(args[2].(float32))
@@ -257,14 +257,6 @@ func (s *speedSettingsState) maxPitchRollRotationSpeedChanged(
 		"maxPitchRollRotationSpeedRangeMax", *s.maxPitchRollRotationSpeedRangeMax,
 	).Debug("max pitch/roll rotation speed changed")
 	return nil
-}
-
-func (s *speedSettingsState) RLock() {
-	s.lock.RLock()
-}
-
-func (s *speedSettingsState) RUnlock() {
-	s.lock.RUnlock()
 }
 
 func (s *speedSettingsState) MaxVerticalSpeed() (float32, bool) {

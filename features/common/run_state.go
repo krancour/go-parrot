@@ -24,8 +24,8 @@ type RunState interface {
 }
 
 type runState struct {
+	sync.RWMutex
 	runID *string
-	lock  sync.RWMutex
 }
 
 func (r *runState) ID() uint8 {
@@ -52,21 +52,13 @@ func (r *runState) D2CCommands() []arcommands.D2CCommand {
 // runIDChanged is invoked by the device to provide a unique identifier for the
 // current flight.
 func (r *runState) runIDChanged(args []interface{}) error {
-	r.lock.Lock()
-	defer r.lock.Unlock()
+	r.Lock()
+	defer r.Unlock()
 	r.runID = ptr.ToString(args[0].(string))
 	log.WithField(
 		"runID", *r.runID,
 	).Debug("run id changed")
 	return nil
-}
-
-func (r *runState) RLock() {
-	r.lock.RLock()
-}
-
-func (r *runState) RUnlock() {
-	r.lock.RUnlock()
 }
 
 func (r *runState) RunID() (string, bool) {

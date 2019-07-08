@@ -139,6 +139,7 @@ type PictureSettingsState interface {
 }
 
 type pictureSettingsState struct {
+	sync.RWMutex
 	// format represents the picture format
 	format *int32
 	// saturation is the current image saturation
@@ -176,7 +177,6 @@ type pictureSettingsState struct {
 	videoFramerate *int32
 	// videoResolutions represents both the recording an streaming resolution
 	videoResolutions *int32
-	lock             sync.RWMutex
 }
 
 func (p *pictureSettingsState) ID() uint8 {
@@ -283,8 +283,8 @@ func (p *pictureSettingsState) D2CCommands() []arcommands.D2CCommand {
 // pictureFormatChanged is invoked by the device when the picture format is
 // changed.
 func (p *pictureSettingsState) pictureFormatChanged(args []interface{}) error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
+	p.Lock()
+	defer p.Unlock()
 	p.format = ptr.ToInt32(args[0].(int32))
 	log.WithField(
 		"type", *p.format,
@@ -297,8 +297,8 @@ func (p *pictureSettingsState) pictureFormatChanged(args []interface{}) error {
 func (p *pictureSettingsState) autoWhiteBalanceChanged(
 	args []interface{},
 ) error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
+	p.Lock()
+	defer p.Unlock()
 	p.whiteBalanceMode = ptr.ToInt32(args[0].(int32))
 	log.WithField(
 		"type", *p.whiteBalanceMode,
@@ -308,8 +308,8 @@ func (p *pictureSettingsState) autoWhiteBalanceChanged(
 
 // expositionChanged is invoked by the device when exposure is changed.
 func (p *pictureSettingsState) expositionChanged(args []interface{}) error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
+	p.Lock()
+	defer p.Unlock()
 	p.exposure = ptr.ToFloat32(args[0].(float32))
 	p.minExposure = ptr.ToFloat32(args[1].(float32))
 	p.maxExposure = ptr.ToFloat32(args[2].(float32))
@@ -326,8 +326,8 @@ func (p *pictureSettingsState) expositionChanged(args []interface{}) error {
 // saturationChanged is invoked by the device when the picture saturation is
 // changed.
 func (p *pictureSettingsState) saturationChanged(args []interface{}) error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
+	p.Lock()
+	defer p.Unlock()
 	p.saturation = ptr.ToFloat32(args[0].(float32))
 	p.minSaturation = ptr.ToFloat32(args[1].(float32))
 	p.maxSaturation = ptr.ToFloat32(args[2].(float32))
@@ -344,8 +344,8 @@ func (p *pictureSettingsState) saturationChanged(args []interface{}) error {
 // timelapseChanged is invoked by the device when time lapse photography
 // settings are changed.
 func (p *pictureSettingsState) timelapseChanged(args []interface{}) error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
+	p.Lock()
+	defer p.Unlock()
 	p.timeLapseEnabled = ptr.ToBool(args[0].(uint8) == 1)
 	p.timeLapseInterval = ptr.ToFloat32(args[1].(float32))
 	p.minTimeLapseInterval = ptr.ToFloat32(args[2].(float32))
@@ -367,8 +367,8 @@ func (p *pictureSettingsState) timelapseChanged(args []interface{}) error {
 func (p *pictureSettingsState) videoAutorecordChanged(
 	args []interface{},
 ) error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
+	p.Lock()
+	defer p.Unlock()
 	p.videoAutorecordingEnabled = ptr.ToBool(args[0].(uint8) == 1)
 	p.videoAutorecordingMassStorageID = ptr.ToUint8(args[1].(uint8))
 	log.WithField(
@@ -384,8 +384,8 @@ func (p *pictureSettingsState) videoAutorecordChanged(
 func (p *pictureSettingsState) videoStabilizationModeChanged(
 	args []interface{},
 ) error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
+	p.Lock()
+	defer p.Unlock()
 	p.videoStabilizationMode = ptr.ToInt32(args[0].(int32))
 	log.WithField(
 		"mode", *p.videoStabilizationMode,
@@ -398,8 +398,8 @@ func (p *pictureSettingsState) videoStabilizationModeChanged(
 func (p *pictureSettingsState) videoRecordingModeChanged(
 	args []interface{},
 ) error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
+	p.Lock()
+	defer p.Unlock()
 	p.videoRecordingMode = ptr.ToInt32(args[0].(int32))
 	log.WithField(
 		"mode", *p.videoRecordingMode,
@@ -410,8 +410,8 @@ func (p *pictureSettingsState) videoRecordingModeChanged(
 // videoFramerateChanged is invoked by the devide when the video framerate is
 // changed.
 func (p *pictureSettingsState) videoFramerateChanged(args []interface{}) error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
+	p.Lock()
+	defer p.Unlock()
 	p.videoFramerate = ptr.ToInt32(args[0].(int32))
 	log.WithField(
 		"framerate", *p.videoFramerate,
@@ -424,21 +424,13 @@ func (p *pictureSettingsState) videoFramerateChanged(args []interface{}) error {
 func (p *pictureSettingsState) videoResolutionsChanged(
 	args []interface{},
 ) error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
+	p.Lock()
+	defer p.Unlock()
 	p.videoResolutions = ptr.ToInt32(args[0].(int32))
 	log.WithField(
 		"type", *p.videoResolutions,
 	).Debug("video resolutions changed")
 	return nil
-}
-
-func (p *pictureSettingsState) RLock() {
-	p.lock.RLock()
-}
-
-func (p *pictureSettingsState) RUnlock() {
-	p.lock.RUnlock()
 }
 
 func (p *pictureSettingsState) Format() (int32, bool) {

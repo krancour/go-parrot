@@ -86,6 +86,7 @@ type PilotingSettingsState interface {
 }
 
 type pilotingSettingsState struct {
+	sync.RWMutex
 	motionDetectionEnabled *bool
 	// maxAltitude is the currently configured maximum altitude of the device in
 	// meters.
@@ -119,7 +120,6 @@ type pilotingSettingsState struct {
 	geofencingEnabled *bool
 	// bankedTurningEnabled indicates whether banked turning is enabled
 	bankedTurningEnabled *bool
-	lock                 sync.RWMutex
 }
 
 func (p *pilotingSettingsState) ID() uint8 {
@@ -286,8 +286,8 @@ func (p *pilotingSettingsState) D2CCommands() []arcommands.D2CCommand {
 // maxAltitudeChanged is invoked by the device when the maximum altitude setting
 // is changed.
 func (p *pilotingSettingsState) maxAltitudeChanged(args []interface{}) error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
+	p.Lock()
+	defer p.Unlock()
 	p.maxAltitude = ptr.ToFloat32(args[0].(float32))
 	p.maxAltitudeRangeMin = ptr.ToFloat32(args[1].(float32))
 	p.maxAltitudeRangeMax = ptr.ToFloat32(args[2].(float32))
@@ -334,8 +334,8 @@ func (p *pilotingSettingsState) maxTiltChanged(args []interface{}) error {
 
 // maxDistanceChanged is invoked by the device when the max distance is changed.
 func (p *pilotingSettingsState) maxDistanceChanged(args []interface{}) error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
+	p.Lock()
+	defer p.Unlock()
 	p.maxDistance = ptr.ToFloat32(args[0].(float32))
 	p.maxDistanceRangeMin = ptr.ToFloat32(args[1].(float32))
 	p.maxDistanceRangeMax = ptr.ToFloat32(args[2].(float32))
@@ -354,8 +354,8 @@ func (p *pilotingSettingsState) maxDistanceChanged(args []interface{}) error {
 func (p *pilotingSettingsState) noFlyOverMaxDistanceChanged(
 	args []interface{},
 ) error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
+	p.Lock()
+	defer p.Unlock()
 	p.geofencingEnabled = ptr.ToBool(args[0].(uint8) == 1)
 	log.WithField(
 		"shouldNotFlyOverMaxDistance", args[0].(uint8),
@@ -441,8 +441,8 @@ func (p *pilotingSettingsState) autonomousFlightMaxRotationSpeed(
 // bankedTurnChanged is invoked by the device when banked turning is enabled or
 // disabled
 func (p *pilotingSettingsState) bankedTurnChanged(args []interface{}) error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
+	p.Lock()
+	defer p.Unlock()
 	p.bankedTurningEnabled = ptr.ToBool(args[0].(uint8) == 1)
 	log.WithField(
 		"state", args[0].(uint8),
@@ -546,21 +546,13 @@ func (p *pilotingSettingsState) bankedTurnChanged(args []interface{}) error {
 // motionDetection is invoked by the device to indicate whether motion
 // detection is enabled.
 func (p *pilotingSettingsState) motionDetection(args []interface{}) error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
+	p.Lock()
+	defer p.Unlock()
 	p.motionDetectionEnabled = ptr.ToBool(args[0].(uint8) == 1)
 	log.WithField(
 		"motionDetectionEnabled", *p.motionDetectionEnabled,
 	).Debug("motion detection enabled changed")
 	return nil
-}
-
-func (p *pilotingSettingsState) RLock() {
-	p.lock.RLock()
-}
-
-func (p *pilotingSettingsState) RUnlock() {
-	p.lock.RUnlock()
 }
 
 func (p *pilotingSettingsState) MotionDetectionEnabled() (bool, bool) {
