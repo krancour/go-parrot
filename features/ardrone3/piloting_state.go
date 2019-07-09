@@ -240,14 +240,6 @@ func (p *pilotingState) D2CCommands() []arcommands.D2CCommand {
 			},
 			p.attitudeChanged,
 		),
-		// arcommands.NewD2CCommand(
-		// 	7,
-		// 	"AutoTakeOffModeChanged",
-		// 	[]interface{}{
-		// 		uint8(0), // state,
-		// 	},
-		// 	p.autoTakeOffModeChanged,
-		// ),
 		arcommands.NewD2CCommand(
 			8,
 			"AltitudeChanged",
@@ -453,20 +445,6 @@ func (p *pilotingState) attitudeChanged(args []interface{}) error {
 	).Debug("piloting state attitude updated")
 	return nil
 }
-
-// // TODO: Implement this
-// // Title: Auto takeoff mode
-// // Description: Auto takeoff mode
-// // Support:
-// // Triggered:
-// // Result:
-// // WARNING: Deprecated
-// func (p *pilotingState) autoTakeOffModeChanged(args []interface{}) error {
-// 	// state := args[0].(uint8)
-// 	//   State of automatic take off mode (1 if enabled)
-// 	log.Info("ardrone3.autoTakeOffModeChanged() called")
-// 	return nil
-// }
 
 // altitudeChanged is invoked when the device reports attitude relative to the
 // take off point at regular intervals.

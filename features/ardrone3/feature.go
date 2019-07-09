@@ -8,7 +8,7 @@ import (
 // TODO: Document this
 type Feature interface {
 	arcommands.D2CFeature
-	// AccessoryState() AccessoryState
+	AccessoryState() AccessoryState
 	AntiflickeringState() AntiflickeringState
 	CameraState() CameraState
 	GPSSettingsState() GPSSettingsState
@@ -22,9 +22,9 @@ type Feature interface {
 	PilotingEvent() PilotingEvent
 	PilotingSettingsState() PilotingSettingsState
 	PilotingState() PilotingState
-	// PROState() PROState
+	PROState() PROState
 	SettingsState() SettingsState
-	// SoundState() SoundState
+	SoundState() SoundState
 	SpeedSettingsState() SpeedSettingsState
 }
 
@@ -106,9 +106,9 @@ func (f *feature) D2CClasses() []arcommands.D2CClass {
 	}
 }
 
-// func (f *feature) AccessoryState() AccessoryState {
-// 	return f.accessoryState
-// }
+func (f *feature) AccessoryState() AccessoryState {
+	return f.accessoryState
+}
 
 func (f *feature) AntiflickeringState() AntiflickeringState {
 	return f.antiflickeringState
@@ -162,17 +162,17 @@ func (f *feature) PilotingState() PilotingState {
 	return f.pilotingState
 }
 
-// func (f *feature) PROState() PROState {
-// 	return f.proState
-// }
+func (f *feature) PROState() PROState {
+	return f.proState
+}
 
 func (f *feature) SettingsState() SettingsState {
 	return f.settingsState
 }
 
-// func (f *feature) SoundState() SoundState {
-// 	return f.soundState
-// }
+func (f *feature) SoundState() SoundState {
+	return f.soundState
+}
 
 func (f *feature) SpeedSettingsState() SpeedSettingsState {
 	return f.speedSettingsState

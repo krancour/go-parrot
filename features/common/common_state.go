@@ -153,16 +153,6 @@ func (c *commonState) D2CCommands() []arcommands.D2CCommand {
 			},
 			c.currentTimeChanged,
 		),
-		// arcommands.NewD2CCommand(
-		// 	6,
-		// 	"MassStorageInfoRemainingListChanged",
-		// 	[]interface{}{
-		// 		uint32(0), // free_space,
-		// 		uint16(0), // rec_time,
-		// 		uint32(0), // photo_remaining,
-		// 	},
-		// 	c.massStorageInfoRemainingListChanged,
-		// ),
 		arcommands.NewD2CCommand(
 			7,
 			"WifiSignalChanged",
@@ -187,15 +177,6 @@ func (c *commonState) D2CCommands() []arcommands.D2CCommand {
 		// 		int32(0), // model,
 		// 	},
 		// 	c.productModel,
-		// ),
-		// arcommands.NewD2CCommand(
-		// 	10,
-		// 	"CountryListKnown",
-		// 	[]interface{}{
-		// 		uint8(0),  // listFlags,
-		// 		string(0), // countryCodes,
-		// 	},
-		// 	c.countryListKnown,
 		// ),
 		arcommands.NewD2CCommand(
 			11,
@@ -359,26 +340,6 @@ func (c *commonState) currentTimeChanged(args []interface{}) error {
 	return nil
 }
 
-// // TODO: Implement this
-// // Title: Mass storage remaining data list
-// // Description: Mass storage remaining data list.
-// // Support:
-// // Triggered:
-// // Result:
-// // WARNING: Deprecated
-// func (c *commonState) massStorageInfoRemainingListChanged(
-// 	args []interface{},
-// ) error {
-// 	// free_space := args[0].(uint32)
-// 	//   Mass storage free space in MBytes
-// 	// rec_time := args[1].(uint16)
-// 	//   Mass storage record time reamining in minute
-// 	// photo_remaining := args[2].(uint32)
-// 	//   Mass storage photo remaining
-// 	log.Info("common.massStorageInfoRemainingListChanged() called")
-// 	return nil
-// }
-
 // wifiSignalChanged is invoked when the device reports relative wifi signal
 // strength at regular intervals.
 func (c *commonState) wifiSignalChanged(args []interface{}) error {
@@ -460,27 +421,6 @@ func (c *commonState) sensorsStatesListChanged(args []interface{}) error {
 // 	//   13: SW_BLACK: Swing black model
 // 	//   14: SW_WHITE: Swing white model
 // 	log.Info("common.productModel() called")
-// 	return nil
-// }
-
-// // TODO: Implement this
-// // Title: Country list
-// // Description: List of countries known by the drone.
-// // Support:
-// // Triggered:
-// // Result:
-// // WARNING: Deprecated
-// func (c *commonState) countryListKnown(args []interface{}) error {
-// 	// listFlags := args[0].(uint8)
-// 	//   List entry attribute Bitfield. 0x01: First: indicate it&#39;s the first
-// 	//   element of the list. 0x02: Last: indicate it&#39;s the last element of
-// 	//   the list. 0x04: Empty: indicate the list is empty (implies First/Last).
-// 	//   All other arguments should be ignored.
-// 	// countryCodes := args[1].(string)
-// 	//   Following of country code with ISO 3166 format, separated by &#34;;&#34;.
-// 	//   Be careful of the command size allowed by the network used. If necessary,
-// 	//   split the list in several commands.
-// 	log.Info("common.countryListKnown() called")
 // 	return nil
 // }
 

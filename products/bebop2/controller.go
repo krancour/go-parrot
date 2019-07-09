@@ -150,6 +150,7 @@ func NewController() (Controller, error) {
 	if err := commonFeature.Common().AllStates(); err != nil {
 		log.Error(err)
 	}
+	// TODO: Should we wait until all states are received before returning?
 	return &controller{
 		common:   commonFeature,
 		ardrone3: ardrone3Feature,

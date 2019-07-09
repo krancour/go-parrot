@@ -6,6 +6,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
+	"github.com/krancour/go-parrot/ptr"
 )
 
 // Camera state
@@ -14,10 +15,60 @@ import (
 // TODO: Document this
 type CameraState interface {
 	lock.ReadLockable
+	// Tilt returns camera tilt in degrees. A boolean value is also returned,
+	// indicating whether the first value was reported by the device (true) or a
+	// default value (false). This permits callers to distinguish real zero values
+	// from default zero values.
+	Tilt() (float32, bool)
+	// Pan returns camera pan in degrees. A boolean value is also returned,
+	// indicating whether the first value was reported by the device (true) or a
+	// default value (false). This permits callers to distinguish real zero values
+	// from default zero values.
+	Pan() (float32, bool)
+	// CenterTilt returns the camera tilt value, in degrees, that is considered
+	// "center." This can later be used to re-center the camera if/when desired. A
+	// boolean value is also returned, indicating whether the first value was
+	// reported by the device (true) or a default value (false). This permits
+	// callers to distinguish real zero values from default zero values.
+	CenterTilt() (float32, bool)
+	// CenterPan returns the camera pan value, in degrees, that is considered
+	// "center." This can later be used to re-center the camera if/when desired. A
+	// boolean value is also returned, indicating whether the first value was
+	// reported by the device (true) or a default value (false). This permits
+	// callers to distinguish real zero values from default zero values.
+	CenterPan() (float32, bool)
+	// MaxTiltVelocity returns the the maximum velocity, in degrees per second, at
+	// which camera tilt may be adjusted. A boolean value is also returned,
+	// indicating whether the first value was reported by the device (true) or a
+	// default value (false). This permits callers to distinguish real zero values
+	// from default zero values.
+	MaxTiltVelocity() (float32, bool)
+	// MaxPanVelocity returns the maximum velocity, in degrees per second, at
+	// which camera pan may be adjusted. A boolean value is also returned,
+	// indicating whether the first value was reported by the device (true) or a
+	// default value (false). This permits callers to distinguish real zero values
+	// from default zero values.
+	MaxPanVelocity() (float32, bool)
 }
 
 type cameraState struct {
 	sync.RWMutex
+	// tilt represents camera tilt in degrees
+	tilt *float32
+	// pan represents camera pan in degrees
+	pan *float32
+	// centerTilt represents the camera tilt, in degrees, that is considered
+	// "center"
+	centerTilt *float32
+	// centerPan represents the camera pan, in degrees, that is considered
+	// "center"
+	centerPan *float32
+	// maxTiltVelocity represents the maximum velocity, in degrees per second, at
+	// which camera tilt may be adjusted.
+	maxTiltVelocity *float32
+	// maxPanVelocity represents the maximum velocity, in degrees per second, at
+	// which camera pan may be adjusted.
+	maxPanVelocity *float32
 }
 
 func (c *cameraState) ID() uint8 {
@@ -107,48 +158,90 @@ func (c *cameraState) defaultCameraOrientation(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-// Title: Camera orientation
-// Description: Camera orientation with float arguments.
-// Support: 0901;090c;090e
-// Triggered: by [SetCameraOrientationV2](#1-1-1)
-// Result:
+// orientationV2 is invoked by the device when the camera orientation chnages.
 func (c *cameraState) orientationV2(args []interface{}) error {
-	// tilt := args[0].(float32)
-	//   Tilt camera consign for the drone [deg]
-	// pan := args[1].(float32)
-	//   Pan camera consign for the drone [deg]
-	log.Info("ardrone3.orientationV2() called")
+	c.Lock()
+	defer c.Unlock()
+	c.tilt = ptr.ToFloat32(args[0].(float32))
+	c.pan = ptr.ToFloat32(args[1].(float32))
+	log.WithField(
+		"tilt", *c.tilt,
+	).WithField(
+		"pan", *c.pan,
+	).Debug("camera orientation changed")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Orientation of the camera center
-// Description: Orientation of the center of the camera.\n This is the value to
-//   send when you want to center the camera.
-// Support: 0901;090c;090e
-// Triggered: at connection.
-// Result:
+// defaultCameraOrientationV2 is invoked by the device at connection time to
+// indicate the tilt and pan values that reflect a centered camera. Use these
+// values to recenter the camera if/when desired.
 func (c *cameraState) defaultCameraOrientationV2(args []interface{}) error {
-	// tilt := args[0].(float32)
-	//   Tilt value [deg]
-	// pan := args[1].(float32)
-	//   Pan value [deg]
-	log.Info("ardrone3.defaultCameraOrientationV2() called")
+	c.Lock()
+	defer c.Unlock()
+	c.centerTilt = ptr.ToFloat32(args[0].(float32))
+	c.centerPan = ptr.ToFloat32(args[1].(float32))
+	log.WithField(
+		"tilt", *c.tilt,
+	).WithField(
+		"pan", *c.pan,
+	).Debug("default camera orientation changed")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Camera velocity range
-// Description: Camera Orientation velocity limits.
-// Support: 0901;090c;090e
-// Triggered: at connection.
-// Result:
+// velocityRange is invoked by the device at connection time to communicate
+// the maximum velocity, in degrees per second, at which the camera can be
+// reoriented.
 func (c *cameraState) velocityRange(args []interface{}) error {
-	// max_tilt := args[0].(float32)
-	//   Absolute max tilt velocity [deg/s]
-	// max_pan := args[1].(float32)
-	//   Absolute max pan velocity [deg/s]
-	log.Info("ardrone3.velocityRange() called")
+	c.Lock()
+	defer c.Unlock()
+	c.maxTiltVelocity = ptr.ToFloat32(args[0].(float32))
+	c.maxPanVelocity = ptr.ToFloat32(args[1].(float32))
+	log.WithField(
+		"max_tilt", *c.maxTiltVelocity,
+	).WithField(
+		"max_pan", *c.maxPanVelocity,
+	).Debug("max camera reorientation velocity changed")
 	return nil
+}
+
+func (c *cameraState) Tilt() (float32, bool) {
+	if c.tilt == nil {
+		return 0, false
+	}
+	return *c.tilt, true
+}
+
+func (c *cameraState) Pan() (float32, bool) {
+	if c.pan == nil {
+		return 0, false
+	}
+	return *c.pan, true
+}
+
+func (c *cameraState) CenterTilt() (float32, bool) {
+	if c.centerTilt == nil {
+		return 0, false
+	}
+	return *c.centerTilt, true
+}
+
+func (c *cameraState) CenterPan() (float32, bool) {
+	if c.centerPan == nil {
+		return 0, false
+	}
+	return *c.centerPan, true
+}
+
+func (c *cameraState) MaxTiltVelocity() (float32, bool) {
+	if c.maxTiltVelocity == nil {
+		return 0, false
+	}
+	return *c.maxTiltVelocity, true
+}
+
+func (c *cameraState) MaxPanVelocity() (float32, bool) {
+	if c.maxPanVelocity == nil {
+		return 0, false
+	}
+	return *c.maxPanVelocity, true
 }
