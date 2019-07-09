@@ -6,18 +6,69 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
+	"github.com/krancour/go-parrot/ptr"
 )
 
 // State of media recording
+
+const (
+	PictureStateReady       int32 = 0
+	PictureStateBusy        int32 = 1
+	PictureStateUnavailable int32 = 2
+
+	PictureStateReasonOK         int32 = 0
+	PictureStateReasonUnknown    int32 = 1 // Unknown, generic error
+	PictureStateReasonCameraKO   int32 = 2 // Still camera is out of order
+	PictureStateReasonMemoryFull int32 = 3 // Memory is full; cannot save more pictures
+	PictureStateReasonLowBattery int32 = 4 // Battery is too low to take a picture
+
+	VideoStateStopped      int32 = 0
+	VideoStateStarted      int32 = 1
+	VideoStateNotAvailable int32 = 2
+
+	VideoStateReasonOK         int32 = 0
+	VideoStateReasonUnknown    int32 = 1 // Unknown, generic error
+	VideoStateReasonCameraKO   int32 = 2 // Video camera is out of order
+	VideoStateReasonMemoryFull int32 = 3 // Memory is full; cannot save more video
+	VideoStateReasonLowBattery int32 = 4 // Battery is too low to start/continue recording
+)
 
 // MediaRecordState ...
 // TODO: Document this
 type MediaRecordState interface {
 	lock.ReadLockable
+	// PictureState returns the still camera state. A boolean value is also
+	// returned, indicating whether the first value was reported by the device
+	// (true) or a default value (false). This permits callers to distinguish real
+	// zero values from default zero values.
+	PictureState() (int32, bool)
+	// PictureStateReason returns the reason for the still camera state. A boolean
+	// value is also returned, indicating whether the first value was reported by
+	// the device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	PictureStateReason() (int32, bool)
+	// VideoState returns the video camera state. A boolean value is also
+	// returned, indicating whether the first value was reported by the device
+	// (true) or a default value (false). This permits callers to distinguish real
+	// zero values from default zero values.
+	VideoState() (int32, bool)
+	// VideoStateReason return the reason for the video camera state. A boolean
+	// value is also returned, indicating whether the first value was reported by
+	// the device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	VideoStateReason() (int32, bool)
 }
 
 type mediaRecordState struct {
 	sync.RWMutex
+	// pictureState represents the still camera state
+	pictureState *int32
+	// pictureStateReason represents the reason for the still camera state
+	pictureStateReason *int32
+	// videoState represents the video camera state
+	videoState *int32
+	// videoStateReason represents the reason for the video camera state
+	videoStateReason *int32
 }
 
 func (m *mediaRecordState) ID() uint8 {
@@ -51,48 +102,60 @@ func (m *mediaRecordState) D2CCommands() []arcommands.D2CCommand {
 	}
 }
 
-// TODO: Implement this
-// Title: Picture state
-// Description: Picture state.
-// Support: 0901:2.0.1;090c;090e
-// Triggered: by [TakePicture](#1-7-2) or by a change in the picture state
-// Result:
+// pictureStateChangedV2 is invoked by the device when the still camera's
+// availability changes.
 func (m *mediaRecordState) pictureStateChangedV2(args []interface{}) error {
-	// state := args[0].(int32)
-	//   State of device picture recording
-	//   0: ready: The picture recording is ready
-	//   1: busy: The picture recording is busy
-	//   2: notAvailable: The picture recording is not available
-	// error := args[1].(int32)
-	//   Error to explain the state
-	//   0: ok: No Error
-	//   1: unknown: Unknown generic error
-	//   2: camera_ko: Picture camera is out of order
-	//   3: memoryFull: Memory full ; cannot save one additional picture
-	//   4: lowBattery: Battery is too low to start/keep recording.
-	log.Info("ardrone3.pictureStateChangedV2() called")
+	m.Lock()
+	defer m.Unlock()
+	m.pictureState = ptr.ToInt32(args[0].(int32))
+	m.pictureStateReason = ptr.ToInt32(args[1].(int32))
+	log.WithField(
+		"state", *m.pictureState,
+	).WithField(
+		"error", *m.pictureStateReason,
+	).Debug("picture state changed")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Video record state
-// Description: Video record state.
-// Support: 0901:2.0.1;090c;090e
-// Triggered: by [RecordVideo](#1-7-3) or by a change in the video state
-// Result:
+// videoStateChangedV2 is invoked by the device when there is a change in
+// video camera state or availability.
 func (m *mediaRecordState) videoStateChangedV2(args []interface{}) error {
-	// state := args[0].(int32)
-	//   State of device video recording
-	//   0: stopped: Video is stopped
-	//   1: started: Video is started
-	//   2: notAvailable: The video recording is not available
-	// error := args[1].(int32)
-	//   Error to explain the state
-	//   0: ok: No Error
-	//   1: unknown: Unknown generic error
-	//   2: camera_ko: Video camera is out of order
-	//   3: memoryFull: Memory full ; cannot save one additional video
-	//   4: lowBattery: Battery is too low to start/keep recording.
-	log.Info("ardrone3.videoStateChangedV2() called")
+	m.Lock()
+	defer m.Unlock()
+	m.videoState = ptr.ToInt32(args[0].(int32))
+	m.videoStateReason = ptr.ToInt32(args[1].(int32))
+	log.WithField(
+		"state", *m.videoState,
+	).WithField(
+		"error", *m.videoStateReason,
+	).Debug("video state changed")
 	return nil
+}
+
+func (m *mediaRecordState) PictureState() (int32, bool) {
+	if m.pictureState == nil {
+		return 0, false
+	}
+	return *m.pictureState, true
+}
+
+func (m *mediaRecordState) PictureStateReason() (int32, bool) {
+	if m.pictureStateReason == nil {
+		return 0, false
+	}
+	return *m.pictureStateReason, true
+}
+
+func (m *mediaRecordState) VideoState() (int32, bool) {
+	if m.videoState == nil {
+		return 0, false
+	}
+	return *m.videoState, true
+}
+
+func (m *mediaRecordState) VideoStateReason() (int32, bool) {
+	if m.videoStateReason == nil {
+		return 0, false
+	}
+	return *m.videoStateReason, true
 }
