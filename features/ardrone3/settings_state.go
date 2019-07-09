@@ -6,18 +6,70 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
+	"github.com/krancour/go-parrot/ptr"
 )
 
 // Settings state from product
+
+const (
+	MotorFrontLeft  uint8 = 1
+	MotorFrontRight uint8 = 2
+	MotorBackRight  uint8 = 4
+	MotorBackLeft   uint8 = 8
+)
 
 // SettingsState ...
 // TODO: Document this
 type SettingsState interface {
 	lock.ReadLockable
+	// GPSSoftwareVersion returns the software version of the product's GPS. A
+	// boolean value is also returned, indicating whether the first value was
+	// reported by the device (true) or a default value (false). This permits
+	// callers to distinguish real zero values from default zero values.
+	GPSSoftwareVersion() (string, bool)
+	// GPSHardwareVersion hardware version of the product's GPS. A boolean value
+	// is also returned, indicating whether the first value was reported by the
+	// device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	GPSHardwareVersion() (string, bool)
+	// NumberOfFlights returns the total number of flights completed. A boolean
+	// value is also returned, indicating whether the first value was reported by
+	// the device (true) or a default value (false). This permits callers to
+	// distinguish real zero values from default zero values.
+	NumberOfFlights() (uint16, bool)
+	// LastFlightDuration returns the length, in seconds, of the last flight. A
+	// boolean value is also returned, indicating whether the first value was
+	// reported by the device (true) or a default value (false). This permits
+	// callers to distinguish real zero values from default zero values.
+	LastFlightDuration() (uint16, bool)
+	// TotalFlightDuration returns the cummulative length of all completed flights
+	// in seconds. A boolean value is also returned, indicating whether the first
+	// value was reported by the device (true) or a default value (false). This
+	// permits callers to distinguish real zero values from default zero values.
+	TotalFlightDuration() (uint32, bool)
+	// CPUID returns the drone's CPU's ID. A boolean value is also returned,
+	// indicating whether the first value was reported by the device (true) or a
+	// default value (false). This permits callers to distinguish real zero values
+	// from default zero values.
+	CPUID() (string, bool)
 }
 
 type settingsState struct {
 	sync.RWMutex
+	// gpsSoftwareVersion represents the software version of the product's GPS
+	gpsSoftwareVersion *string
+	// gpsHardwareVersion represents the hardware version of the product's GPS
+	gpsHardwareVersion *string
+	// numberOfFlights represents the total number of flights completed by this
+	// drone
+	numberOfFlights *uint16
+	// lastFlightDuration represents the length, in seconds, of the last flight
+	lastFlightDuration *uint16
+	// totalFlightDuration represents the cummulative length of all completed
+	// flights in seconds
+	totalFlightDuration *uint32
+	// deviceCPUID represents the drone's CPU's ID
+	deviceCPUID *string
 }
 
 func (s *settingsState) ID() uint8 {
@@ -30,17 +82,6 @@ func (s *settingsState) Name() string {
 
 func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
-		// arcommands.NewD2CCommand(
-		// 	0,
-		// 	"ProductMotorVersionListChanged",
-		// 	[]interface{}{
-		// 		uint8(0),  // motor_number,
-		// 		string(0), // type,
-		// 		string(0), // software,
-		// 		string(0), // hardware,
-		// 	},
-		// 	s.productMotorVersionListChanged,
-		// ),
 		arcommands.NewD2CCommand(
 			1,
 			"ProductGPSVersionChanged",
@@ -99,139 +140,107 @@ func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 			[]interface{}{
 				string(0), // id,
 			},
-			s.cPUID,
+			s.cpuID,
 		),
 	}
 }
 
-// // TODO: Implement this
-// // Title: Motor version
-// // Description: Motor version.
-// // Support:
-// // Triggered:
-// // Result:
-// // WARNING: Deprecated
-// func (s *settingsState) productMotorVersionListChanged(
-// 	args []interface{},
-// ) error {
-// 	// motor_number := args[0].(uint8)
-// 	//   Product Motor number
-// 	// type := args[1].(string)
-// 	//   Product Motor type
-// 	// software := args[2].(string)
-// 	//   Product Motors software version
-// 	// hardware := args[3].(string)
-// 	//   Product Motors hardware version
-// 	log.Info("ardrone3.productMotorVersionListChanged() called")
-// 	return nil
-// }
-
-// TODO: Implement this
-// Title: GPS version
-// Description: GPS version.
-// Support: 0901;090c;090e
-// Triggered: at connection.
-// Result:
+// productGPSVersionChanged is invoked by the device at connection time.
 func (s *settingsState) productGPSVersionChanged(args []interface{}) error {
-	// software := args[0].(string)
-	//   Product GPS software version
-	// hardware := args[1].(string)
-	//   Product GPS hardware version
-	log.Info("ardrone3.productGPSVersionChanged() called")
+	s.Lock()
+	defer s.Unlock()
+	s.gpsSoftwareVersion = ptr.ToString(args[0].(string))
+	s.gpsHardwareVersion = ptr.ToString(args[1].(string))
+	log.WithField(
+		"software", *s.gpsSoftwareVersion,
+	).WithField(
+		"hardware", *s.gpsHardwareVersion,
+	).Debug("product gps version changed")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Motor error
-// Description: Motor error.\n This event is sent back to *noError* as soon as
-//   the motor error disappear. To get the last motor error, see
-//   [LastMotorError](#1-16-5)
-// Support: 0901;090c;090e
-// Triggered: when a motor error occurs.
-// Result:
+// motorErrorStateChanged is triggered by the device when a motor error occurs.
 func (s *settingsState) motorErrorStateChanged(args []interface{}) error {
-	// motorIds := args[0].(uint8)
-	//   Bit field for concerned motor. If bit 0 = 1, motor 1 is affected by this
-	//   error. Same with bit 1, 2 and 3. Motor 1: front left Motor 2: front right
-	//   Motor 3: back right Motor 4: back left
-	// motorError := args[1].(int32)
-	//   Enumeration of the motor error
-	//   0: noError: No error detected
-	//   1: errorEEPRom: EEPROM access failure
-	//   2: errorMotorStalled: Motor stalled
-	//   3: errorPropellerSecurity: Propeller cutout security triggered
-	//   4: errorCommLost: Communication with motor failed by timeout
-	//   5: errorRCEmergencyStop: RC emergency stop
-	//   6: errorRealTime: Motor controler scheduler real-time out of bounds
-	//   7: errorMotorSetting: One or several incorrect values in motor settings
-	//   8: errorTemperature: Too hot or too cold Cypress temperature
-	//   9: errorBatteryVoltage: Battery voltage out of bounds
-	//   10: errorLipoCells: Incorrect number of LIPO cells
-	//   11: errorMOSFET: Defectuous MOSFET or broken motor phases
-	//   12: errorBootloader: Not use for BLDC but useful for HAL
-	//   13: errorAssert: Error Made by BLDC_ASSERT()
-	log.Info("ardrone3.motorErrorStateChanged() called")
+	motorIds := args[0].(uint8)
+	l := log.WithField(
+		"fontLeft", motorIds&MotorFrontLeft == MotorFrontLeft,
+	).WithField(
+		"fontRight", motorIds&MotorFrontRight == MotorFrontRight,
+	).WithField(
+		"backRight", motorIds&MotorBackRight == MotorBackRight,
+	).WithField(
+		"backLeft", motorIds&MotorBackLeft == MotorBackLeft,
+	)
+	motorError := args[1].(int32)
+	switch motorError {
+	case 0:
+		log.Debug("no motor errors detected")
+	case 1:
+		l.Error("motor error: EEPROM access failure")
+	case 2:
+		l.Error("motor error: errorMotorStalled: Motor stalled")
+	case 3:
+		l.Error("motor error: errorPropellerSecurity: Propeller cutout security triggered")
+	case 4:
+		l.Error("motor error: errorCommLost: Communication with motor failed by timeout")
+	case 5:
+		l.Error("motor error: errorRCEmergencyStop: RC emergency stop")
+	case 6:
+		l.Error("motor error: errorRealTime: Motor controler scheduler real-time out of bounds")
+	case 7:
+		l.Error("motor error: errorMotorSetting: One or several incorrect values in motor settings")
+	case 8:
+		l.Error("motor error: errorTemperature: Too hot or too cold Cypress temperature")
+	case 9:
+		l.Error("motor error: errorBatteryVoltage: Battery voltage out of bounds")
+	case 10:
+		l.Error("motor error: errorLipoCells: Incorrect number of LIPO cells")
+	case 11:
+		l.Error("motor error: errorMOSFET: Defectuous MOSFET or broken motor phases")
+	case 12:
+		l.Error("motor error: errorBootloader: Not use for BLDC but useful for HAL")
+	case 13:
+		l.Error("motor error: errorAssert: Error Made by BLDC_ASSERT()")
+	}
 	return nil
 }
 
-// TODO: Implement this
-// Title: Motor version
-// Description: Motor version.
-// Support:
-// Triggered:
-// Result:
-// WARNING: Deprecated
+// motorSoftwareVersionChanged is deprecated, but since we can still see this
+// command being invoked, we'll implement the command to avoid a warning, but
+// the implementation will remain a no-op unless / until such time that it
+// becomes clear that older versions of the firmware might require us to support
+// it.
 func (s *settingsState) motorSoftwareVersionChanged(args []interface{}) error {
 	// version := args[0].(string)
 	//   name of the version : dot separated fields (major version - minor version
 	//   - firmware type - nb motors handled). Firmware types : Release, Debug,
 	//   Alpha, Test-bench
-	log.Info("ardrone3.motorSoftwareVersionChanged() called")
+	log.Debug("motor software version changed-- this is a no-op")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Motor flight status
-// Description: Motor flight status.
-// Support: 0901;090c;090e
-// Triggered: at connection.
-// Result:
+// motorFlightsStatusChanged is invoked by the device at connection time.
 func (s *settingsState) motorFlightsStatusChanged(args []interface{}) error {
-	// nbFlights := args[0].(uint16)
-	//   total number of flights
-	// lastFlightDuration := args[1].(uint16)
-	//   Duration of the last flight (in seconds)
-	// totalFlightDuration := args[2].(uint32)
-	//   Duration of all flights (in seconds)
-	log.Info("ardrone3.motorFlightsStatusChanged() called")
+	s.Lock()
+	defer s.Unlock()
+	s.numberOfFlights = ptr.ToUint16(args[0].(uint16))
+	s.lastFlightDuration = ptr.ToUint16(args[1].(uint16))
+	s.totalFlightDuration = ptr.ToUint32(args[2].(uint32))
+	log.WithField(
+		"nbFlights", *s.numberOfFlights,
+	).WithField(
+		"lastFlightDuration", *s.lastFlightDuration,
+	).WithField(
+		"totalFlightDuration", *s.totalFlightDuration,
+	).Debug("motor flight status changed")
 	return nil
 }
 
-// TODO: Implement this
-// Title: Last motor error
-// Description: Last motor error.\n This is a reminder of the last error. To
-//   know if a motor error is currently happening, see [MotorError](#1-16-2).
-// Support: 0901;090c;090e
-// Triggered: at connection and when an error occurs.
-// Result:
+// motorErrorLastErrorChanged is a no-op because the function it's meant to
+// carry out-- a "reminder" of the most recent motor error is not contextually
+// necessary for this SDK.
 func (s *settingsState) motorErrorLastErrorChanged(args []interface{}) error {
-	// motorError := args[0].(int32)
-	//   Enumeration of the motor error
-	//   0: noError: No error detected
-	//   1: errorEEPRom: EEPROM access failure
-	//   2: errorMotorStalled: Motor stalled
-	//   3: errorPropellerSecurity: Propeller cutout security triggered
-	//   4: errorCommLost: Communication with motor failed by timeout
-	//   5: errorRCEmergencyStop: RC emergency stop
-	//   6: errorRealTime: Motor controler scheduler real-time out of bounds
-	//   7: errorMotorSetting: One or several incorrect values in motor settings
-	//   8: errorBatteryVoltage: Battery voltage out of bounds
-	//   9: errorLipoCells: Incorrect number of LIPO cells
-	//   10: errorMOSFET: Defectuous MOSFET or broken motor phases
-	//   11: errorTemperature: Too hot or too cold Cypress temperature
-	//   12: errorBootloader: Not use for BLDC but useful for HAL
-	//   13: errorAssert: Error Made by BLDC_ASSERT()
-	log.Info("ardrone3.motorErrorLastErrorChanged() called")
+	log.Debug("last motor error changed-- this is a no-op")
 	return nil
 }
 
@@ -246,10 +255,55 @@ func (s *settingsState) p7ID(args []interface{}) error {
 	return nil
 }
 
-// TODO: Implement this
-func (s *settingsState) cPUID(args []interface{}) error {
-	// id := args[0].(string)
-	//   Product main cpu id
-	log.Info("ardrone3.cPUID() called")
+// cpuID is invoked by the device at connecton time to report its CPU ID.
+func (s *settingsState) cpuID(args []interface{}) error {
+	s.Lock()
+	defer s.Unlock()
+	s.deviceCPUID = ptr.ToString(args[0].(string))
+	log.WithField(
+		"id", *s.deviceCPUID,
+	).Debug("device CPU ID changed")
 	return nil
+}
+
+func (s *settingsState) GPSSoftwareVersion() (string, bool) {
+	if s.gpsSoftwareVersion == nil {
+		return "", false
+	}
+	return *s.gpsSoftwareVersion, true
+}
+
+func (s *settingsState) GPSHardwareVersion() (string, bool) {
+	if s.gpsHardwareVersion == nil {
+		return "", false
+	}
+	return *s.gpsHardwareVersion, true
+}
+
+func (s *settingsState) NumberOfFlights() (uint16, bool) {
+	if s.numberOfFlights == nil {
+		return 0, false
+	}
+	return *s.numberOfFlights, true
+}
+
+func (s *settingsState) LastFlightDuration() (uint16, bool) {
+	if s.lastFlightDuration == nil {
+		return 0, false
+	}
+	return *s.lastFlightDuration, true
+}
+
+func (s *settingsState) TotalFlightDuration() (uint32, bool) {
+	if s.totalFlightDuration == nil {
+		return 0, false
+	}
+	return *s.totalFlightDuration, true
+}
+
+func (s *settingsState) CPUID() (string, bool) {
+	if s.deviceCPUID == nil {
+		return "", false
+	}
+	return *s.deviceCPUID, true
 }
