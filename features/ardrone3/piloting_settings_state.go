@@ -231,34 +231,6 @@ func (p *pilotingSettingsState) D2CCommands(
 			log,
 		),
 		// arcommands.NewD2CCommand(
-		// 	11,
-		// 	"MinAltitudeChanged",
-		// 	[]interface{}{
-		// 		float32(0), // current,
-		// 		float32(0), // min,
-		// 		float32(0), // max,
-		// 	},
-		// 	p.minAltitudeChanged,
-		// ),
-		// arcommands.NewD2CCommand(
-		// 	12,
-		// 	"CirclingDirectionChanged",
-		// 	[]interface{}{
-		// 		int32(0), // value,
-		// 	},
-		// 	p.circlingDirectionChanged,
-		// ),
-		// arcommands.NewD2CCommand(
-		// 	14,
-		// 	"CirclingAltitudeChanged",
-		// 	[]interface{}{
-		// 		uint16(0), // current,
-		// 		uint16(0), // min,
-		// 		uint16(0), // max,
-		// 	},
-		// 	p.circlingAltitudeChanged,
-		// ),
-		// arcommands.NewD2CCommand(
 		// 	15,
 		// 	"PitchModeChanged",
 		// 	[]interface{}{
@@ -446,61 +418,6 @@ func (p *pilotingSettingsState) bankedTurnChanged(
 	).Debug("banked turning enabled or disabled")
 	return nil
 }
-
-// // TODO: Implement this
-// // Title: Min altitude
-// // Description: Min altitude.\n Only sent by fixed wings.
-// // Support: 090e
-// // Triggered: by [SetMinAltitude](#1-2-11).
-// // Result:
-// func (p *pilotingSettingsState) minAltitudeChanged(args []interface{}) error {
-// 	// current := args[0].(float32)
-// 	//   Current altitude min
-// 	// min := args[1].(float32)
-// 	//   Range min of altitude min
-// 	// max := args[2].(float32)
-// 	//   Range max of altitude min
-// 	log.Warn("command not implemented")
-// 	return nil
-// }
-
-// // TODO: Implement this
-// // Title: Circling direction
-// // Description: Circling direction.\n Only sent by fixed wings.
-// // Support: 090e
-// // Triggered: by [SetCirclingDirection](#1-2-12).
-// // Result:
-// func (p *pilotingSettingsState) circlingDirectionChanged(
-// 	args []interface{},
-// ) error {
-// 	// value := args[0].(int32)
-// 	//   The circling direction
-// 	//   0: CW: Circling ClockWise
-// 	//   1: CCW: Circling Counter ClockWise
-// 	log.Warn("command not implemented")
-// 	return nil
-// }
-
-// // TODO: Implement this
-// // Title: Circling altitude
-// // Description: Circling altitude.\n Bounds will be automatically adjusted
-// //   according to the [MaxAltitude](#1-6-0).\n Only sent by fixed wings.
-// // Support: 090e
-// // Triggered: by [SetCirclingRadius](#1-2-14) or when bounds change due to
-// //   [SetMaxAltitude](#1-2-0).
-// // Result:
-// func (p *pilotingSettingsState) circlingAltitudeChanged(
-// 	args []interface{},
-// ) error {
-// 	// current := args[0].(uint16)
-// 	//   The current circling altitude in meter
-// 	// min := args[1].(uint16)
-// 	//   Range min of circling altitude in meter
-// 	// max := args[2].(uint16)
-// 	//   Range max of circling altitude in meter
-// 	log.Warn("command not implemented")
-// 	return nil
-// }
 
 // // TODO: Implement this
 // // Title: Pitch mode

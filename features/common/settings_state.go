@@ -242,12 +242,7 @@ func (s *settingsState) productSerialLowChanged(
 	return nil
 }
 
-// TODO: Implement this
-// Title: Country changed
-// Description: Country changed.
-// Support: drones
-// Triggered: by [SetCountry](#0-2-3).
-// Result:
+// countryChanged is invoked by the device when its country is changed.
 func (s *settingsState) countryChanged(
 	args []interface{},
 	log *log.Entry,

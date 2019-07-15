@@ -89,19 +89,8 @@ func (f *flightPlanState) availabilityStateChanged(
 	return nil
 }
 
-// TODO: Implement this
-// Title: FlightPlan components state list
-// Description: FlightPlan components state list.
-// Support: 0901:2.0.29;090c;090e
-// Triggered: when the state of required components changes. \n GPS component is
-//   triggered when the availability of the GPS of the drone changes. \n
-//   Calibration component is triggered when the calibration state of the drone
-//   sensors changes \n Mavlink_File component is triggered when the command
-//   [StartFlightPlan](#0-11-0) is received. \n Takeoff component is triggered
-//   when the drone needs to take-off to continue the FlightPlan. \n
-//   WaypointsBeyondGeofence component is triggered when the command
-//   [StartFlightPlan](#0-11-0) is received.
-// Result:
+// componentStateListChanged is invoked by the device when the state of various
+// device components is changed.
 func (f *flightPlanState) componentStateListChanged(
 	args []interface{},
 	log *log.Entry,

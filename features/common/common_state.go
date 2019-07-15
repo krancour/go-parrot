@@ -385,12 +385,8 @@ func (c *commonState) wifiSignalChanged(
 	return nil
 }
 
-// TODO: Implement this
-// Title: Sensors state list
-// Description: Sensors state list.
-// Support: 0901:2.0.3;0902;0905;0906;0907;0909;090a;090c;090e
-// Triggered: at connection and when a sensor state changes.
-// Result:
+// sensorsStatesListChanged is invoked by the device when the state of any
+// sensor is changed.
 func (c *commonState) sensorsStatesListChanged(
 	args []interface{},
 	log *log.Entry,

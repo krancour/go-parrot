@@ -180,12 +180,8 @@ func (s *speedSettingsState) D2CCommands(
 	}
 }
 
-// TODO: Implement this
-// Title: Max vertical speed
-// Description: Max vertical speed.
-// Support: 0901;090c
-// Triggered: by [SetMaxVerticalSpeed](#1-11-0).
-// Result:
+// maxVerticalSpeedChanged is invoked by the device when the maximum speed at
+// which the device can ascend or descend is changed.
 func (s *speedSettingsState) maxVerticalSpeedChanged(
 	args []interface{},
 	log *log.Entry,
@@ -205,12 +201,8 @@ func (s *speedSettingsState) maxVerticalSpeedChanged(
 	return nil
 }
 
-// TODO: Implement this
-// Title: Max rotation speed
-// Description: Max rotation speed.
-// Support: 0901;090c
-// Triggered: by [SetMaxRotationSpeed](#1-11-1).
-// Result:
+// maxRotationSpeedChanged is invoked by the device when the maximum speed at
+// which yaw can be adjusted is changed.
 func (s *speedSettingsState) maxRotationSpeedChanged(
 	args []interface{},
 	log *log.Entry,

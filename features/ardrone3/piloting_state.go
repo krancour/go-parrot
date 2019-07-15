@@ -271,14 +271,6 @@ func (p *pilotingState) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 			log,
 		),
 		// arcommands.NewD2CCommand(
-		// 	10,
-		// 	"LandingStateChanged",
-		// 	[]interface{}{
-		// 		int32(0), // state,
-		// 	},
-		// 	p.landingStateChanged,
-		// ),
-		// arcommands.NewD2CCommand(
 		// 	11,
 		// 	"AirSpeedChanged",
 		// 	[]interface{}{
@@ -523,22 +515,6 @@ func (p *pilotingState) gpsLocationChanged(
 	).Debug("piloting state gps coordinates updated")
 	return nil
 }
-
-// // TODO: Implement this
-// // Title: Landing state
-// // Description: Landing state.\n Only available for fixed wings (which have two
-// //   landing modes).
-// // Support: 090e
-// // Triggered: when the landing state changes.
-// // Result:
-// func (p *pilotingState) landingStateChanged(args []interface{}) error {
-// 	// state := args[0].(int32)
-// 	//   Drone landing state
-// 	//   0: linear: Linear landing
-// 	//   1: spiral: Spiral landing
-// 	log.Warn("command not implemented")
-// 	return nil
-// }
 
 // // TODO: Implement this
 // // Title: Drone&#39;s air speed changed
