@@ -28,6 +28,11 @@ type CommonState interface {
 	// the device (true) or a default value (false). This permits callers to
 	// distinguish real zero values from default zero values.
 	BatteryPercent() (uint8, bool)
+	// BatteryPercentCh returns a read-only chan struct{} that is notified
+	// whenever the percentage of battery life remaining changes. The channel does
+	// not contain the updated value, but signals that an updated value is
+	// available via BatteryPercent().
+	BatteryPercentCh() <-chan struct{}
 	// IMUOK returns a boolean indicating whether the inertial measurement unit
 	// sensor is operating normally. A boolean value is also returned, indicating
 	// whether the first value was reported by the device (true) or a default
@@ -82,6 +87,7 @@ type commonState struct {
 	rssi               *int16
 	massStorageDevices map[uint8]MassStorageDevice
 	batteryPercent     *uint8
+	batteryPercentCh   chan struct{}
 	imuOK              *bool
 	barometerOK        *bool
 	ultrasoundOK       *bool
@@ -94,6 +100,7 @@ type commonState struct {
 func newCommonState() *commonState {
 	return &commonState{
 		massStorageDevices: map[uint8]MassStorageDevice{},
+		batteryPercentCh:   make(chan struct{}, 1),
 	}
 }
 
@@ -264,6 +271,10 @@ func (c *commonState) batteryStateChanged(
 	c.Lock()
 	defer c.Unlock()
 	c.batteryPercent = ptr.ToUint8(args[0].(uint8))
+	select {
+	case c.batteryPercentCh <- struct{}{}:
+	default:
+	}
 	log.WithField(
 		"batteryPercent", *c.batteryPercent,
 	).Debug("battery state changed")
@@ -587,6 +598,10 @@ func (c *commonState) BatteryPercent() (uint8, bool) {
 		return 0, false
 	}
 	return *c.batteryPercent, true
+}
+
+func (c *commonState) BatteryPercentCh() <-chan struct{} {
+	return c.batteryPercentCh
 }
 
 func (c *commonState) IMUOK() (bool, bool) {
