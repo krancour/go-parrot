@@ -20,6 +20,10 @@ type soundState struct {
 	sync.RWMutex
 }
 
+func newSoundState() *soundState {
+	return &soundState{}
+}
+
 func (s *soundState) ID() uint8 {
 	return 36
 }

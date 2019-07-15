@@ -50,6 +50,10 @@ type mavlinkState struct {
 	mavlinkType     *int32
 }
 
+func newMavlinkState() *mavlinkState {
+	return &mavlinkState{}
+}
+
 func (m *mavlinkState) ID() uint8 {
 	return 12
 }

@@ -49,6 +49,10 @@ type calibrationState struct {
 	magnetoCalibrationAxis     *int32
 }
 
+func newCalibrationState() *calibrationState {
+	return &calibrationState{}
+}
+
 func (c *calibrationState) ID() uint8 {
 	return 14
 }

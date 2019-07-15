@@ -20,6 +20,10 @@ type networkEvent struct {
 	sync.RWMutex
 }
 
+func newNetworkEvent() *networkEvent {
+	return &networkEvent{}
+}
+
 func (n *networkEvent) ID() uint8 {
 	return 1
 }

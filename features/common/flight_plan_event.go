@@ -20,6 +20,10 @@ type flightPlanEvent struct {
 	sync.RWMutex
 }
 
+func newFlightPlanEvent() *flightPlanEvent {
+	return &flightPlanEvent{}
+}
+
 func (f *flightPlanEvent) ID() uint8 {
 	return 19
 }

@@ -83,6 +83,10 @@ type gpsSettingsState struct {
 	returnHomeDelay *uint16
 }
 
+func newGPSSettingsState() *gpsSettingsState {
+	return &gpsSettingsState{}
+}
+
 func (g *gpsSettingsState) ID() uint8 {
 	return 24
 }

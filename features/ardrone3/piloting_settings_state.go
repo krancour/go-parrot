@@ -122,6 +122,10 @@ type pilotingSettingsState struct {
 	bankedTurningEnabled *bool
 }
 
+func newPilotingSettingsState() *pilotingSettingsState {
+	return &pilotingSettingsState{}
+}
+
 func (p *pilotingSettingsState) ID() uint8 {
 	return 6
 }

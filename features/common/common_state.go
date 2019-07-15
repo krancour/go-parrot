@@ -91,6 +91,12 @@ type commonState struct {
 	allStatesSent      *bool
 }
 
+func newCommonState() *commonState {
+	return &commonState{
+		massStorageDevices: map[uint8]MassStorageDevice{},
+	}
+}
+
 func (c *commonState) ID() uint8 {
 	return 5
 }

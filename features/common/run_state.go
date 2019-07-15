@@ -28,6 +28,10 @@ type runState struct {
 	runID *string
 }
 
+func newRunState() *runState {
+	return &runState{}
+}
+
 func (r *runState) ID() uint8 {
 	return 30
 }

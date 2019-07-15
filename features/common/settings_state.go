@@ -72,6 +72,10 @@ type settingsState struct {
 	allSettingsSent    *bool
 }
 
+func newSettingsState() *settingsState {
+	return &settingsState{}
+}
+
 func (s *settingsState) ID() uint8 {
 	return 3
 }

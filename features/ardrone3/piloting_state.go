@@ -163,6 +163,10 @@ type pilotingState struct {
 	flyingState *int32
 }
 
+func newPilotingState() *pilotingState {
+	return &pilotingState{}
+}
+
 func (p *pilotingState) ID() uint8 {
 	return 4
 }

@@ -18,6 +18,10 @@ type flightPlanSettingsState struct {
 	sync.RWMutex
 }
 
+func newFlightPlanSettingsState() *flightPlanSettingsState {
+	return &flightPlanSettingsState{}
+}
+
 func (f *flightPlanSettingsState) ID() uint8 {
 	return 33
 }

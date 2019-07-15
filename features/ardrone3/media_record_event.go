@@ -20,6 +20,10 @@ type mediaRecordEvent struct {
 	sync.RWMutex
 }
 
+func newMediaRecordEvent() *mediaRecordEvent {
+	return &mediaRecordEvent{}
+}
+
 func (m *mediaRecordEvent) ID() uint8 {
 	return 3
 }

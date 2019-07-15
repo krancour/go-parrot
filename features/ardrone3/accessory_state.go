@@ -23,6 +23,10 @@ type accessoryState struct {
 	accessories map[uint8]Accessory
 }
 
+func newAccessoryState() *accessoryState {
+	return &accessoryState{}
+}
+
 func (a *accessoryState) ID() uint8 {
 	return 33
 }

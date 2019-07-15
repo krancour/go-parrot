@@ -43,6 +43,10 @@ type antiflickeringState struct {
 	mode              *int32
 }
 
+func newAntiflickeringState() *antiflickeringState {
+	return &antiflickeringState{}
+}
+
 func (a *antiflickeringState) ID() uint8 {
 	return 30
 }

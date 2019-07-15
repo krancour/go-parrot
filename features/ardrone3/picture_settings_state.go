@@ -179,6 +179,10 @@ type pictureSettingsState struct {
 	videoResolutions *int32
 }
 
+func newPictureSettingsState() *pictureSettingsState {
+	return &pictureSettingsState{}
+}
+
 func (p *pictureSettingsState) ID() uint8 {
 	return 20
 }

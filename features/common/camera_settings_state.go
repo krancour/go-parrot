@@ -51,6 +51,10 @@ type cameraSettingsState struct {
 	tiltMin *float32
 }
 
+func newCameraSettingsState() *cameraSettingsState {
+	return &cameraSettingsState{}
+}
+
 func (c *cameraSettingsState) ID() uint8 {
 	return 15
 }

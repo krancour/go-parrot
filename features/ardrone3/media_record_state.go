@@ -71,6 +71,10 @@ type mediaRecordState struct {
 	videoStateReason *int32
 }
 
+func newMediaRecordState() *mediaRecordState {
+	return &mediaRecordState{}
+}
+
 func (m *mediaRecordState) ID() uint8 {
 	return 8
 }

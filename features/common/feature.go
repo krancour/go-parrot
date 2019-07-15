@@ -48,20 +48,18 @@ type feature struct {
 // TODO: Document this
 func NewFeature(c2dCommandClient arcommands.C2DCommandClient) Feature {
 	return &feature{
-		arLibsVersionsState: &arLibsVersionsState{},
-		calibrationState:    &calibrationState{},
-		cameraSettingsState: &cameraSettingsState{},
-		commonState: &commonState{
-			massStorageDevices: map[uint8]MassStorageDevice{},
-		},
-		flightPlanEvent:         &flightPlanEvent{},
-		flightPlanSettingsState: &flightPlanSettingsState{},
-		flightPlanState:         &flightPlanState{},
-		mavlinkState:            &mavlinkState{},
-		networkEvent:            &networkEvent{},
-		runState:                &runState{},
-		settingsState:           &settingsState{},
-		wifiSettingsState:       &wifiSettingsState{},
+		arLibsVersionsState:     newARLibsVersionsState(),
+		calibrationState:        newCalibrationState(),
+		cameraSettingsState:     newCameraSettingsState(),
+		commonState:             newCommonState(),
+		flightPlanEvent:         newFlightPlanEvent(),
+		flightPlanSettingsState: newFlightPlanSettingsState(),
+		flightPlanState:         newFlightPlanState(),
+		mavlinkState:            newMavlinkState(),
+		networkEvent:            newNetworkEvent(),
+		runState:                newRunState(),
+		settingsState:           newSettingsState(),
+		wifiSettingsState:       newWifiSettingsState(),
 		// -------------------------------------------------------------------------
 		common: &common{
 			c2dCommandClient: c2dCommandClient,

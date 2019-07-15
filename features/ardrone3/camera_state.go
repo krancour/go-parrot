@@ -71,6 +71,10 @@ type cameraState struct {
 	maxPanVelocity *float32
 }
 
+func newCameraState() *cameraState {
+	return &cameraState{}
+}
+
 func (c *cameraState) ID() uint8 {
 	return 25
 }

@@ -20,6 +20,10 @@ type pilotingEvent struct {
 	sync.RWMutex
 }
 
+func newPilotingEvent() *pilotingEvent {
+	return &pilotingEvent{}
+}
+
 func (p *pilotingEvent) ID() uint8 {
 	return 34
 }

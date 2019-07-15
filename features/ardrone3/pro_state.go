@@ -20,6 +20,10 @@ type proState struct {
 	sync.RWMutex
 }
 
+func newPROState() *proState {
+	return &proState{}
+}
+
 func (p *proState) ID() uint8 {
 	return 32
 }

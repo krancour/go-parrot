@@ -33,6 +33,10 @@ type flightPlanState struct {
 	runFlightPlanFileAvailable *bool
 }
 
+func newFlightPlanState() *flightPlanState {
+	return &flightPlanState{}
+}
+
 func (f *flightPlanState) ID() uint8 {
 	return 17
 }

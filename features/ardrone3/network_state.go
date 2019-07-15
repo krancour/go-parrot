@@ -20,6 +20,10 @@ type networkState struct {
 	sync.RWMutex
 }
 
+func newNetworkState() *networkState {
+	return &networkState{}
+}
+
 func (n *networkState) ID() uint8 {
 	return 14
 }

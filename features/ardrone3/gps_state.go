@@ -79,6 +79,10 @@ type gpsState struct {
 	returnToHomeType          *int32
 }
 
+func newGPSState() *gpsState {
+	return &gpsState{}
+}
+
 func (g *gpsState) ID() uint8 {
 	return 31
 }

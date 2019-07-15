@@ -20,6 +20,10 @@ type mediaStreamingState struct {
 	sync.RWMutex
 }
 
+func newMediaStreamingState() *mediaStreamingState {
+	return &mediaStreamingState{}
+}
+
 func (m *mediaStreamingState) ID() uint8 {
 	return 22
 }

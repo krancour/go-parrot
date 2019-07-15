@@ -79,6 +79,10 @@ type networkSettingsState struct {
 	securityKeyType *int32
 }
 
+func newNetworkSettingsState() *networkSettingsState {
+	return &networkSettingsState{}
+}
+
 func (n *networkSettingsState) ID() uint8 {
 	return 10
 }

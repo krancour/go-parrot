@@ -114,6 +114,10 @@ type speedSettingsState struct {
 	hullProtection *bool
 }
 
+func newSpeedSettingsState() *speedSettingsState {
+	return &speedSettingsState{}
+}
+
 func (s *speedSettingsState) ID() uint8 {
 	return 12
 }

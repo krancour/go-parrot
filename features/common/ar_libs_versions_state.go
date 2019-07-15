@@ -27,6 +27,10 @@ type arLibsVersionsState struct {
 	deviceARLibsVersion *string
 }
 
+func newARLibsVersionsState() *arLibsVersionsState {
+	return &arLibsVersionsState{}
+}
+
 func (a *arLibsVersionsState) ID() uint8 {
 	return 18
 }

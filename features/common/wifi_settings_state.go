@@ -29,6 +29,10 @@ type wifiSettingsState struct {
 	outdoors *bool
 }
 
+func newWifiSettingsState() *wifiSettingsState {
+	return &wifiSettingsState{}
+}
+
 func (w *wifiSettingsState) ID() uint8 {
 	return 10
 }
