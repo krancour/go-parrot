@@ -59,7 +59,9 @@ func (c *cameraSettingsState) Name() string {
 	return "CameraSettingsState"
 }
 
-func (c *cameraSettingsState) D2CCommands() []arcommands.D2CCommand {
+func (c *cameraSettingsState) D2CCommands(
+	log *log.Entry,
+) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -72,12 +74,16 @@ func (c *cameraSettingsState) D2CCommands() []arcommands.D2CCommand {
 				float32(0), // tiltMin,
 			},
 			c.cameraSettingsChanged,
+			log,
 		),
 	}
 }
 
 // cameraSettingsChanged is invoked by the device at connection time.
-func (c *cameraSettingsState) cameraSettingsChanged(args []interface{}) error {
+func (c *cameraSettingsState) cameraSettingsChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	c.Lock()
 	defer c.Unlock()
 	c.fov = ptr.ToFloat32(args[0].(float32))

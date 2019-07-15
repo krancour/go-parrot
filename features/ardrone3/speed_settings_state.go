@@ -122,7 +122,9 @@ func (s *speedSettingsState) Name() string {
 	return "SpeedSettingsState"
 }
 
-func (s *speedSettingsState) D2CCommands() []arcommands.D2CCommand {
+func (s *speedSettingsState) D2CCommands(
+	log *log.Entry,
+) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -133,6 +135,7 @@ func (s *speedSettingsState) D2CCommands() []arcommands.D2CCommand {
 				float32(0), // max,
 			},
 			s.maxVerticalSpeedChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			1,
@@ -143,6 +146,7 @@ func (s *speedSettingsState) D2CCommands() []arcommands.D2CCommand {
 				float32(0), // max,
 			},
 			s.maxRotationSpeedChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			2,
@@ -151,6 +155,7 @@ func (s *speedSettingsState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // present,
 			},
 			s.hullProtectionChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			3,
@@ -159,6 +164,7 @@ func (s *speedSettingsState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // outdoor,
 			},
 			s.outdoorChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			4,
@@ -169,6 +175,7 @@ func (s *speedSettingsState) D2CCommands() []arcommands.D2CCommand {
 				float32(0), // max,
 			},
 			s.maxPitchRollRotationSpeedChanged,
+			log,
 		),
 	}
 }
@@ -179,7 +186,10 @@ func (s *speedSettingsState) D2CCommands() []arcommands.D2CCommand {
 // Support: 0901;090c
 // Triggered: by [SetMaxVerticalSpeed](#1-11-0).
 // Result:
-func (s *speedSettingsState) maxVerticalSpeedChanged(args []interface{}) error {
+func (s *speedSettingsState) maxVerticalSpeedChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	s.Lock()
 	defer s.Unlock()
 	s.maxVerticalSpeed = ptr.ToFloat32(args[0].(float32))
@@ -201,7 +211,10 @@ func (s *speedSettingsState) maxVerticalSpeedChanged(args []interface{}) error {
 // Support: 0901;090c
 // Triggered: by [SetMaxRotationSpeed](#1-11-1).
 // Result:
-func (s *speedSettingsState) maxRotationSpeedChanged(args []interface{}) error {
+func (s *speedSettingsState) maxRotationSpeedChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	s.Lock()
 	defer s.Unlock()
 	s.maxRotationSpeed = ptr.ToFloat32(args[0].(float32))
@@ -218,7 +231,10 @@ func (s *speedSettingsState) maxRotationSpeedChanged(args []interface{}) error {
 }
 
 // hullProtectionChanged is invoked by the device when hull protection changes.
-func (s *speedSettingsState) hullProtectionChanged(args []interface{}) error {
+func (s *speedSettingsState) hullProtectionChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	s.Lock()
 	defer s.Unlock()
 	s.hullProtection = ptr.ToBool(args[0].(uint8) == 1)
@@ -232,7 +248,10 @@ func (s *speedSettingsState) hullProtectionChanged(args []interface{}) error {
 // invoked, we'll implement the command to avoid a warning, but the
 // implementation will remain a no-op unless / until such time that it becomes
 // clear that older versions of the firmware might require us to support it.
-func (s *speedSettingsState) outdoorChanged(args []interface{}) error {
+func (s *speedSettingsState) outdoorChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	// outdoor := args[0].(uint8)
 	//   1 if outdoor flight, 0 if indoor flight
 	log.Debug("outdoor changed-- this is a no-op")
@@ -243,6 +262,7 @@ func (s *speedSettingsState) outdoorChanged(args []interface{}) error {
 // pitch/roll rotation speed is changed.
 func (s *speedSettingsState) maxPitchRollRotationSpeedChanged(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	s.Lock()
 	defer s.Unlock()

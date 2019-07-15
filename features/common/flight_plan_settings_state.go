@@ -26,7 +26,9 @@ func (f *flightPlanSettingsState) Name() string {
 	return "FlightPlanSettingsState"
 }
 
-func (f *flightPlanSettingsState) D2CCommands() []arcommands.D2CCommand {
+func (f *flightPlanSettingsState) D2CCommands(
+	log *log.Entry,
+) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -36,6 +38,7 @@ func (f *flightPlanSettingsState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // isReadOnly,
 			},
 			f.returnHomeOnDisconnectChanged,
+			log,
 		),
 	}
 }
@@ -47,11 +50,14 @@ func (f *flightPlanSettingsState) D2CCommands() []arcommands.D2CCommand {
 // Support: 0901:4.1.0;090c:4.1.0;090e:1.4.0
 // Triggered: by [setReturnHomeOnDisconnectMode](#0-32-0).
 // Result:
-func (f *flightPlanSettingsState) returnHomeOnDisconnectChanged(args []interface{}) error {
+func (f *flightPlanSettingsState) returnHomeOnDisconnectChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	// state := args[0].(uint8)
 	//   1 if enabled, 0 if disabled
 	// isReadOnly := args[1].(uint8)
 	//   1 if readOnly, 0 if writable
-	log.Info("common.returnHomeOnDisconnectChanged() called")
+	log.Warn("command not implemented")
 	return nil
 }

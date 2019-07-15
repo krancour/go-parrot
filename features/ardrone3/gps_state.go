@@ -87,7 +87,7 @@ func (g *gpsState) Name() string {
 	return "GPSState"
 }
 
-func (g *gpsState) D2CCommands() []arcommands.D2CCommand {
+func (g *gpsState) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -96,6 +96,7 @@ func (g *gpsState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // numberOfSatellites,
 			},
 			g.numberOfSatellitesChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			1,
@@ -105,6 +106,7 @@ func (g *gpsState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // available,
 			},
 			g.homeTypeAvailabilityChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			2,
@@ -113,13 +115,17 @@ func (g *gpsState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // type,
 			},
 			g.homeTypeChosenChanged,
+			log,
 		),
 	}
 }
 
 // numberOfSatellitesChanged is invoked when the the device reports that the
 // number of satellites being used to determine GPS coordinates has changed.
-func (g *gpsState) numberOfSatellitesChanged(args []interface{}) error {
+func (g *gpsState) numberOfSatellitesChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	g.Lock()
 	defer g.Unlock()
 	g.numberOfSatellites = ptr.ToUint8(args[0].(uint8))
@@ -131,7 +137,10 @@ func (g *gpsState) numberOfSatellitesChanged(args []interface{}) error {
 
 // homeTypeAvailabilityChanged is invoked by the device when the availability
 // of different return to home types is changed.
-func (g *gpsState) homeTypeAvailabilityChanged(args []interface{}) error {
+func (g *gpsState) homeTypeAvailabilityChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	g.Lock()
 	defer g.Unlock()
 	tipe := args[0].(int32)
@@ -160,7 +169,10 @@ func (g *gpsState) homeTypeAvailabilityChanged(args []interface{}) error {
 // available. Note that if the user's preferred type is unavailable, the device
 // will choose the first available type in this order: FOLLOWEE, TAKEOFF, PILOT,
 // FIRST_FIX.
-func (g *gpsState) homeTypeChosenChanged(args []interface{}) error {
+func (g *gpsState) homeTypeChosenChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	g.Lock()
 	defer g.Unlock()
 	g.returnToHomeType = ptr.ToInt32(args[0].(int32))

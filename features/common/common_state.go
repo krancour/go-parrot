@@ -99,13 +99,14 @@ func (c *commonState) Name() string {
 	return "CommonState"
 }
 
-func (c *commonState) D2CCommands() []arcommands.D2CCommand {
+func (c *commonState) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
 			"AllStatesChanged",
 			[]interface{}{},
 			c.allStatesChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			1,
@@ -114,6 +115,7 @@ func (c *commonState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // percent,
 			},
 			c.batteryStateChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			2,
@@ -123,6 +125,7 @@ func (c *commonState) D2CCommands() []arcommands.D2CCommand {
 				string(0), // name,
 			},
 			c.massStorageStateListChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			3,
@@ -136,6 +139,7 @@ func (c *commonState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0),  // internal,
 			},
 			c.massStorageInfoStateListChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			4,
@@ -144,6 +148,7 @@ func (c *commonState) D2CCommands() []arcommands.D2CCommand {
 				string(0), // date,
 			},
 			c.currentDateChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			5,
@@ -152,6 +157,7 @@ func (c *commonState) D2CCommands() []arcommands.D2CCommand {
 				string(0), // time,
 			},
 			c.currentTimeChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			7,
@@ -160,6 +166,7 @@ func (c *commonState) D2CCommands() []arcommands.D2CCommand {
 				int16(0), // rssi,
 			},
 			c.wifiSignalChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			8,
@@ -169,6 +176,7 @@ func (c *commonState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // sensorState,
 			},
 			c.sensorsStatesListChanged,
+			log,
 		),
 		// arcommands.NewD2CCommand(
 		// 	9,
@@ -189,6 +197,7 @@ func (c *commonState) D2CCommands() []arcommands.D2CCommand {
 				uint16(0), // nbCrashLogs,
 			},
 			c.deprecatedMassStorageContentChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			12,
@@ -202,6 +211,7 @@ func (c *commonState) D2CCommands() []arcommands.D2CCommand {
 				uint16(0), // nbRawPhotos,
 			},
 			c.massStorageContent,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			13,
@@ -213,6 +223,7 @@ func (c *commonState) D2CCommands() []arcommands.D2CCommand {
 				uint16(0), // nbRawPhotos,
 			},
 			c.massStorageContentForCurrentRun,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			14,
@@ -222,12 +233,16 @@ func (c *commonState) D2CCommands() []arcommands.D2CCommand {
 				uint64(0), // stopTimestamp,
 			},
 			c.videoRecordingTimestamp,
+			log,
 		),
 	}
 }
 
 // allStatesChanged is invoked by the device when all states have been sent.
-func (c *commonState) allStatesChanged(args []interface{}) error {
+func (c *commonState) allStatesChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	c.Lock()
 	defer c.Unlock()
 	c.allStatesSent = ptr.ToBool(true)
@@ -236,7 +251,10 @@ func (c *commonState) allStatesChanged(args []interface{}) error {
 }
 
 // batteryStateChanged is invoked by the device when the battery state changes.
-func (c *commonState) batteryStateChanged(args []interface{}) error {
+func (c *commonState) batteryStateChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	c.Lock()
 	defer c.Unlock()
 	c.batteryPercent = ptr.ToUint8(args[0].(uint8))
@@ -248,7 +266,10 @@ func (c *commonState) batteryStateChanged(args []interface{}) error {
 
 // massStorageStateListChanged is invoked by the device when a mass storage
 // device is inserted or ejected.
-func (c *commonState) massStorageStateListChanged(args []interface{}) error {
+func (c *commonState) massStorageStateListChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	c.Lock()
 	defer c.Unlock()
 	massStorageID := args[0].(uint8)
@@ -273,7 +294,10 @@ func (c *commonState) massStorageStateListChanged(args []interface{}) error {
 
 // massStorageInfoStateListChanged is invoked by the devicde when mass storage
 // info changes.
-func (c *commonState) massStorageInfoStateListChanged(args []interface{}) error {
+func (c *commonState) massStorageInfoStateListChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	c.Lock()
 	defer c.Unlock()
 	massStorageID := args[0].(uint8)
@@ -317,10 +341,13 @@ func (c *commonState) massStorageInfoStateListChanged(args []interface{}) error 
 // Support: drones
 // Triggered: by [SetDate](#0-4-1).
 // Result:
-func (c *commonState) currentDateChanged(args []interface{}) error {
+func (c *commonState) currentDateChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	// date := args[0].(string)
 	//   Date with ISO-8601 format
-	log.Info("common.currentDateChanged() called")
+	log.Warn("command not implemented")
 	return nil
 }
 
@@ -333,16 +360,22 @@ func (c *commonState) currentDateChanged(args []interface{}) error {
 // Support: drones
 // Triggered: by [SetTime](#0-4-2).
 // Result:
-func (c *commonState) currentTimeChanged(args []interface{}) error {
+func (c *commonState) currentTimeChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	// time := args[0].(string)
 	//   Time with ISO-8601 format
-	log.Info("common.currentTimeChanged() called")
+	log.Warn("command not implemented")
 	return nil
 }
 
 // wifiSignalChanged is invoked when the device reports relative wifi signal
 // strength at regular intervals.
-func (c *commonState) wifiSignalChanged(args []interface{}) error {
+func (c *commonState) wifiSignalChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	c.Lock()
 	defer c.Unlock()
 	c.rssi = ptr.ToInt16(args[0].(int16))
@@ -358,12 +391,15 @@ func (c *commonState) wifiSignalChanged(args []interface{}) error {
 // Support: 0901:2.0.3;0902;0905;0906;0907;0909;090a;090c;090e
 // Triggered: at connection and when a sensor state changes.
 // Result:
-func (c *commonState) sensorsStatesListChanged(args []interface{}) error {
+func (c *commonState) sensorsStatesListChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	c.Lock()
 	defer c.Unlock()
 	sensorID := args[0].(int32)
 	state := ptr.ToBool(args[1].(uint8) == 1)
-	log := log.WithField(
+	log = log.WithField(
 		"state", *state,
 	)
 	switch sensorID {
@@ -420,7 +456,7 @@ func (c *commonState) sensorsStatesListChanged(args []interface{}) error {
 // 	//   12: JS_TUKTUK: Tuk-Tuk (JS taxi) model
 // 	//   13: SW_BLACK: Swing black model
 // 	//   14: SW_WHITE: Swing white model
-// 	log.Info("common.productModel() called")
+// 	log.Warn("command not implemented")
 // 	return nil
 // }
 
@@ -431,6 +467,7 @@ func (c *commonState) sensorsStatesListChanged(args []interface{}) error {
 // versions of the firmware might require us to support both commands.
 func (c *commonState) deprecatedMassStorageContentChanged(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	// mass_storage_id := args[0].(uint8)
 	//   Mass storage id (unique)
@@ -448,7 +485,10 @@ func (c *commonState) deprecatedMassStorageContentChanged(
 
 // massStorageContent is invoked when the device reports that the content of the
 // mass storage has changed.
-func (c *commonState) massStorageContent(args []interface{}) error {
+func (c *commonState) massStorageContent(
+	args []interface{},
+	log *log.Entry,
+) error {
 	c.Lock()
 	defer c.Unlock()
 	massStorageID := args[0].(uint8)
@@ -488,6 +528,7 @@ func (c *commonState) massStorageContent(args []interface{}) error {
 // current run.
 func (c *commonState) massStorageContentForCurrentRun(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	c.Lock()
 	defer c.Unlock()
@@ -519,13 +560,16 @@ func (c *commonState) massStorageContentForCurrentRun(
 
 // videoRecordingTimestamp is invoked by the device on video recording start and
 // video recording stop or after that the date/time of the drone changed.
-func (c *commonState) videoRecordingTimestamp(args []interface{}) error {
+func (c *commonState) videoRecordingTimestamp(
+	args []interface{},
+	log *log.Entry,
+) error {
 	// startTimestamp := args[0].(uint64)
 	//   Timestamp in milliseconds since 00:00:00 UTC on 1 January 1970.
 	// stopTimestamp := args[1].(uint64)
 	//   Timestamp in milliseconds since 00:00:00 UTC on 1 January 1970. 0 mean
 	//   that video is still recording.
-	log.Info("common.videoRecordingTimestamp() called")
+	log.Warn("command not implemented")
 	return nil
 }
 

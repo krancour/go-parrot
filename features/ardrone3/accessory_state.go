@@ -31,7 +31,7 @@ func (a *accessoryState) Name() string {
 	return "AccessoryState"
 }
 
-func (a *accessoryState) D2CCommands() []arcommands.D2CCommand {
+func (a *accessoryState) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -44,6 +44,7 @@ func (a *accessoryState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0),  // list_flags,
 			},
 			a.connectedAccessories,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			1,
@@ -54,13 +55,17 @@ func (a *accessoryState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // list_flags,
 			},
 			a.battery,
+			log,
 		),
 	}
 }
 
 // connectedAccessories is invoked by the device to list all connected
 // accessories.
-func (a *accessoryState) connectedAccessories(args []interface{}) error {
+func (a *accessoryState) connectedAccessories(
+	args []interface{},
+	log *log.Entry,
+) error {
 	a.Lock()
 	defer a.Unlock()
 	flags := args[4].(uint8)
@@ -109,7 +114,7 @@ func (a *accessoryState) connectedAccessories(args []interface{}) error {
 
 // battery is invoked by the device when the battery level of a connected
 // accessory changes.
-func (a *accessoryState) battery(args []interface{}) error {
+func (a *accessoryState) battery(args []interface{}, log *log.Entry) error {
 	a.Lock()
 	defer a.Unlock()
 	flags := args[2].(uint8)

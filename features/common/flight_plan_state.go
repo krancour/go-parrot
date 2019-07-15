@@ -41,7 +41,7 @@ func (f *flightPlanState) Name() string {
 	return "FlightPlanState"
 }
 
-func (f *flightPlanState) D2CCommands() []arcommands.D2CCommand {
+func (f *flightPlanState) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -50,6 +50,7 @@ func (f *flightPlanState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // AvailabilityState,
 			},
 			f.availabilityStateChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			1,
@@ -59,6 +60,7 @@ func (f *flightPlanState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // State,
 			},
 			f.componentStateListChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			2,
@@ -67,13 +69,17 @@ func (f *flightPlanState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // LockState,
 			},
 			f.lockStateChanged,
+			log,
 		),
 	}
 }
 
 // availabilityStateChanged is invoked by the device to indicate whether
 // running a flight plan file is available.
-func (f *flightPlanState) availabilityStateChanged(args []interface{}) error {
+func (f *flightPlanState) availabilityStateChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	f.Lock()
 	defer f.Unlock()
 	f.runFlightPlanFileAvailable = ptr.ToBool(args[0].(uint8) == 1)
@@ -96,12 +102,15 @@ func (f *flightPlanState) availabilityStateChanged(args []interface{}) error {
 //   WaypointsBeyondGeofence component is triggered when the command
 //   [StartFlightPlan](#0-11-0) is received.
 // Result:
-func (f *flightPlanState) componentStateListChanged(args []interface{}) error {
+func (f *flightPlanState) componentStateListChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	f.Lock()
 	defer f.Unlock()
 	componentID := args[0].(int32)
 	state := ptr.ToBool(args[1].(uint8) == 1)
-	log := log.WithField(
+	log = log.WithField(
 		"state", *state,
 	)
 	switch componentID {
@@ -137,11 +146,14 @@ func (f *flightPlanState) componentStateListChanged(args []interface{}) error {
 // Support: 0901:2.0.29;090c;090e
 // Triggered: when the lock changes.
 // Result:
-func (f *flightPlanState) lockStateChanged(args []interface{}) error {
+func (f *flightPlanState) lockStateChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	// LockState := args[0].(uint8)
 	//   1 if FlightPlan is locked: can&#39;t pause or stop FlightPlan. 0 if
 	//   FlightPlan is unlocked: pause or stop available.
-	log.Info("common.lockStateChanged() called")
+	log.Warn("command not implemented")
 	return nil
 }
 

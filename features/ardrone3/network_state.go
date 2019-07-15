@@ -28,7 +28,7 @@ func (n *networkState) Name() string {
 	return "NetworkState"
 }
 
-func (n *networkState) D2CCommands() []arcommands.D2CCommand {
+func (n *networkState) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -40,12 +40,14 @@ func (n *networkState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0),  // channel,
 			},
 			n.wifiScanListChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			1,
 			"AllWifiScanChanged",
 			[]interface{}{},
 			n.allWifiScanChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			2,
@@ -56,12 +58,14 @@ func (n *networkState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // in_or_out,
 			},
 			n.wifiAuthChannelListChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			3,
 			"AllWifiAuthChannelChanged",
 			[]interface{}{},
 			n.allWifiAuthChannelChanged,
+			log,
 		),
 	}
 }
@@ -73,7 +77,10 @@ func (n *networkState) D2CCommands() []arcommands.D2CCommand {
 // Support: 0901;090c;090e
 // Triggered: for each wifi network scanned after a [ScanWifi](#1-13-0)
 // Result:
-func (n *networkState) wifiScanListChanged(args []interface{}) error {
+func (n *networkState) wifiScanListChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	// ssid := args[0].(string)
 	//   SSID of the AP
 	// rssi := args[1].(int16)
@@ -84,7 +91,7 @@ func (n *networkState) wifiScanListChanged(args []interface{}) error {
 	//   1: 5ghz: 5 GHz band
 	// channel := args[3].(uint8)
 	//   Channel of the AP
-	log.Info("ardrone3.wifiScanListChanged() called")
+	log.Warn("command not implemented")
 	return nil
 }
 
@@ -95,8 +102,11 @@ func (n *networkState) wifiScanListChanged(args []interface{}) error {
 // Support: 0901;090c;090e
 // Triggered: after the last [WifiScanResult](#1-14-0) has been sent.
 // Result:
-func (n *networkState) allWifiScanChanged(args []interface{}) error {
-	log.Info("ardrone3.allWifiScanChanged() called")
+func (n *networkState) allWifiScanChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
+	log.Warn("command not implemented")
 	return nil
 }
 
@@ -109,7 +119,10 @@ func (n *networkState) allWifiScanChanged(args []interface{}) error {
 // Triggered: for each available channel after a
 //   [GetAvailableWifiChannels](#1-13-1).
 // Result:
-func (n *networkState) wifiAuthChannelListChanged(args []interface{}) error {
+func (n *networkState) wifiAuthChannelListChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	// band := args[0].(int32)
 	//   The band of this channel : 2.4 GHz or 5 GHz
 	//   0: 2_4ghz: 2.4 GHz band
@@ -119,7 +132,7 @@ func (n *networkState) wifiAuthChannelListChanged(args []interface{}) error {
 	// in_or_out := args[2].(uint8)
 	//   Bit 0 is 1 if channel is authorized outside (0 otherwise) ; Bit 1 is 1 if
 	//   channel is authorized inside (0 otherwise)
-	log.Info("ardrone3.wifiAuthChannelListChanged() called")
+	log.Warn("command not implemented")
 	return nil
 }
 
@@ -130,7 +143,10 @@ func (n *networkState) wifiAuthChannelListChanged(args []interface{}) error {
 // Support: 0901;090c;090e
 // Triggered: after the last [AvailableWifiChannel](#1-14-2) has been sent.
 // Result:
-func (n *networkState) allWifiAuthChannelChanged(args []interface{}) error {
-	log.Info("ardrone3.allWifiAuthChannelChanged() called")
+func (n *networkState) allWifiAuthChannelChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
+	log.Warn("command not implemented")
 	return nil
 }

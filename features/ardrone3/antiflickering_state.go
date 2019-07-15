@@ -51,7 +51,9 @@ func (a *antiflickeringState) Name() string {
 	return "AntiflickeringState"
 }
 
-func (a *antiflickeringState) D2CCommands() []arcommands.D2CCommand {
+func (a *antiflickeringState) D2CCommands(
+	log *log.Entry,
+) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -60,6 +62,7 @@ func (a *antiflickeringState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // frequency,
 			},
 			a.electricFrequencyChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			1,
@@ -68,6 +71,7 @@ func (a *antiflickeringState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // mode,
 			},
 			a.modeChanged,
+			log,
 		),
 	}
 }
@@ -76,6 +80,7 @@ func (a *antiflickeringState) D2CCommands() []arcommands.D2CCommand {
 // is changed.
 func (a *antiflickeringState) electricFrequencyChanged(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	a.Lock()
 	defer a.Unlock()
@@ -87,7 +92,10 @@ func (a *antiflickeringState) electricFrequencyChanged(
 }
 
 // modeChanged is invoked by the device when the antiflickering mode is changed.
-func (a *antiflickeringState) modeChanged(args []interface{}) error {
+func (a *antiflickeringState) modeChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	a.Lock()
 	defer a.Unlock()
 	a.mode = ptr.ToInt32(args[0].(int32))

@@ -28,7 +28,7 @@ func (m *mediaRecordEvent) Name() string {
 	return "MediaRecordEvent"
 }
 
-func (m *mediaRecordEvent) D2CCommands() []arcommands.D2CCommand {
+func (m *mediaRecordEvent) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -38,6 +38,7 @@ func (m *mediaRecordEvent) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // error,
 			},
 			m.pictureEventChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			1,
@@ -47,6 +48,7 @@ func (m *mediaRecordEvent) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // error,
 			},
 			m.videoEventChanged,
+			log,
 		),
 	}
 }
@@ -59,7 +61,10 @@ func (m *mediaRecordEvent) D2CCommands() []arcommands.D2CCommand {
 // Triggered: after a [TakePicture](#1-7-2), when the picture has been taken
 //   (or it has failed).
 // Result:
-func (m *mediaRecordEvent) pictureEventChanged(args []interface{}) error {
+func (m *mediaRecordEvent) pictureEventChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	// event := args[0].(int32)
 	//   Last event of picture recording
 	//   0: taken: Picture taken and saved
@@ -73,7 +78,7 @@ func (m *mediaRecordEvent) pictureEventChanged(args []interface{}) error {
 	//      failed
 	//   4: memoryFull: Memory full ; only when state is failed
 	//   5: lowBattery: Battery is too low to record.
-	log.Info("ardrone3.pictureEventChanged() called")
+	log.Warn("command not implemented")
 	return nil
 }
 
@@ -84,7 +89,10 @@ func (m *mediaRecordEvent) pictureEventChanged(args []interface{}) error {
 // Support: 0901:2.0.1;090c;090e
 // Triggered: by [RecordVideo](#1-7-3) or a change in the video state.
 // Result:
-func (m *mediaRecordEvent) videoEventChanged(args []interface{}) error {
+func (m *mediaRecordEvent) videoEventChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	// event := args[0].(int32)
 	//   Event of video recording
 	//   0: start: Video start
@@ -100,6 +108,6 @@ func (m *mediaRecordEvent) videoEventChanged(args []interface{}) error {
 	//   4: memoryFull: Memory full
 	//   5: lowBattery: Battery is too low to record.
 	//   6: autoStopped: Video was auto stopped
-	log.Info("ardrone3.videoEventChanged() called")
+	log.Warn("command not implemented")
 	return nil
 }

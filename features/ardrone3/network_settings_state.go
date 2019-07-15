@@ -87,7 +87,9 @@ func (n *networkSettingsState) Name() string {
 	return "NetworkSettingsState"
 }
 
-func (n *networkSettingsState) D2CCommands() []arcommands.D2CCommand {
+func (n *networkSettingsState) D2CCommands(
+	log *log.Entry,
+) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -98,6 +100,7 @@ func (n *networkSettingsState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // channel,
 			},
 			n.wifiSelectionChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			1,
@@ -106,6 +109,7 @@ func (n *networkSettingsState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // type,
 			},
 			n.wifiSecurityChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			2,
@@ -116,12 +120,16 @@ func (n *networkSettingsState) D2CCommands() []arcommands.D2CCommand {
 				int32(0),  // keyType,
 			},
 			n.wifiSecurity,
+			log,
 		),
 	}
 }
 
 // wifiSelectionChanged is invoked by the device when wifi selection changes.
-func (n *networkSettingsState) wifiSelectionChanged(args []interface{}) error {
+func (n *networkSettingsState) wifiSelectionChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	n.Lock()
 	defer n.Unlock()
 	n.tipe = ptr.ToInt32(args[0].(int32))
@@ -142,7 +150,10 @@ func (n *networkSettingsState) wifiSelectionChanged(args []interface{}) error {
 // warning, but the implementation will remain a no-op unless / until such time
 // that it becomes clear that older versions of the firmware might require us to
 // support both commands.
-func (n *networkSettingsState) wifiSecurityChanged(args []interface{}) error {
+func (n *networkSettingsState) wifiSecurityChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	// type := args[0].(int32)
 	//   The type of wifi security (open, wpa2)
 	//   0: open: Wifi is not protected by any security (default)
@@ -152,7 +163,10 @@ func (n *networkSettingsState) wifiSecurityChanged(args []interface{}) error {
 }
 
 // wifiSecurity is invoked by the device when wifi security changes.
-func (n *networkSettingsState) wifiSecurity(args []interface{}) error {
+func (n *networkSettingsState) wifiSecurity(
+	args []interface{},
+	log *log.Entry,
+) error {
 	n.Lock()
 	defer n.Unlock()
 	n.securityType = ptr.ToInt32(args[0].(int32))

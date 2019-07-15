@@ -187,7 +187,9 @@ func (p *pictureSettingsState) Name() string {
 	return "PictureSettingsState"
 }
 
-func (p *pictureSettingsState) D2CCommands() []arcommands.D2CCommand {
+func (p *pictureSettingsState) D2CCommands(
+	log *log.Entry,
+) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -196,6 +198,7 @@ func (p *pictureSettingsState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // type,
 			},
 			p.pictureFormatChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			1,
@@ -204,6 +207,7 @@ func (p *pictureSettingsState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // type,
 			},
 			p.autoWhiteBalanceChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			2,
@@ -214,6 +218,7 @@ func (p *pictureSettingsState) D2CCommands() []arcommands.D2CCommand {
 				float32(0), // max,
 			},
 			p.expositionChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			3,
@@ -224,6 +229,7 @@ func (p *pictureSettingsState) D2CCommands() []arcommands.D2CCommand {
 				float32(0), // max,
 			},
 			p.saturationChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			4,
@@ -235,6 +241,7 @@ func (p *pictureSettingsState) D2CCommands() []arcommands.D2CCommand {
 				float32(0), // maxInterval,
 			},
 			p.timelapseChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			5,
@@ -244,6 +251,7 @@ func (p *pictureSettingsState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // mass_storage_id,
 			},
 			p.videoAutorecordChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			6,
@@ -252,6 +260,7 @@ func (p *pictureSettingsState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // mode,
 			},
 			p.videoStabilizationModeChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			7,
@@ -260,6 +269,7 @@ func (p *pictureSettingsState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // mode,
 			},
 			p.videoRecordingModeChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			8,
@@ -268,6 +278,7 @@ func (p *pictureSettingsState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // framerate,
 			},
 			p.videoFramerateChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			9,
@@ -276,13 +287,17 @@ func (p *pictureSettingsState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // type,
 			},
 			p.videoResolutionsChanged,
+			log,
 		),
 	}
 }
 
 // pictureFormatChanged is invoked by the device when the picture format is
 // changed.
-func (p *pictureSettingsState) pictureFormatChanged(args []interface{}) error {
+func (p *pictureSettingsState) pictureFormatChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	p.Lock()
 	defer p.Unlock()
 	p.format = ptr.ToInt32(args[0].(int32))
@@ -296,6 +311,7 @@ func (p *pictureSettingsState) pictureFormatChanged(args []interface{}) error {
 // is changed.
 func (p *pictureSettingsState) autoWhiteBalanceChanged(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	p.Lock()
 	defer p.Unlock()
@@ -307,7 +323,10 @@ func (p *pictureSettingsState) autoWhiteBalanceChanged(
 }
 
 // expositionChanged is invoked by the device when exposure is changed.
-func (p *pictureSettingsState) expositionChanged(args []interface{}) error {
+func (p *pictureSettingsState) expositionChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	p.Lock()
 	defer p.Unlock()
 	p.exposure = ptr.ToFloat32(args[0].(float32))
@@ -325,7 +344,10 @@ func (p *pictureSettingsState) expositionChanged(args []interface{}) error {
 
 // saturationChanged is invoked by the device when the picture saturation is
 // changed.
-func (p *pictureSettingsState) saturationChanged(args []interface{}) error {
+func (p *pictureSettingsState) saturationChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	p.Lock()
 	defer p.Unlock()
 	p.saturation = ptr.ToFloat32(args[0].(float32))
@@ -343,7 +365,10 @@ func (p *pictureSettingsState) saturationChanged(args []interface{}) error {
 
 // timelapseChanged is invoked by the device when time lapse photography
 // settings are changed.
-func (p *pictureSettingsState) timelapseChanged(args []interface{}) error {
+func (p *pictureSettingsState) timelapseChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	p.Lock()
 	defer p.Unlock()
 	p.timeLapseEnabled = ptr.ToBool(args[0].(uint8) == 1)
@@ -366,6 +391,7 @@ func (p *pictureSettingsState) timelapseChanged(args []interface{}) error {
 // enabled or disabled.
 func (p *pictureSettingsState) videoAutorecordChanged(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	p.Lock()
 	defer p.Unlock()
@@ -383,6 +409,7 @@ func (p *pictureSettingsState) videoAutorecordChanged(
 // stabilization mode is changed.
 func (p *pictureSettingsState) videoStabilizationModeChanged(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	p.Lock()
 	defer p.Unlock()
@@ -397,6 +424,7 @@ func (p *pictureSettingsState) videoStabilizationModeChanged(
 // mode is changed.
 func (p *pictureSettingsState) videoRecordingModeChanged(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	p.Lock()
 	defer p.Unlock()
@@ -409,7 +437,10 @@ func (p *pictureSettingsState) videoRecordingModeChanged(
 
 // videoFramerateChanged is invoked by the devide when the video framerate is
 // changed.
-func (p *pictureSettingsState) videoFramerateChanged(args []interface{}) error {
+func (p *pictureSettingsState) videoFramerateChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	p.Lock()
 	defer p.Unlock()
 	p.videoFramerate = ptr.ToInt32(args[0].(int32))
@@ -423,6 +454,7 @@ func (p *pictureSettingsState) videoFramerateChanged(args []interface{}) error {
 // is changed.
 func (p *pictureSettingsState) videoResolutionsChanged(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	p.Lock()
 	defer p.Unlock()

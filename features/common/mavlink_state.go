@@ -58,7 +58,7 @@ func (m *mavlinkState) Name() string {
 	return "MavlinkState"
 }
 
-func (m *mavlinkState) D2CCommands() []arcommands.D2CCommand {
+func (m *mavlinkState) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -69,6 +69,7 @@ func (m *mavlinkState) D2CCommands() []arcommands.D2CCommand {
 				int32(0),  // type,
 			},
 			m.mavlinkFilePlayingStateChanged,
+			log,
 		),
 		// arcommands.NewD2CCommand(
 		// 	2,
@@ -83,7 +84,10 @@ func (m *mavlinkState) D2CCommands() []arcommands.D2CCommand {
 
 // mavlinkFilePlayingStateChanged is invoked by the device when a flight plan
 // is started, paused, or stopped.
-func (m *mavlinkState) mavlinkFilePlayingStateChanged(args []interface{}) error {
+func (m *mavlinkState) mavlinkFilePlayingStateChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	m.Lock()
 	defer m.Unlock()
 	m.mavlinkState = ptr.ToInt32(args[0].(int32))
@@ -109,7 +113,7 @@ func (m *mavlinkState) mavlinkFilePlayingStateChanged(args []interface{}) error 
 // 	// idx := args[0].(uint32)
 // 	//   Index of the mission item. This is the place of the mission item in the
 // 	//   list of the items of the mission. Begins at 0.
-// 	log.Info("common.missionItemExecuted() called")
+// 	log.Warn("command not implemented")
 // 	return nil
 // }
 

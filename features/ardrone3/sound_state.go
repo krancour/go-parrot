@@ -28,7 +28,7 @@ func (s *soundState) Name() string {
 	return "SoundState"
 }
 
-func (s *soundState) D2CCommands() []arcommands.D2CCommand {
+func (s *soundState) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -37,6 +37,7 @@ func (s *soundState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // state,
 			},
 			s.alertSound,
+			log,
 		),
 	}
 }
@@ -48,11 +49,11 @@ func (s *soundState) D2CCommands() []arcommands.D2CCommand {
 // Triggered: by [StartAlertSound](#1-35-0) or [StopAlertSound](#1-35-1) or \
 //   when the drone starts or stops to play an alert sound by itself.
 // Result:
-func (s *soundState) alertSound(args []interface{}) error {
+func (s *soundState) alertSound(args []interface{}, log *log.Entry) error {
 	// state := args[0].(int32)
 	//   State of the alert sound
 	//   0: stopped: Alert sound is not playing
 	//   1: playing: Alert sound is playing
-	log.Info("ardrone3.alertSound() called")
+	log.Warn("command not implemented")
 	return nil
 }

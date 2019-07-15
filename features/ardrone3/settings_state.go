@@ -80,7 +80,7 @@ func (s *settingsState) Name() string {
 	return "SettingsState"
 }
 
-func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
+func (s *settingsState) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			1,
@@ -90,6 +90,7 @@ func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 				string(0), // hardware,
 			},
 			s.productGPSVersionChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			2,
@@ -99,6 +100,7 @@ func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // motorError,
 			},
 			s.motorErrorStateChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			3,
@@ -107,6 +109,7 @@ func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 				string(0), // version,
 			},
 			s.motorSoftwareVersionChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			4,
@@ -117,6 +120,7 @@ func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 				uint32(0), // totalFlightDuration,
 			},
 			s.motorFlightsStatusChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			5,
@@ -125,6 +129,7 @@ func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // motorError,
 			},
 			s.motorErrorLastErrorChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			6,
@@ -133,6 +138,7 @@ func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 				string(0), // serialID,
 			},
 			s.p7ID,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			7,
@@ -141,12 +147,16 @@ func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 				string(0), // id,
 			},
 			s.cpuID,
+			log,
 		),
 	}
 }
 
 // productGPSVersionChanged is invoked by the device at connection time.
-func (s *settingsState) productGPSVersionChanged(args []interface{}) error {
+func (s *settingsState) productGPSVersionChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	s.Lock()
 	defer s.Unlock()
 	s.gpsSoftwareVersion = ptr.ToString(args[0].(string))
@@ -160,7 +170,10 @@ func (s *settingsState) productGPSVersionChanged(args []interface{}) error {
 }
 
 // motorErrorStateChanged is triggered by the device when a motor error occurs.
-func (s *settingsState) motorErrorStateChanged(args []interface{}) error {
+func (s *settingsState) motorErrorStateChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	motorIds := args[0].(uint8)
 	l := log.WithField(
 		"fontLeft", motorIds&MotorFrontLeft == MotorFrontLeft,
@@ -210,7 +223,10 @@ func (s *settingsState) motorErrorStateChanged(args []interface{}) error {
 // the implementation will remain a no-op unless / until such time that it
 // becomes clear that older versions of the firmware might require us to support
 // it.
-func (s *settingsState) motorSoftwareVersionChanged(args []interface{}) error {
+func (s *settingsState) motorSoftwareVersionChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	// version := args[0].(string)
 	//   name of the version : dot separated fields (major version - minor version
 	//   - firmware type - nb motors handled). Firmware types : Release, Debug,
@@ -220,7 +236,10 @@ func (s *settingsState) motorSoftwareVersionChanged(args []interface{}) error {
 }
 
 // motorFlightsStatusChanged is invoked by the device at connection time.
-func (s *settingsState) motorFlightsStatusChanged(args []interface{}) error {
+func (s *settingsState) motorFlightsStatusChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	s.Lock()
 	defer s.Unlock()
 	s.numberOfFlights = ptr.ToUint16(args[0].(uint16))
@@ -239,7 +258,10 @@ func (s *settingsState) motorFlightsStatusChanged(args []interface{}) error {
 // motorErrorLastErrorChanged is a no-op because the function it's meant to
 // carry out-- a "reminder" of the most recent motor error is not contextually
 // necessary for this SDK.
-func (s *settingsState) motorErrorLastErrorChanged(args []interface{}) error {
+func (s *settingsState) motorErrorLastErrorChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	log.Debug("last motor error changed-- this is a no-op")
 	return nil
 }
@@ -248,7 +270,7 @@ func (s *settingsState) motorErrorLastErrorChanged(args []interface{}) error {
 // we'll implement the command to avoid a warning, but the implementation will
 // remain a no-op unless / until such time that it becomes clear that older
 // versions of the firmware might require us to support it.
-func (s *settingsState) p7ID(args []interface{}) error {
+func (s *settingsState) p7ID(args []interface{}, log *log.Entry) error {
 	// serialID := args[0].(string)
 	//   Product P7ID
 	log.Debug("p7ID changed-- this is a no-op")
@@ -256,7 +278,7 @@ func (s *settingsState) p7ID(args []interface{}) error {
 }
 
 // cpuID is invoked by the device at connecton time to report its CPU ID.
-func (s *settingsState) cpuID(args []interface{}) error {
+func (s *settingsState) cpuID(args []interface{}, log *log.Entry) error {
 	s.Lock()
 	defer s.Unlock()
 	s.deviceCPUID = ptr.ToString(args[0].(string))

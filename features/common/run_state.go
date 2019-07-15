@@ -36,7 +36,7 @@ func (r *runState) Name() string {
 	return "RunState"
 }
 
-func (r *runState) D2CCommands() []arcommands.D2CCommand {
+func (r *runState) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -45,13 +45,14 @@ func (r *runState) D2CCommands() []arcommands.D2CCommand {
 				string(0), // runId,
 			},
 			r.runIDChanged,
+			log,
 		),
 	}
 }
 
 // runIDChanged is invoked by the device to provide a unique identifier for the
 // current flight.
-func (r *runState) runIDChanged(args []interface{}) error {
+func (r *runState) runIDChanged(args []interface{}, log *log.Entry) error {
 	r.Lock()
 	defer r.Unlock()
 	r.runID = ptr.ToString(args[0].(string))

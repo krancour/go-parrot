@@ -29,8 +29,18 @@ func NewD2CCommandServer(
 ) (D2CCommandServer, error) {
 	d2cCommands := map[string]D2CCommand{}
 	for _, feature := range d2cFeatures {
+		log := log.WithField(
+			"featureID", feature.ID(),
+		).WithField(
+			"featureName", feature.Name(),
+		)
 		for _, class := range feature.D2CClasses() {
-			for _, command := range class.D2CCommands() {
+			log = log.WithField(
+				"classID", class.ID(),
+			).WithField(
+				"className", class.Name(),
+			)
+			for _, command := range class.D2CCommands(log) {
 				key := getCommandKey(feature.ID(), class.ID(), command.ID())
 				if _, ok := d2cCommands[key]; ok {
 					return nil, errors.Errorf("command with key %s already defined", key)

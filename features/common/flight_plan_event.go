@@ -28,13 +28,14 @@ func (f *flightPlanEvent) Name() string {
 	return "FlightPlanEvent"
 }
 
-func (f *flightPlanEvent) D2CCommands() []arcommands.D2CCommand {
+func (f *flightPlanEvent) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
 			"StartingErrorEvent",
 			[]interface{}{},
 			f.startingErrorEvent,
+			log,
 		),
 		// arcommands.NewD2CCommand(
 		// 	1,
@@ -52,8 +53,11 @@ func (f *flightPlanEvent) D2CCommands() []arcommands.D2CCommand {
 // Support: 0901:2.0.29;090c;090e
 // Triggered: on an error after a [StartFlightPlan](#0-11-0).
 // Result:
-func (f *flightPlanEvent) startingErrorEvent(args []interface{}) error {
-	log.Info("common.startingErrorEvent() called")
+func (f *flightPlanEvent) startingErrorEvent(
+	args []interface{},
+	log *log.Entry,
+) error {
+	log.Warn("command not implemented")
 	return nil
 }
 
@@ -67,6 +71,6 @@ func (f *flightPlanEvent) startingErrorEvent(args []interface{}) error {
 // // Triggered: on an speed related clamping after a [StartFlightPlan](#0-11-0).
 // // Result:
 // func (f *flightPlanEvent) speedBridleEvent(args []interface{}) error {
-// 	log.Info("common.speedBridleEvent() called")
+// 	log.Warn("command not implemented")
 // 	return nil
 // }

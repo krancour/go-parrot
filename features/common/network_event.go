@@ -28,7 +28,7 @@ func (n *networkEvent) Name() string {
 	return "NetworkEvent"
 }
 
-func (n *networkEvent) D2CCommands() []arcommands.D2CCommand {
+func (n *networkEvent) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -37,6 +37,7 @@ func (n *networkEvent) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // cause,
 			},
 			n.disconnection,
+			log,
 		),
 	}
 }
@@ -50,11 +51,11 @@ func (n *networkEvent) D2CCommands() []arcommands.D2CCommand {
 // Support: 0901;090c
 // Triggered: mainly when the user presses the power button of the drone.
 // Result:
-func (n *networkEvent) disconnection(args []interface{}) error {
+func (n *networkEvent) disconnection(args []interface{}, log *log.Entry) error {
 	// cause := args[0].(int32)
 	//   Cause of the disconnection of the product
 	//   0: off_button: The button off has been pressed
 	//   1: unknown: Unknown generic cause
-	log.Info("common.disconnection() called")
+	log.Warn("command not implemented")
 	return nil
 }

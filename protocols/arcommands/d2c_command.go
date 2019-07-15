@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"reflect"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/pkg/errors"
 )
 
@@ -20,7 +21,8 @@ type d2cCommand struct {
 	id          uint16
 	name        string
 	argTemplate []interface{}
-	callback    func(args []interface{}) error
+	callback    func(args []interface{}, log *log.Entry) error
+	log         *log.Entry
 }
 
 // NewD2CCommand ...
@@ -29,13 +31,20 @@ func NewD2CCommand(
 	id uint16,
 	name string,
 	argTemplate []interface{},
-	callback func(args []interface{}) error,
+	callback func(args []interface{}, log *log.Entry) error,
+	log *log.Entry,
 ) D2CCommand {
+	log = log.WithField(
+		"commandID", id,
+	).WithField(
+		"commandName", name,
+	)
 	return &d2cCommand{
 		id:          id,
 		name:        name,
 		argTemplate: argTemplate,
 		callback:    callback,
+		log:         log,
 	}
 }
 
@@ -54,7 +63,7 @@ func (d *d2cCommand) execute(data []byte) error {
 	if err := decodeArgs(data, args); err != nil {
 		return errors.Wrap(err, "error decoding command arguments")
 	}
-	if err := d.callback(args); err != nil {
+	if err := d.callback(args, d.log); err != nil {
 		return errors.Wrap(err, "error executing command")
 	}
 	return nil

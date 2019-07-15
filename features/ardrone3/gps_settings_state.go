@@ -91,7 +91,7 @@ func (g *gpsSettingsState) Name() string {
 	return "GPSSettingsState"
 }
 
-func (g *gpsSettingsState) D2CCommands() []arcommands.D2CCommand {
+func (g *gpsSettingsState) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -102,6 +102,7 @@ func (g *gpsSettingsState) D2CCommands() []arcommands.D2CCommand {
 				float64(0), // altitude,
 			},
 			g.homeChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			2,
@@ -110,6 +111,7 @@ func (g *gpsSettingsState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // fixed,
 			},
 			g.gPSFixStateChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			4,
@@ -118,6 +120,7 @@ func (g *gpsSettingsState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // type,
 			},
 			g.homeTypeChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			5,
@@ -126,6 +129,7 @@ func (g *gpsSettingsState) D2CCommands() []arcommands.D2CCommand {
 				uint16(0), // delay,
 			},
 			g.returnHomeDelayChanged,
+			log,
 		),
 		// arcommands.NewD2CCommand(
 		// 	6,
@@ -141,7 +145,10 @@ func (g *gpsSettingsState) D2CCommands() []arcommands.D2CCommand {
 
 // homeChanged is invoked by the device when the home location (the place the
 // drone will return to) is changed.
-func (g *gpsSettingsState) homeChanged(args []interface{}) error {
+func (g *gpsSettingsState) homeChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	g.Lock()
 	defer g.Unlock()
 	g.homeLatitude = ptr.ToFloat64(args[0].(float64))
@@ -158,7 +165,10 @@ func (g *gpsSettingsState) homeChanged(args []interface{}) error {
 }
 
 // gPSFixStateChanged is invoked by the device when the GPS fix is changed.
-func (g *gpsSettingsState) gPSFixStateChanged(args []interface{}) error {
+func (g *gpsSettingsState) gPSFixStateChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	g.Lock()
 	defer g.Unlock()
 	g.gpsFixed = ptr.ToBool(args[0].(uint8) == 1)
@@ -169,7 +179,10 @@ func (g *gpsSettingsState) gPSFixStateChanged(args []interface{}) error {
 }
 
 // homeTypeChanged is invoked by the device when the home type is changed.
-func (g *gpsSettingsState) homeTypeChanged(args []interface{}) error {
+func (g *gpsSettingsState) homeTypeChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	g.Lock()
 	defer g.Unlock()
 	g.homeType = ptr.ToInt32(args[0].(int32))
@@ -182,7 +195,10 @@ func (g *gpsSettingsState) homeTypeChanged(args []interface{}) error {
 // returnHomeDelayChanged is triggered by the device when the return home delay
 // (the time after which return to home is automatically triggered after a
 // disconnection) is changed.
-func (g *gpsSettingsState) returnHomeDelayChanged(args []interface{}) error {
+func (g *gpsSettingsState) returnHomeDelayChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	g.Lock()
 	defer g.Unlock()
 	g.returnHomeDelay = ptr.ToUint16(args[0].(uint16))
@@ -205,7 +221,7 @@ func (g *gpsSettingsState) returnHomeDelayChanged(args []interface{}) error {
 // 	//   GPS latitude in decimal degrees
 // 	// longitude := args[1].(float64)
 // 	//   GPS longitude in decimal degrees
-// 	log.Info("ardrone3.geofenceCenterChanged() called")
+// 	log.Warn("command not implemented")
 // 	return nil
 // }
 

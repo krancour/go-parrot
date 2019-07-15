@@ -171,13 +171,14 @@ func (p *pilotingState) Name() string {
 	return "PilotingState"
 }
 
-func (p *pilotingState) D2CCommands() []arcommands.D2CCommand {
+func (p *pilotingState) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
 			"FlatTrimChanged",
 			[]interface{}{},
 			p.flatTrimChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			1,
@@ -186,6 +187,7 @@ func (p *pilotingState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // state,
 			},
 			p.flyingStateChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			2,
@@ -194,6 +196,7 @@ func (p *pilotingState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // state,
 			},
 			p.alertStateChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			3,
@@ -203,6 +206,7 @@ func (p *pilotingState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // reason,
 			},
 			p.navigateHomeStateChanged,
+			log,
 		),
 		// According to Parrot developer documentation, they seem poised to replace
 		// PositionChanged with GpsLocationChanged. Since GpsLocationChanged is
@@ -219,6 +223,7 @@ func (p *pilotingState) D2CCommands() []arcommands.D2CCommand {
 				float64(0), // altitude,
 			},
 			p.positionChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			5,
@@ -229,6 +234,7 @@ func (p *pilotingState) D2CCommands() []arcommands.D2CCommand {
 				float32(0), // speedZ,
 			},
 			p.speedChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			6,
@@ -239,6 +245,7 @@ func (p *pilotingState) D2CCommands() []arcommands.D2CCommand {
 				float32(0), // yaw,
 			},
 			p.attitudeChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			8,
@@ -247,6 +254,7 @@ func (p *pilotingState) D2CCommands() []arcommands.D2CCommand {
 				float64(0), // altitude,
 			},
 			p.altitudeChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			9,
@@ -260,6 +268,7 @@ func (p *pilotingState) D2CCommands() []arcommands.D2CCommand {
 				int8(0),    // altitude_accuracy,
 			},
 			p.gpsLocationChanged,
+			log,
 		),
 		// arcommands.NewD2CCommand(
 		// 	10,
@@ -289,6 +298,7 @@ func (p *pilotingState) D2CCommands() []arcommands.D2CCommand {
 				int32(0),   // status,
 			},
 			p.moveToChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			13,
@@ -297,6 +307,7 @@ func (p *pilotingState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // state,
 			},
 			p.motionState,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			14,
@@ -308,6 +319,7 @@ func (p *pilotingState) D2CCommands() []arcommands.D2CCommand {
 				int32(0),   // status,
 			},
 			p.pilotedPOI,
+			log,
 		),
 		// arcommands.NewD2CCommand(
 		// 	15,
@@ -326,13 +338,19 @@ func (p *pilotingState) D2CCommands() []arcommands.D2CCommand {
 // Support: 0901;090c;090e
 // Triggered: by [FlatTrim](#1-0-0).
 // Result:
-func (p *pilotingState) flatTrimChanged(args []interface{}) error {
-	log.Info("ardrone3.flatTrimChanged() called")
+func (p *pilotingState) flatTrimChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
+	log.Warn("command not implemented")
 	return nil
 }
 
 // flyingStateChanged is invoked by the device when the flying state changes
-func (p *pilotingState) flyingStateChanged(args []interface{}) error {
+func (p *pilotingState) flyingStateChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	p.Lock()
 	defer p.Unlock()
 	p.flyingState = ptr.ToInt32(args[0].(int32))
@@ -348,7 +366,10 @@ func (p *pilotingState) flyingStateChanged(args []interface{}) error {
 // Support: 0901;090c;090e
 // Triggered: when an alert happens on the drone.
 // Result:
-func (p *pilotingState) alertStateChanged(args []interface{}) error {
+func (p *pilotingState) alertStateChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	// state := args[0].(int32)
 	//   Drone alert state
 	//   0: none: No alert
@@ -357,7 +378,7 @@ func (p *pilotingState) alertStateChanged(args []interface{}) error {
 	//   3: critical_battery: Critical battery alert
 	//   4: low_battery: Low battery alert
 	//   5: too_much_angle: The angle of the drone is too high
-	log.Info("ardrone3.alertStateChanged() called")
+	log.Warn("command not implemented")
 	return nil
 }
 
@@ -369,7 +390,10 @@ func (p *pilotingState) alertStateChanged(args []interface{}) error {
 // Triggered: by [ReturnHome](#1-0-5) or when the state of the return home
 //   changes.
 // Result:
-func (p *pilotingState) navigateHomeStateChanged(args []interface{}) error {
+func (p *pilotingState) navigateHomeStateChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	// state := args[0].(int32)
 	//   State of navigate home
 	//   0: available: Navigate home is available
@@ -387,7 +411,7 @@ func (p *pilotingState) navigateHomeStateChanged(args []interface{}) error {
 	//   5: disabled: Navigate home disabled by product
 	//      (inProgress-&gt;unavailable or available-&gt;unavailable)
 	//   6: enabled: Navigate home enabled by product (unavailable-&gt;available)
-	log.Info("ardrone3.navigateHomeStateChanged() called")
+	log.Warn("command not implemented")
 	return nil
 }
 
@@ -399,7 +423,10 @@ func (p *pilotingState) navigateHomeStateChanged(args []interface{}) error {
 // the implementation will remain a no-op unless / until such time that it
 // becomes clear that older versions of the firmware might require us to support
 // both commands.
-func (p *pilotingState) positionChanged(args []interface{}) error {
+func (p *pilotingState) positionChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	// latitude := args[0].(float64)
 	//   Latitude position in decimal degrees (500.0 if not available)
 	// longitude := args[1].(float64)
@@ -412,7 +439,10 @@ func (p *pilotingState) positionChanged(args []interface{}) error {
 
 // speedChanged is invoked when the the device reports velocity at regular
 // intervals.
-func (p *pilotingState) speedChanged(args []interface{}) error {
+func (p *pilotingState) speedChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	p.Lock()
 	defer p.Unlock()
 	p.speedX = ptr.ToFloat32(args[0].(float32))
@@ -430,7 +460,10 @@ func (p *pilotingState) speedChanged(args []interface{}) error {
 
 // attitudeChanged is invoked when the device reports attitude at regular
 // intervals.
-func (p *pilotingState) attitudeChanged(args []interface{}) error {
+func (p *pilotingState) attitudeChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	p.Lock()
 	defer p.Unlock()
 	p.roll = ptr.ToFloat32(args[0].(float32))
@@ -448,7 +481,10 @@ func (p *pilotingState) attitudeChanged(args []interface{}) error {
 
 // altitudeChanged is invoked when the device reports attitude relative to the
 // take off point at regular intervals.
-func (p *pilotingState) altitudeChanged(args []interface{}) error {
+func (p *pilotingState) altitudeChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	p.Lock()
 	defer p.Unlock()
 	p.altitude = ptr.ToFloat64(args[0].(float64))
@@ -460,7 +496,10 @@ func (p *pilotingState) altitudeChanged(args []interface{}) error {
 
 // gpsLocationChanged is invoked when the device reports gps coordinates at
 // regular intervals.
-func (p *pilotingState) gpsLocationChanged(args []interface{}) error {
+func (p *pilotingState) gpsLocationChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	p.Lock()
 	defer p.Unlock()
 	p.latitude = ptr.ToFloat64(args[0].(float64))
@@ -497,7 +536,7 @@ func (p *pilotingState) gpsLocationChanged(args []interface{}) error {
 // 	//   Drone landing state
 // 	//   0: linear: Linear landing
 // 	//   1: spiral: Spiral landing
-// 	log.Info("ardrone3.landingStateChanged() called")
+// 	log.Warn("command not implemented")
 // 	return nil
 // }
 
@@ -511,7 +550,7 @@ func (p *pilotingState) gpsLocationChanged(args []interface{}) error {
 // func (p *pilotingState) airSpeedChanged(args []interface{}) error {
 // 	// airSpeed := args[0].(float32)
 // 	//   Speed relative to air on x axis (speed is always &gt; 0) (in m/s)
-// 	log.Info("ardrone3.airSpeedChanged() called")
+// 	log.Warn("command not implemented")
 // 	return nil
 // }
 
@@ -522,7 +561,10 @@ func (p *pilotingState) gpsLocationChanged(args []interface{}) error {
 // Triggered: by [MoveTo](#1-0-10) or when the drone did reach the given
 //   position.
 // Result:
-func (p *pilotingState) moveToChanged(args []interface{}) error {
+func (p *pilotingState) moveToChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	// latitude := args[0].(float64)
 	//   Latitude of the location (in degrees) to reach
 	// longitude := args[1].(float64)
@@ -549,7 +591,7 @@ func (p *pilotingState) moveToChanged(args []interface{}) error {
 	//      command or when a disconnection appears.
 	//   3: ERROR: The move to has not been finished or started because of an
 	//      error.
-	log.Info("ardrone3.moveToChanged() called")
+	log.Warn("command not implemented")
 	return nil
 }
 
@@ -563,12 +605,12 @@ func (p *pilotingState) moveToChanged(args []interface{}) error {
 //   [MotionDetection](#1-6-16) is enabled and the motion state changes.\n This
 //   event is triggered at a filtered rate.
 // Result:
-func (p *pilotingState) motionState(args []interface{}) error {
+func (p *pilotingState) motionState(args []interface{}, log *log.Entry) error {
 	// state := args[0].(int32)
 	//   Motion state
 	//   0: steady: Drone is steady
 	//   1: moving: Drone is moving
-	log.Info("ardrone3.motionState() called")
+	log.Warn("command not implemented")
 	return nil
 }
 
@@ -579,7 +621,7 @@ func (p *pilotingState) motionState(args []interface{}) error {
 // Triggered: by [StartPilotedPOI](#1-0-12) or [StopPilotedPOI](#1-0-13) or when
 //   piloted POI becomes unavailable.
 // Result:
-func (p *pilotingState) pilotedPOI(args []interface{}) error {
+func (p *pilotingState) pilotedPOI(args []interface{}, log *log.Entry) error {
 	// latitude := args[0].(float64)
 	//   Latitude of the location (in degrees) to look at. This information is
 	//   only valid when the state is pending or running.
@@ -596,7 +638,7 @@ func (p *pilotingState) pilotedPOI(args []interface{}) error {
 	//   2: PENDING: Piloted POI has been requested. Waiting to be in state that
 	//      allow the piloted POI to start
 	//   3: RUNNING: Piloted POI is running
-	log.Info("ardrone3.pilotedPOI() called")
+	log.Warn("command not implemented")
 	return nil
 }
 
@@ -619,7 +661,7 @@ func (p *pilotingState) pilotedPOI(args []interface{}) error {
 // 	//      either because the home is unknown or the position of the drone is
 // 	//      unknown, or the drone has not enough information to determine how long
 // 	//      it takes to fly home.
-// 	log.Info("ardrone3.returnHomeBatteryCapacity() called")
+// 	log.Warn("command not implemented")
 // 	return nil
 // }
 

@@ -35,7 +35,9 @@ func (a *arLibsVersionsState) Name() string {
 	return "ARLibsVersionsState"
 }
 
-func (a *arLibsVersionsState) D2CCommands() []arcommands.D2CCommand {
+func (a *arLibsVersionsState) D2CCommands(
+	log *log.Entry,
+) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -44,6 +46,7 @@ func (a *arLibsVersionsState) D2CCommands() []arcommands.D2CCommand {
 				string(0), // version,
 			},
 			a.controllerLibARCommandsVersion,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			1,
@@ -52,6 +55,7 @@ func (a *arLibsVersionsState) D2CCommands() []arcommands.D2CCommand {
 				string(0), // version,
 			},
 			a.skyControllerLibARCommandsVersion,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			2,
@@ -60,6 +64,7 @@ func (a *arLibsVersionsState) D2CCommands() []arcommands.D2CCommand {
 				string(0), // version,
 			},
 			a.deviceLibARCommandsVersion,
+			log,
 		),
 	}
 }
@@ -67,20 +72,22 @@ func (a *arLibsVersionsState) D2CCommands() []arcommands.D2CCommand {
 // TODO: Implement this
 func (a *arLibsVersionsState) controllerLibARCommandsVersion(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	// version := args[0].(string)
 	//   version of libARCommands (&#34;1.2.3.4&#34; format)
-	log.Info("common.controllerLibARCommandsVersion() called")
+	log.Warn("command not implemented")
 	return nil
 }
 
 // TODO: Implement this
 func (a *arLibsVersionsState) skyControllerLibARCommandsVersion(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	// version := args[0].(string)
 	//   version of libARCommands (&#34;1.2.3.4&#34; format)
-	log.Info("common.skyControllerLibARCommandsVersion() called")
+	log.Warn("command not implemented")
 	return nil
 }
 
@@ -88,6 +95,7 @@ func (a *arLibsVersionsState) skyControllerLibARCommandsVersion(
 // of the ARLibs library it is using.
 func (a *arLibsVersionsState) deviceLibARCommandsVersion(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	a.Lock()
 	defer a.Unlock()

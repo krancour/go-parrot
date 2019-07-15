@@ -80,19 +80,21 @@ func (s *settingsState) Name() string {
 	return "SettingsState"
 }
 
-func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
+func (s *settingsState) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
 			"AllSettingsChanged",
 			[]interface{}{},
 			s.allSettingsChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			1,
 			"ResetChanged",
 			[]interface{}{},
 			s.resetChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			2,
@@ -101,6 +103,7 @@ func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 				string(0), // name,
 			},
 			s.productNameChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			3,
@@ -110,6 +113,7 @@ func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 				string(0), // hardware,
 			},
 			s.productVersionChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			4,
@@ -118,6 +122,7 @@ func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 				string(0), // high,
 			},
 			s.productSerialHighChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			5,
@@ -126,6 +131,7 @@ func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 				string(0), // low,
 			},
 			s.productSerialLowChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			6,
@@ -134,6 +140,7 @@ func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 				string(0), // code,
 			},
 			s.countryChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			7,
@@ -142,12 +149,16 @@ func (s *settingsState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // automatic,
 			},
 			s.autoCountryChanged,
+			log,
 		),
 	}
 }
 
 // Invoked by the device to indicate all settings have been sent.
-func (s *settingsState) allSettingsChanged(args []interface{}) error {
+func (s *settingsState) allSettingsChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	s.Lock()
 	defer s.Unlock()
 	s.allSettingsSent = ptr.ToBool(true)
@@ -161,13 +172,19 @@ func (s *settingsState) allSettingsChanged(args []interface{}) error {
 // Support: drones
 // Triggered: by [ResetSettings](#0-2-1).
 // Result:
-func (s *settingsState) resetChanged(args []interface{}) error {
-	log.Info("common.resetChanged() called")
+func (s *settingsState) resetChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
+	log.Warn("command not implemented")
 	return nil
 }
 
 // productNameChanged is invoked by the device to indicate its name has changed.
-func (s *settingsState) productNameChanged(args []interface{}) error {
+func (s *settingsState) productNameChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	s.Lock()
 	defer s.Unlock()
 	s.productName = ptr.ToString(args[0].(string))
@@ -179,7 +196,10 @@ func (s *settingsState) productNameChanged(args []interface{}) error {
 
 // productVersionChanged is invoked during the connection process to report
 // the product version.
-func (s *settingsState) productVersionChanged(args []interface{}) error {
+func (s *settingsState) productVersionChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	s.Lock()
 	defer s.Unlock()
 	s.softwareVersion = ptr.ToString(args[0].(string))
@@ -194,7 +214,10 @@ func (s *settingsState) productVersionChanged(args []interface{}) error {
 
 // productSerialHighChanged is invoked during the connection process to report
 // the the high end of the device's serial number.
-func (s *settingsState) productSerialHighChanged(args []interface{}) error {
+func (s *settingsState) productSerialHighChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	s.Lock()
 	defer s.Unlock()
 	s.serialHigh = ptr.ToString(args[0].(string))
@@ -206,7 +229,10 @@ func (s *settingsState) productSerialHighChanged(args []interface{}) error {
 
 // productSerialLowChanged is invoked during the connection process to report
 // the the low end of the device's serial number.
-func (s *settingsState) productSerialLowChanged(args []interface{}) error {
+func (s *settingsState) productSerialLowChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	s.Lock()
 	defer s.Unlock()
 	s.serialLow = ptr.ToString(args[0].(string))
@@ -222,7 +248,10 @@ func (s *settingsState) productSerialLowChanged(args []interface{}) error {
 // Support: drones
 // Triggered: by [SetCountry](#0-2-3).
 // Result:
-func (s *settingsState) countryChanged(args []interface{}) error {
+func (s *settingsState) countryChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	s.Lock()
 	defer s.Unlock()
 	s.countryCode = ptr.ToString(args[0].(string))
@@ -235,7 +264,10 @@ func (s *settingsState) countryChanged(args []interface{}) error {
 
 // autoCountryChanged is invoked by the device to indicate whether auto country
 // is enabled.
-func (s *settingsState) autoCountryChanged(args []interface{}) error {
+func (s *settingsState) autoCountryChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	s.Lock()
 	defer s.Unlock()
 	s.autoCountryEnabled = ptr.ToBool(args[0].(uint8) == 1)

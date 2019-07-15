@@ -28,7 +28,7 @@ func (p *pilotingEvent) Name() string {
 	return "PilotingEvent"
 }
 
-func (p *pilotingEvent) D2CCommands() []arcommands.D2CCommand {
+func (p *pilotingEvent) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -41,6 +41,7 @@ func (p *pilotingEvent) D2CCommands() []arcommands.D2CCommand {
 				int32(0),   // error,
 			},
 			p.moveByEnd,
+			log,
 		),
 	}
 }
@@ -53,7 +54,7 @@ func (p *pilotingEvent) D2CCommands() []arcommands.D2CCommand {
 // Triggered: when the drone reaches its target or when it is interrupted by
 //   another [moveBy command](#1-0-7) or when an error occurs.
 // Result:
-func (p *pilotingEvent) moveByEnd(args []interface{}) error {
+func (p *pilotingEvent) moveByEnd(args []interface{}, log *log.Entry) error {
 	// dX := args[0].(float32)
 	//   Distance traveled along the front axis [m]
 	// dY := args[1].(float32)
@@ -69,6 +70,6 @@ func (p *pilotingEvent) moveByEnd(args []interface{}) error {
 	//   2: busy: The Device is busy ; command moveBy ignored
 	//   3: notAvailable: Command moveBy is not available ; command moveBy ignored
 	//   4: interrupted: Command moveBy interrupted
-	log.Info("ardrone3.oveByEnd() called")
+	log.Warn("command not implemented")
 	return nil
 }

@@ -79,7 +79,7 @@ func (m *mediaRecordState) Name() string {
 	return "MediaRecordState"
 }
 
-func (m *mediaRecordState) D2CCommands() []arcommands.D2CCommand {
+func (m *mediaRecordState) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			2,
@@ -89,6 +89,7 @@ func (m *mediaRecordState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // error,
 			},
 			m.pictureStateChangedV2,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			3,
@@ -98,13 +99,17 @@ func (m *mediaRecordState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // error,
 			},
 			m.videoStateChangedV2,
+			log,
 		),
 	}
 }
 
 // pictureStateChangedV2 is invoked by the device when the still camera's
 // availability changes.
-func (m *mediaRecordState) pictureStateChangedV2(args []interface{}) error {
+func (m *mediaRecordState) pictureStateChangedV2(
+	args []interface{},
+	log *log.Entry,
+) error {
 	m.Lock()
 	defer m.Unlock()
 	m.pictureState = ptr.ToInt32(args[0].(int32))
@@ -119,7 +124,10 @@ func (m *mediaRecordState) pictureStateChangedV2(args []interface{}) error {
 
 // videoStateChangedV2 is invoked by the device when there is a change in
 // video camera state or availability.
-func (m *mediaRecordState) videoStateChangedV2(args []interface{}) error {
+func (m *mediaRecordState) videoStateChangedV2(
+	args []interface{},
+	log *log.Entry,
+) error {
 	m.Lock()
 	defer m.Unlock()
 	m.videoState = ptr.ToInt32(args[0].(int32))

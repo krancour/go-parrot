@@ -37,7 +37,9 @@ func (w *wifiSettingsState) Name() string {
 	return "WifiSettingsState"
 }
 
-func (w *wifiSettingsState) D2CCommands() []arcommands.D2CCommand {
+func (w *wifiSettingsState) D2CCommands(
+	log *log.Entry,
+) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -46,12 +48,16 @@ func (w *wifiSettingsState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // outdoor,
 			},
 			w.outdoorSettingsChanged,
+			log,
 		),
 	}
 }
 
 // Invoked by the device to indicate whether it is using outdoor wifi settings.
-func (w *wifiSettingsState) outdoorSettingsChanged(args []interface{}) error {
+func (w *wifiSettingsState) outdoorSettingsChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	w.Lock()
 	defer w.Unlock()
 	w.outdoors = ptr.ToBool(args[0].(uint8) == 1)

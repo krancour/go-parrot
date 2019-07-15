@@ -28,7 +28,9 @@ func (m *mediaStreamingState) Name() string {
 	return "MediaStreamingState"
 }
 
-func (m *mediaStreamingState) D2CCommands() []arcommands.D2CCommand {
+func (m *mediaStreamingState) D2CCommands(
+	log *log.Entry,
+) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -37,6 +39,7 @@ func (m *mediaStreamingState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // enabled,
 			},
 			m.videoEnableChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			1,
@@ -45,6 +48,7 @@ func (m *mediaStreamingState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // mode,
 			},
 			m.videoStreamModeChanged,
+			log,
 		),
 	}
 }
@@ -55,18 +59,24 @@ func (m *mediaStreamingState) D2CCommands() []arcommands.D2CCommand {
 // Support: 0901;090c;090e
 // Triggered: by [EnableOrDisableVideoStream](#1-21-0).
 // Result:
-func (m *mediaStreamingState) videoEnableChanged(args []interface{}) error {
+func (m *mediaStreamingState) videoEnableChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	// enabled := args[0].(int32)
 	//   Current video streaming status.
 	//   0: enabled: Video streaming is enabled.
 	//   1: disabled: Video streaming is disabled.
 	//   2: error: Video streaming failed to start.
-	log.Info("ardrone3.videoEnableChanged() called")
+	log.Warn("command not implemented")
 	return nil
 }
 
 // TODO: Implement this
-func (m *mediaStreamingState) videoStreamModeChanged(args []interface{}) error {
+func (m *mediaStreamingState) videoStreamModeChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	// mode := args[0].(int32)
 	//   stream mode
 	//   0: low_latency: Minimize latency with average reliability (best for
@@ -76,6 +86,6 @@ func (m *mediaStreamingState) videoStreamModeChanged(args []interface{}) error {
 	//   2: high_reliability_low_framerate: Maximize the reliability using a
 	//      framerate decimation with an average latency (best when streaming
 	//      quality is important but not the latency).
-	log.Info("ardrone3.videoStreamModeChanged() called")
+	log.Warn("command not implemented")
 	return nil
 }

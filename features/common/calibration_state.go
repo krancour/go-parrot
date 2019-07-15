@@ -57,7 +57,7 @@ func (c *calibrationState) Name() string {
 	return "CalibrationState"
 }
 
-func (c *calibrationState) D2CCommands() []arcommands.D2CCommand {
+func (c *calibrationState) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -69,6 +69,7 @@ func (c *calibrationState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // calibrationFailed,
 			},
 			c.magnetoCalibrationStateChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			1,
@@ -77,6 +78,7 @@ func (c *calibrationState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // required,
 			},
 			c.magnetoCalibrationRequiredState,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			2,
@@ -85,6 +87,7 @@ func (c *calibrationState) D2CCommands() []arcommands.D2CCommand {
 				int32(0), // axis,
 			},
 			c.magnetoCalibrationAxisToCalibrateChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			3,
@@ -93,6 +96,7 @@ func (c *calibrationState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // started,
 			},
 			c.magnetoCalibrationStartedChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			4,
@@ -102,6 +106,7 @@ func (c *calibrationState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // lastError,
 			},
 			c.pitotCalibrationStateChanged,
+			log,
 		),
 	}
 }
@@ -116,6 +121,7 @@ func (c *calibrationState) D2CCommands() []arcommands.D2CCommand {
 // Result:
 func (c *calibrationState) magnetoCalibrationStateChanged(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	// xAxisCalibration := args[0].(uint8)
 	//   State of the x axis (roll) calibration : 1 if calibration is done, 0
@@ -129,7 +135,7 @@ func (c *calibrationState) magnetoCalibrationStateChanged(
 	// calibrationFailed := args[3].(uint8)
 	//   1 if calibration has failed, 0 otherwise. If this arg is 1, consider all
 	//   previous arg as 0
-	log.Info("common.magnetoCalibrationStateChanged() called")
+	log.Warn("command not implemented")
 	return nil
 }
 
@@ -137,6 +143,7 @@ func (c *calibrationState) magnetoCalibrationStateChanged(
 // magnetometer calibration is required.
 func (c *calibrationState) magnetoCalibrationRequiredState(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	c.Lock()
 	defer c.Unlock()
@@ -151,6 +158,7 @@ func (c *calibrationState) magnetoCalibrationRequiredState(
 // which axis is actively being calibrated.
 func (c *calibrationState) magnetoCalibrationAxisToCalibrateChanged(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	c.Lock()
 	defer c.Unlock()
@@ -165,6 +173,7 @@ func (c *calibrationState) magnetoCalibrationAxisToCalibrateChanged(
 // magneto calibration is in progress.
 func (c *calibrationState) magnetoCalibrationStartedChanged(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	c.Lock()
 	defer c.Unlock()
@@ -178,6 +187,7 @@ func (c *calibrationState) magnetoCalibrationStartedChanged(
 // TODO: Implement this
 func (c *calibrationState) pitotCalibrationStateChanged(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	// state := args[0].(int32)
 	//   State of pitot calibration
@@ -187,7 +197,7 @@ func (c *calibrationState) pitotCalibrationStateChanged(
 	//   3: required: Calibration is required
 	// lastError := args[1].(uint8)
 	//   lastError : 1 if an error occured and 0 if not
-	log.Info("common.pitotCalibrationStateChanged() called")
+	log.Warn("command not implemented")
 	return nil
 }
 

@@ -79,7 +79,7 @@ func (c *cameraState) Name() string {
 	return "CameraState"
 }
 
-func (c *cameraState) D2CCommands() []arcommands.D2CCommand {
+func (c *cameraState) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -89,6 +89,7 @@ func (c *cameraState) D2CCommands() []arcommands.D2CCommand {
 				int8(0), // pan,
 			},
 			c.orientation,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			1,
@@ -98,6 +99,7 @@ func (c *cameraState) D2CCommands() []arcommands.D2CCommand {
 				int8(0), // pan,
 			},
 			c.defaultCameraOrientation,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			2,
@@ -107,6 +109,7 @@ func (c *cameraState) D2CCommands() []arcommands.D2CCommand {
 				float32(0), // pan,
 			},
 			c.orientationV2,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			3,
@@ -116,6 +119,7 @@ func (c *cameraState) D2CCommands() []arcommands.D2CCommand {
 				float32(0), // pan,
 			},
 			c.defaultCameraOrientationV2,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			4,
@@ -125,6 +129,7 @@ func (c *cameraState) D2CCommands() []arcommands.D2CCommand {
 				float32(0), // max_pan,
 			},
 			c.velocityRange,
+			log,
 		),
 	}
 }
@@ -134,7 +139,7 @@ func (c *cameraState) D2CCommands() []arcommands.D2CCommand {
 // warning, but the implementation will remain a no-op unless / until such time
 // that it becomes clear that older versions of the firmware might require us to
 // support both commands.
-func (c *cameraState) orientation(args []interface{}) error {
+func (c *cameraState) orientation(args []interface{}, log *log.Entry) error {
 	// tilt := args[0].(int8)
 	//   Tilt camera consign for the drone [-100;100]
 	// pan := args[1].(int8)
@@ -149,7 +154,10 @@ func (c *cameraState) orientation(args []interface{}) error {
 // implementation will remain a no-op unless / until such time that it becomes
 // clear that older versions of the firmware might require us to support both
 // commands.
-func (c *cameraState) defaultCameraOrientation(args []interface{}) error {
+func (c *cameraState) defaultCameraOrientation(
+	args []interface{},
+	log *log.Entry,
+) error {
 	// tilt := args[0].(int8)
 	//   Tilt value (in degree)
 	// pan := args[1].(int8)
@@ -159,7 +167,7 @@ func (c *cameraState) defaultCameraOrientation(args []interface{}) error {
 }
 
 // orientationV2 is invoked by the device when the camera orientation chnages.
-func (c *cameraState) orientationV2(args []interface{}) error {
+func (c *cameraState) orientationV2(args []interface{}, log *log.Entry) error {
 	c.Lock()
 	defer c.Unlock()
 	c.tilt = ptr.ToFloat32(args[0].(float32))
@@ -175,7 +183,10 @@ func (c *cameraState) orientationV2(args []interface{}) error {
 // defaultCameraOrientationV2 is invoked by the device at connection time to
 // indicate the tilt and pan values that reflect a centered camera. Use these
 // values to recenter the camera if/when desired.
-func (c *cameraState) defaultCameraOrientationV2(args []interface{}) error {
+func (c *cameraState) defaultCameraOrientationV2(
+	args []interface{},
+	log *log.Entry,
+) error {
 	c.Lock()
 	defer c.Unlock()
 	c.centerTilt = ptr.ToFloat32(args[0].(float32))
@@ -191,7 +202,7 @@ func (c *cameraState) defaultCameraOrientationV2(args []interface{}) error {
 // velocityRange is invoked by the device at connection time to communicate
 // the maximum velocity, in degrees per second, at which the camera can be
 // reoriented.
-func (c *cameraState) velocityRange(args []interface{}) error {
+func (c *cameraState) velocityRange(args []interface{}, log *log.Entry) error {
 	c.Lock()
 	defer c.Unlock()
 	c.maxTiltVelocity = ptr.ToFloat32(args[0].(float32))

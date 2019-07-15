@@ -130,7 +130,9 @@ func (p *pilotingSettingsState) Name() string {
 	return "PilotingSettingsState"
 }
 
-func (p *pilotingSettingsState) D2CCommands() []arcommands.D2CCommand {
+func (p *pilotingSettingsState) D2CCommands(
+	log *log.Entry,
+) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -141,6 +143,7 @@ func (p *pilotingSettingsState) D2CCommands() []arcommands.D2CCommand {
 				float32(0), // max,
 			},
 			p.maxAltitudeChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			1,
@@ -151,6 +154,7 @@ func (p *pilotingSettingsState) D2CCommands() []arcommands.D2CCommand {
 				float32(0), // max,
 			},
 			p.maxTiltChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			3,
@@ -161,6 +165,7 @@ func (p *pilotingSettingsState) D2CCommands() []arcommands.D2CCommand {
 				float32(0), // max,
 			},
 			p.maxDistanceChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			4,
@@ -169,6 +174,7 @@ func (p *pilotingSettingsState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // shouldNotFlyOver,
 			},
 			p.noFlyOverMaxDistanceChanged,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			5,
@@ -177,6 +183,7 @@ func (p *pilotingSettingsState) D2CCommands() []arcommands.D2CCommand {
 				float32(0), // value,
 			},
 			p.autonomousFlightMaxHorizontalSpeed,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			6,
@@ -185,6 +192,7 @@ func (p *pilotingSettingsState) D2CCommands() []arcommands.D2CCommand {
 				float32(0), // value,
 			},
 			p.autonomousFlightMaxVerticalSpeed,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			7,
@@ -193,6 +201,7 @@ func (p *pilotingSettingsState) D2CCommands() []arcommands.D2CCommand {
 				float32(0), // value,
 			},
 			p.autonomousFlightMaxHorizontalAcceleration,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			8,
@@ -201,6 +210,7 @@ func (p *pilotingSettingsState) D2CCommands() []arcommands.D2CCommand {
 				float32(0), // value,
 			},
 			p.autonomousFlightMaxVerticalAcceleration,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			9,
@@ -209,6 +219,7 @@ func (p *pilotingSettingsState) D2CCommands() []arcommands.D2CCommand {
 				float32(0), // value,
 			},
 			p.autonomousFlightMaxRotationSpeed,
+			log,
 		),
 		arcommands.NewD2CCommand(
 			10,
@@ -217,6 +228,7 @@ func (p *pilotingSettingsState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // state,
 			},
 			p.bankedTurnChanged,
+			log,
 		),
 		// arcommands.NewD2CCommand(
 		// 	11,
@@ -261,13 +273,17 @@ func (p *pilotingSettingsState) D2CCommands() []arcommands.D2CCommand {
 				uint8(0), // enabled,
 			},
 			p.motionDetection,
+			log,
 		),
 	}
 }
 
 // maxAltitudeChanged is invoked by the device when the maximum altitude setting
 // is changed.
-func (p *pilotingSettingsState) maxAltitudeChanged(args []interface{}) error {
+func (p *pilotingSettingsState) maxAltitudeChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	p.Lock()
 	defer p.Unlock()
 	p.maxAltitude = ptr.ToFloat32(args[0].(float32))
@@ -284,7 +300,10 @@ func (p *pilotingSettingsState) maxAltitudeChanged(args []interface{}) error {
 }
 
 // maxTiltChanged is invoked by the device when the maximum tilt is changed.
-func (p *pilotingSettingsState) maxTiltChanged(args []interface{}) error {
+func (p *pilotingSettingsState) maxTiltChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	p.maxTilt = ptr.ToFloat32(args[0].(float32))
 	p.maxTiltRangeMin = ptr.ToFloat32(args[1].(float32))
 	p.maxTiltRangeMax = ptr.ToFloat32(args[2].(float32))
@@ -299,7 +318,10 @@ func (p *pilotingSettingsState) maxTiltChanged(args []interface{}) error {
 }
 
 // maxDistanceChanged is invoked by the device when the max distance is changed.
-func (p *pilotingSettingsState) maxDistanceChanged(args []interface{}) error {
+func (p *pilotingSettingsState) maxDistanceChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	p.Lock()
 	defer p.Unlock()
 	p.maxDistance = ptr.ToFloat32(args[0].(float32))
@@ -319,6 +341,7 @@ func (p *pilotingSettingsState) maxDistanceChanged(args []interface{}) error {
 // enabled or disabled.
 func (p *pilotingSettingsState) noFlyOverMaxDistanceChanged(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	p.Lock()
 	defer p.Unlock()
@@ -337,10 +360,11 @@ func (p *pilotingSettingsState) noFlyOverMaxDistanceChanged(
 // Result:
 func (p *pilotingSettingsState) autonomousFlightMaxHorizontalSpeed(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	// value := args[0].(float32)
 	//   maximum horizontal speed [m/s]
-	log.Info("ardrone3.autonomousFlightMaxHorizontalSpeed() called")
+	log.Warn("command not implemented")
 	return nil
 }
 
@@ -352,10 +376,11 @@ func (p *pilotingSettingsState) autonomousFlightMaxHorizontalSpeed(
 // Result:
 func (p *pilotingSettingsState) autonomousFlightMaxVerticalSpeed(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	// value := args[0].(float32)
 	//   maximum vertical speed [m/s]
-	log.Info("ardrone3.autonomousFlightMaxVerticalSpeed() called")
+	log.Warn("command not implemented")
 	return nil
 }
 
@@ -367,10 +392,11 @@ func (p *pilotingSettingsState) autonomousFlightMaxVerticalSpeed(
 // Result:
 func (p *pilotingSettingsState) autonomousFlightMaxHorizontalAcceleration(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	// value := args[0].(float32)
 	//   maximum horizontal acceleration [m/s2]
-	log.Info("ardrone3.autonomousFlightMaxHorizontalAcceleration() called")
+	log.Warn("command not implemented")
 	return nil
 }
 
@@ -382,10 +408,11 @@ func (p *pilotingSettingsState) autonomousFlightMaxHorizontalAcceleration(
 // Result:
 func (p *pilotingSettingsState) autonomousFlightMaxVerticalAcceleration(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	// value := args[0].(float32)
 	//   maximum vertical acceleration [m/s2]
-	log.Info("ardrone3.autonomousFlightMaxVerticalAcceleration() called")
+	log.Warn("command not implemented")
 	return nil
 }
 
@@ -397,16 +424,20 @@ func (p *pilotingSettingsState) autonomousFlightMaxVerticalAcceleration(
 // Result:
 func (p *pilotingSettingsState) autonomousFlightMaxRotationSpeed(
 	args []interface{},
+	log *log.Entry,
 ) error {
 	// value := args[0].(float32)
 	//   maximum yaw rotation speed [deg/s]
-	log.Info("ardrone3.autonomousFlightMaxRotationSpeed() called")
+	log.Warn("command not implemented")
 	return nil
 }
 
 // bankedTurnChanged is invoked by the device when banked turning is enabled or
 // disabled
-func (p *pilotingSettingsState) bankedTurnChanged(args []interface{}) error {
+func (p *pilotingSettingsState) bankedTurnChanged(
+	args []interface{},
+	log *log.Entry,
+) error {
 	p.Lock()
 	defer p.Unlock()
 	p.bankedTurningEnabled = ptr.ToBool(args[0].(uint8) == 1)
@@ -429,7 +460,7 @@ func (p *pilotingSettingsState) bankedTurnChanged(args []interface{}) error {
 // 	//   Range min of altitude min
 // 	// max := args[2].(float32)
 // 	//   Range max of altitude min
-// 	log.Info("ardrone3.minAltitudeChanged() called")
+// 	log.Warn("command not implemented")
 // 	return nil
 // }
 
@@ -446,7 +477,7 @@ func (p *pilotingSettingsState) bankedTurnChanged(args []interface{}) error {
 // 	//   The circling direction
 // 	//   0: CW: Circling ClockWise
 // 	//   1: CCW: Circling Counter ClockWise
-// 	log.Info("ardrone3.circlingDirectionChanged() called")
+// 	log.Warn("command not implemented")
 // 	return nil
 // }
 
@@ -467,7 +498,7 @@ func (p *pilotingSettingsState) bankedTurnChanged(args []interface{}) error {
 // 	//   Range min of circling altitude in meter
 // 	// max := args[2].(uint16)
 // 	//   Range max of circling altitude in meter
-// 	log.Info("ardrone3.circlingAltitudeChanged() called")
+// 	log.Warn("command not implemented")
 // 	return nil
 // }
 
@@ -485,13 +516,16 @@ func (p *pilotingSettingsState) bankedTurnChanged(args []interface{}) error {
 // 	//   1: INVERTED: Pitch commands are inverted. Positive pitch values will
 // 	//      make the drone raise its nose. Negative pitch values will make the
 // 	//      drone lower its nose.
-// 	log.Info("ardrone3.pitchModeChanged() called")
+// 	log.Warn("command not implemented")
 // 	return nil
 // }
 
 // motionDetection is invoked by the device to indicate whether motion
 // detection is enabled.
-func (p *pilotingSettingsState) motionDetection(args []interface{}) error {
+func (p *pilotingSettingsState) motionDetection(
+	args []interface{},
+	log *log.Entry,
+) error {
 	p.Lock()
 	defer p.Unlock()
 	p.motionDetectionEnabled = ptr.ToBool(args[0].(uint8) == 1)

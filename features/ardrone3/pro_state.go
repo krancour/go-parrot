@@ -28,7 +28,7 @@ func (p *proState) Name() string {
 	return "PROState"
 }
 
-func (p *proState) D2CCommands() []arcommands.D2CCommand {
+func (p *proState) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 		arcommands.NewD2CCommand(
 			0,
@@ -37,6 +37,7 @@ func (p *proState) D2CCommands() []arcommands.D2CCommand {
 				uint64(0), // features,
 			},
 			p.features,
+			log,
 		),
 	}
 }
@@ -45,7 +46,7 @@ func (p *proState) D2CCommands() []arcommands.D2CCommand {
 // invoked, we'll implement the command to avoid a warning, but the
 // implementation will remain a no-op unless / until such time that it becomes
 // clear that older versions of the firmware might require us to support it.
-func (p *proState) features(args []interface{}) error {
+func (p *proState) features(args []interface{}, log *log.Entry) error {
 	// features := args[0].(uint64)
 	//   Bitfield representing enabled features.
 	log.Debug("features changed-- this is a no-op")
