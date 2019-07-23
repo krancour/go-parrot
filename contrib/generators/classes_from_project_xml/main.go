@@ -15,17 +15,25 @@ var classTemplate = `
 package {{ .PackageName }}
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/krancour/go-parrot/lock"
 	"github.com/krancour/go-parrot/protocols/arcommands"
+	"github.com/krancour/go-parrot/ptr"
 )
 
 // {{ .Description }}
 
 // {{ .InterfaceName }} ...
 // TODO: Document this
-type {{ .InterfaceName }} interface{}
+type {{ .InterfaceName }} interface{
+	lock.ReadLockable
+}
 
-type {{ .StructName }} struct{}
+type {{ .StructName }} struct{
+	sync.RWMutex
+}
 
 func ({{ .ShortVarName }} *{{ .StructName }}) ID() uint8 {
 	return {{ .ID }}
@@ -66,8 +74,10 @@ func ({{ .ShortVarName }} *{{ .StructName }}) D2CCommands() []arcommands.D2CComm
 // WARNING: Deprecated
 {{- end }}
 func ({{ $.ShortVarName }} *{{ $.StructName }}) {{ .FunctionName }}(args []interface{}) error {
+	{{ $.ShortVarName }}.Lock()
+	defer {{ $.ShortVarName }}.Unlock()
 	{{- range $i, $arg := .Args }}
-	// {{ $arg.Name }} := args[{{ $i }}].({{ $arg.GoType }})
+	// {{ $arg.Name }} := ptr.To{{ $arg.UpperGoType }}(args[{{ $i }}].({{ $arg.GoType }}))
 	//   {{ $arg.Description }}
 	{{- range $j, $enum := $arg.Enums }}
 	//   {{ $j }}: {{ $enum.Name }}: {{ $enum.Description }}
@@ -127,6 +137,7 @@ type arg struct {
 	Description string   `xml:",chardata"`
 	Enums       []*enum  `xml:"enum"`
 	GoType      string
+	UpperGoType string
 }
 
 type enum struct {
@@ -137,7 +148,7 @@ type enum struct {
 
 func main() {
 	// Read
-	const xmlFilePath = "/Users/kent/Downloads/common.xml"
+	const xmlFilePath = "/Users/kent/animation.xml"
 	xmlFile, err := os.Open(xmlFilePath)
 	if err != nil {
 		log.Fatal(err)
@@ -242,6 +253,7 @@ func generate(f *feature) error {
 				default:
 					arg.GoType = "unknown"
 				}
+				arg.UpperGoType = fmt.Sprintf("%s%s", string(arg.GoType[0]+32), arg.GoType[1:len(arg.GoType)])
 			}
 		}
 		f, err := os.Create(fmt.Sprintf("generated/%s.go", c.StructName))
