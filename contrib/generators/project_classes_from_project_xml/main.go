@@ -43,7 +43,7 @@ func ({{ .ShortVarName }} *{{ .StructName }}) Name() string {
 	return "{{ .Name }}"
 }
 
-func ({{ .ShortVarName }} *{{ .StructName }}) D2CCommands() []arcommands.D2CCommand {
+func ({{ .ShortVarName }} *{{ .StructName }}) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 	{{- range .Commands }}
 		arcommands.NewD2CCommand(
@@ -55,6 +55,7 @@ func ({{ .ShortVarName }} *{{ .StructName }}) D2CCommands() []arcommands.D2CComm
 			{{- end }}
 			},
 			{{ $.ShortVarName }}.{{ .FunctionName }},
+			log,
 		),
 	{{- end }}
 	}
