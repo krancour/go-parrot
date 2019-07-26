@@ -70,6 +70,7 @@ func (f *feature) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 			{{- end }}
 			},
 			f.{{ .FunctionName }},
+			log,
 		),
 	{{- end }}
 	}
