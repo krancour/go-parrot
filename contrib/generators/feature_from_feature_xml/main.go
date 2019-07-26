@@ -13,8 +13,8 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
-var classTemplate = `
-package {{ .PackageName }}
+var featTemplate = `
+package {{ .Name }}
 
 import (
 	"sync"
@@ -27,25 +27,38 @@ import (
 
 // {{ .Description }}
 
-// {{ .InterfaceName }} ...
-// TODO: Document this
-type {{ .InterfaceName }} interface{
-	lock.ReadLockable
+type Feature interface {
+	arcommands.D2CFeature
 }
 
-type {{ .StructName }} struct{
-	sync.RWMutex
+type feature struct {
 }
 
-func ({{ .ShortVarName }} *{{ .StructName }}) ID() uint8 {
+func NewFeature(c2dCommandClient arcommands.C2DCommandClient) Feature {
+	return &feature{}
+}
+
+func (f *feature) FeatureID() uint8 {
 	return {{ .ID }}
 }
 
-func ({{ .ShortVarName }} *{{ .StructName }}) Name() string {
+func (f *feature) FeatureName() string {
 	return "{{ .Name }}"
 }
 
-func ({{ .ShortVarName }} *{{ .StructName }}) D2CCommands() []arcommands.D2CCommand {
+func (f *feature) D2CClasses() []arcommands.D2CClass {
+	return []arcommands.D2CClass{f}
+}
+
+func (f *feature) ClassID() uint8 {
+	return 0
+}
+
+func (f *feature) ClassName() string {
+	return ""
+}
+
+func (f *feature) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
 	{{- range .Commands }}
 		arcommands.NewD2CCommand(
@@ -56,7 +69,7 @@ func ({{ .ShortVarName }} *{{ .StructName }}) D2CCommands() []arcommands.D2CComm
 				{{ .GoType }}(0), // {{ .Name }},
 			{{- end }}
 			},
-			{{ $.ShortVarName }}.{{ .FunctionName }},
+			f.{{ .FunctionName }},
 		),
 	{{- end }}
 	}
@@ -75,9 +88,9 @@ func ({{ .ShortVarName }} *{{ .StructName }}) D2CCommands() []arcommands.D2CComm
 {{- if .Deprecated }}
 // WARNING: Deprecated
 {{- end }}
-func ({{ $.ShortVarName }} *{{ $.StructName }}) {{ .FunctionName }}(args []interface{}) error {
-	{{ $.ShortVarName }}.Lock()
-	defer {{ $.ShortVarName }}.Unlock()
+func (f *feature) *{{ $.StructName }}) {{ .FunctionName }}(args []interface{}) error {
+	f.Lock()
+	defer f.Unlock()
 	{{- range $i, $arg := .Args }}
 	// {{ $arg.Name }} := ptr.To{{ $arg.UpperGoType }}(args[{{ $i }}].({{ $arg.GoType }}))
 	//   {{ $arg.Description }}
@@ -92,16 +105,13 @@ func ({{ $.ShortVarName }} *{{ $.StructName }}) {{ .FunctionName }}(args []inter
 `
 
 type feature struct {
-	XMLName       xml.Name  `xml:"feature"`
-	ID            int       `xml:"id,attr"`
-	Name          string    `xml:"name,attr"`
-	Description   string    `xml:",chardata"`
-	Enums         *enums    `xml:"enums"`
-	Messages      *messages `xml:"msgs"`
-	PackageName   string
-	InterfaceName string
-	StructName    string
-	ShortVarName  string
+	XMLName      xml.Name  `xml:"feature"`
+	ID           int       `xml:"id,attr"`
+	Name         string    `xml:"name,attr"`
+	Description  string    `xml:",chardata"`
+	Enums        *enums    `xml:"enums"`
+	Messages     *messages `xml:"msgs"`
+	ShortVarName string
 }
 
 type enums struct {
@@ -225,66 +235,55 @@ func trim(str string) string {
 	return strings.TrimSpace(str)
 }
 
-func generate(f *feature) error {
+func generate(feat *feature) error {
 	if err := os.RemoveAll("generated"); err != nil {
 		return err
 	}
 	if err := os.Mkdir("generated", 0755); err != nil {
 		return err
 	}
-	// stateRegex := regexp.MustCompile(`State`)
-	// eventRegex := regexp.MustCompile(`Event`)
-	featureTmpl, err := template.New("class").Parse(classTemplate)
+	featTmpl, err := template.New("class").Parse(featTemplate)
 	if err != nil {
 		return err
 	}
-	for _, c := range f.Classes {
-		if !stateRegex.MatchString(c.Name) && !eventRegex.MatchString(c.Name) {
-			continue
-		}
-		c.PackageName = f.Name
-		c.InterfaceName = c.Name
-		c.StructName = fmt.Sprintf("%s%s", string(c.Name[0]+32), c.Name[1:len(c.Name)])
-		c.ShortVarName = string(c.StructName[0])
-		for _, cmd := range c.Commands {
-			cmd.FunctionName = fmt.Sprintf("%s%s", string(cmd.Name[0]+32), cmd.Name[1:len(cmd.Name)])
-			for _, arg := range cmd.Args {
-				switch arg.Type {
-				case "u8":
-					arg.GoType = "uint8"
-				case "i8":
-					arg.GoType = "int8"
-				case "u16":
-					arg.GoType = "uint16"
-				case "i16":
-					arg.GoType = "int16"
-				case "u32":
-					arg.GoType = "uint32"
-				case "i32":
-					arg.GoType = "int32"
-				case "u64":
-					arg.GoType = "uint64"
-				case "i64":
-					arg.GoType = "int64"
-				case "float":
-					arg.GoType = "float32"
-				case "double":
-					arg.GoType = "float64"
-				case "string":
-					arg.GoType = "string"
-				case "enum":
-					arg.GoType = "int32"
-				default:
-					arg.GoType = "unknown"
-				}
-				arg.UpperGoType = fmt.Sprintf("%s%s", string(arg.GoType[0]+32), arg.GoType[1:len(arg.GoType)])
+	for _, e := range feat.Messages.Events {
+		e.FunctionName = fmt.Sprintf("%s%s", string(e.Name[0]+32), e.Name[1:len(e.Name)])
+		for _, arg := range e.Args {
+			switch arg.Type {
+			case "u8":
+				arg.GoType = "uint8"
+			case "i8":
+				arg.GoType = "int8"
+			case "u16":
+				arg.GoType = "uint16"
+			case "i16":
+				arg.GoType = "int16"
+			case "u32":
+				arg.GoType = "uint32"
+			case "i32":
+				arg.GoType = "int32"
+			case "u64":
+				arg.GoType = "uint64"
+			case "i64":
+				arg.GoType = "int64"
+			case "float":
+				arg.GoType = "float32"
+			case "double":
+				arg.GoType = "float64"
+			case "string":
+				arg.GoType = "string"
+			case "enum":
+				arg.GoType = "int32"
+			default:
+				arg.GoType = "unknown"
 			}
+			arg.UpperGoType = fmt.Sprintf("%s%s", string(arg.GoType[0]+32), arg.GoType[1:len(arg.GoType)])
 		}
-		f, err := os.Create(fmt.Sprintf("generated/%s.go", c.StructName))
+		f, err := os.Create(fmt.Sprintf("generated/%s.go", feat.Name))
 		if err != nil {
 			return err
 		}
-		if err := classTmpl.Execute(f, c); err != nil {
+		if err := featTmpl.Execute(f, feat); err != nil {
 			return err
 		}
 		f.Close()
