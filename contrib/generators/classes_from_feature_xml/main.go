@@ -9,6 +9,8 @@ import (
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 var classTemplate = `
@@ -90,32 +92,46 @@ func ({{ $.ShortVarName }} *{{ $.StructName }}) {{ .FunctionName }}(args []inter
 `
 
 type feature struct {
-	XMLName     xml.Name `xml:"feature"`
-	ID          int      `xml:"id,attr"`
-	Name        string   `xml:"name,attr"`
-	Description string   `xml:",chardata"`
-	Classes     []*class `xml:"class"`
-}
-
-type class struct {
-	XMLName       xml.Name   `xml:"class"`
-	ID            int        `xml:"id,attr"`
-	Name          string     `xml:"name,attr"`
-	Description   string     `xml:",chardata"`
-	Commands      []*command `xml:"cmd"`
+	XMLName       xml.Name  `xml:"feature"`
+	ID            int       `xml:"id,attr"`
+	Name          string    `xml:"name,attr"`
+	Description   string    `xml:",chardata"`
+	Enums         *enums    `xml:"enums"`
+	Messages      *messages `xml:"msgs"`
 	PackageName   string
 	InterfaceName string
 	StructName    string
 	ShortVarName  string
 }
 
+type enums struct {
+	XMLName xml.Name `xml:"enums"`
+	Enums   []*enum  `xml:"enum"`
+}
+
+type enum struct {
+	XMLName     xml.Name     `xml:"enum"`
+	Name        string       `xml:"name,attr"`
+	Description string       `xml:",chardata"`
+	Values      []*enumValue `xml:"value"`
+}
+
+type enumValue struct {
+	XMLName     xml.Name `xml:"value"`
+	Name        string   `xml:"name,attr"`
+	Description string   `xml:",chardata"`
+}
+
+type messages struct {
+	XMLName  xml.Name   `xml:"msgs"`
+	Events   []*command `xml:"evt"`
+	Commands []*command `xml:"cmd"`
+}
+
 type command struct {
 	XMLName      xml.Name `xml:"cmd"`
 	ID           int      `xml:"id,attr"`
 	Name         string   `xml:"name,attr"`
-	Deprecated   bool     `xml:"deprecated,attr"`
-	Content      string   `xml:"content,attr"`
-	Timeout      string   `xml:"timeout,attr"`
 	Comment      *comment `xml:"comment"`
 	Args         []*arg   `xml:"arg"`
 	FunctionName string
@@ -140,15 +156,9 @@ type arg struct {
 	UpperGoType string
 }
 
-type enum struct {
-	XMLName     xml.Name `xml:"enum"`
-	Name        string   `xml:"name,attr"`
-	Description string   `xml:",chardata"`
-}
-
 func main() {
 	// Read
-	const xmlFilePath = "/Users/kent/animation.xml"
+	const xmlFilePath = "/Users/kent/Code/go/src/github.com/krancour/go-parrot/contrib/generators/ref/animation.xml"
 	xmlFile, err := os.Open(xmlFilePath)
 	if err != nil {
 		log.Fatal(err)
@@ -167,27 +177,41 @@ func main() {
 	// Normalize
 	normalize(f)
 
+	spew.Dump(f)
+
 	// Generate
-	if err := generate(f); err != nil {
-		log.Fatal(err)
-	}
+	// if err := generate(f); err != nil {
+	// 	log.Fatal(err)
+	// }
 }
 
 func normalize(f *feature) {
-	f.Description = trim(f.Description)
-	for _, c := range f.Classes {
-		c.Description = trim(c.Description)
-		for _, cmd := range c.Commands {
-			if cmd.Comment != nil {
-				cmd.Comment.Description = trim(cmd.Comment.Description)
-				cmd.Comment.Result = trim(cmd.Comment.Result)
-				cmd.Comment.Triggered = trim(cmd.Comment.Triggered)
+	for _, enum := range f.Enums.Enums {
+		enum.Description = trim(enum.Description)
+	}
+	for _, evt := range f.Messages.Events {
+		if evt.Comment != nil {
+			evt.Comment.Description = trim(evt.Comment.Description)
+			evt.Comment.Result = trim(evt.Comment.Result)
+			evt.Comment.Triggered = trim(evt.Comment.Triggered)
+		}
+		for _, arg := range evt.Args {
+			arg.Description = trim(arg.Description)
+			for _, enum := range arg.Enums {
+				enum.Description = trim(enum.Description)
 			}
-			for _, arg := range cmd.Args {
-				arg.Description = trim(arg.Description)
-				for _, enum := range arg.Enums {
-					enum.Description = trim(enum.Description)
-				}
+		}
+	}
+	for _, cmd := range f.Messages.Commands {
+		if cmd.Comment != nil {
+			cmd.Comment.Description = trim(cmd.Comment.Description)
+			cmd.Comment.Result = trim(cmd.Comment.Result)
+			cmd.Comment.Triggered = trim(cmd.Comment.Triggered)
+		}
+		for _, arg := range cmd.Args {
+			arg.Description = trim(arg.Description)
+			for _, enum := range arg.Enums {
+				enum.Description = trim(enum.Description)
 			}
 		}
 	}
@@ -208,9 +232,9 @@ func generate(f *feature) error {
 	if err := os.Mkdir("generated", 0755); err != nil {
 		return err
 	}
-	stateRegex := regexp.MustCompile(`State`)
-	eventRegex := regexp.MustCompile(`Event`)
-	classTmpl, err := template.New("class").Parse(classTemplate)
+	// stateRegex := regexp.MustCompile(`State`)
+	// eventRegex := regexp.MustCompile(`Event`)
+	featureTmpl, err := template.New("class").Parse(classTemplate)
 	if err != nil {
 		return err
 	}
