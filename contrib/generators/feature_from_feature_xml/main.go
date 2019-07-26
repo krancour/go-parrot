@@ -9,8 +9,6 @@ import (
 	"os"
 	"regexp"
 	"strings"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 var featTemplate = `
@@ -29,9 +27,11 @@ import (
 
 type Feature interface {
 	arcommands.D2CFeature
+	lock.ReadLockable
 }
 
 type feature struct {
+	sync.RWMutex
 }
 
 func NewFeature(c2dCommandClient arcommands.C2DCommandClient) Feature {
@@ -60,7 +60,7 @@ func (f *feature) ClassName() string {
 
 func (f *feature) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	return []arcommands.D2CCommand{
-	{{- range .Commands }}
+	{{- range .Messages.Events }}
 		arcommands.NewD2CCommand(
 			{{ .ID }},
 			"{{ .Name }}",
@@ -75,7 +75,7 @@ func (f *feature) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 	}
 }
 
-{{- range .Commands }}
+{{- range .Messages.Events }}
 
 // TODO: Implement this
 {{- if .Comment }}
@@ -85,10 +85,7 @@ func (f *feature) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 // Triggered: {{ .Comment.Triggered }}
 // Result: {{ .Comment.Result }}
 {{- end }}
-{{- if .Deprecated }}
-// WARNING: Deprecated
-{{- end }}
-func (f *feature) *{{ $.StructName }}) {{ .FunctionName }}(args []interface{}) error {
+func (f *feature) {{ .FunctionName }}(args []interface{}) error {
 	f.Lock()
 	defer f.Unlock()
 	{{- range $i, $arg := .Args }}
@@ -98,7 +95,7 @@ func (f *feature) *{{ $.StructName }}) {{ .FunctionName }}(args []interface{}) e
 	//   {{ $j }}: {{ $enum.Name }}: {{ $enum.Description }}
 	{{- end }}
 	{{- end }}
-	log.Info("{{ $.PackageName }}.{{ .FunctionName }}() called")
+	log.Info("{{ $.Name }}.{{ .FunctionName }}() called")
 	return nil
 }
 {{ end }}
@@ -134,8 +131,17 @@ type enumValue struct {
 
 type messages struct {
 	XMLName  xml.Name   `xml:"msgs"`
-	Events   []*command `xml:"evt"`
+	Events   []*event   `xml:"evt"`
 	Commands []*command `xml:"cmd"`
+}
+
+type event struct {
+	XMLName      xml.Name `xml:"evt"`
+	ID           int      `xml:"id,attr"`
+	Name         string   `xml:"name,attr"`
+	Comment      *comment `xml:"comment"`
+	Args         []*arg   `xml:"arg"`
+	FunctionName string
 }
 
 type command struct {
@@ -187,12 +193,12 @@ func main() {
 	// Normalize
 	normalize(f)
 
-	spew.Dump(f)
+	// spew.Dump(f)
 
 	// Generate
-	// if err := generate(f); err != nil {
-	// 	log.Fatal(err)
-	// }
+	if err := generate(f); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func normalize(f *feature) {
@@ -242,12 +248,12 @@ func generate(feat *feature) error {
 	if err := os.Mkdir("generated", 0755); err != nil {
 		return err
 	}
-	featTmpl, err := template.New("class").Parse(featTemplate)
+	featTmpl, err := template.New("feature").Parse(featTemplate)
 	if err != nil {
 		return err
 	}
 	for _, e := range feat.Messages.Events {
-		e.FunctionName = fmt.Sprintf("%s%s", string(e.Name[0]+32), e.Name[1:len(e.Name)])
+		e.FunctionName = fmt.Sprintf("%sEvent", e.Name)
 		for _, arg := range e.Args {
 			switch arg.Type {
 			case "u8":
