@@ -86,7 +86,7 @@ func (f *feature) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 // Triggered: {{ .Comment.Triggered }}
 // Result: {{ .Comment.Result }}
 {{- end }}
-func (f *feature) {{ .FunctionName }}(args []interface{}) error {
+func (f *feature) {{ .FunctionName }}(args []interface{}, log *log.Entry) error {
 	f.Lock()
 	defer f.Unlock()
 	{{- range $i, $arg := .Args }}
@@ -175,7 +175,7 @@ type arg struct {
 
 func main() {
 	// Read
-	const xmlFilePath = "/Users/kent/Code/go/src/github.com/krancour/go-parrot/contrib/generators/ref/animation.xml"
+	const xmlFilePath = "/Users/kent/Code/go/src/github.com/krancour/go-parrot/contrib/ref/animation.xml"
 	xmlFile, err := os.Open(xmlFilePath)
 	if err != nil {
 		log.Fatal(err)

@@ -74,7 +74,7 @@ func ({{ .ShortVarName }} *{{ .StructName }}) D2CCommands(log *log.Entry) []arco
 {{- if .Deprecated }}
 // WARNING: Deprecated
 {{- end }}
-func ({{ $.ShortVarName }} *{{ $.StructName }}) {{ .FunctionName }}(args []interface{}) error {
+func ({{ $.ShortVarName }} *{{ $.StructName }}) {{ .FunctionName }}(args []interface{}, log *log.Entry) error {
 	{{ $.ShortVarName }}.Lock()
 	defer {{ $.ShortVarName }}.Unlock()
 	{{- range $i, $arg := .Args }}
