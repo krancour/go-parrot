@@ -24,11 +24,11 @@ func newNetworkState() *networkState {
 	return &networkState{}
 }
 
-func (n *networkState) ID() uint8 {
+func (n *networkState) ClassID() uint8 {
 	return 14
 }
 
-func (n *networkState) Name() string {
+func (n *networkState) ClassName() string {
 	return "NetworkState"
 }
 

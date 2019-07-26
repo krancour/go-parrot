@@ -24,11 +24,11 @@ func newSoundState() *soundState {
 	return &soundState{}
 }
 
-func (s *soundState) ID() uint8 {
+func (s *soundState) ClassID() uint8 {
 	return 36
 }
 
-func (s *soundState) Name() string {
+func (s *soundState) ClassName() string {
 	return "SoundState"
 }
 

@@ -53,11 +53,11 @@ func newCalibrationState() *calibrationState {
 	return &calibrationState{}
 }
 
-func (c *calibrationState) ID() uint8 {
+func (c *calibrationState) ClassID() uint8 {
 	return 14
 }
 
-func (c *calibrationState) Name() string {
+func (c *calibrationState) ClassName() string {
 	return "CalibrationState"
 }
 

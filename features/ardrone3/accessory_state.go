@@ -27,11 +27,11 @@ func newAccessoryState() *accessoryState {
 	return &accessoryState{}
 }
 
-func (a *accessoryState) ID() uint8 {
+func (a *accessoryState) ClassID() uint8 {
 	return 33
 }
 
-func (a *accessoryState) Name() string {
+func (a *accessoryState) ClassName() string {
 	return "AccessoryState"
 }
 

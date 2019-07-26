@@ -54,11 +54,11 @@ func newMavlinkState() *mavlinkState {
 	return &mavlinkState{}
 }
 
-func (m *mavlinkState) ID() uint8 {
+func (m *mavlinkState) ClassID() uint8 {
 	return 12
 }
 
-func (m *mavlinkState) Name() string {
+func (m *mavlinkState) ClassName() string {
 	return "MavlinkState"
 }
 

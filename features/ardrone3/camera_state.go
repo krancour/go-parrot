@@ -75,11 +75,11 @@ func newCameraState() *cameraState {
 	return &cameraState{}
 }
 
-func (c *cameraState) ID() uint8 {
+func (c *cameraState) ClassID() uint8 {
 	return 25
 }
 
-func (c *cameraState) Name() string {
+func (c *cameraState) ClassName() string {
 	return "CameraState"
 }
 

@@ -24,11 +24,11 @@ func newFlightPlanEvent() *flightPlanEvent {
 	return &flightPlanEvent{}
 }
 
-func (f *flightPlanEvent) ID() uint8 {
+func (f *flightPlanEvent) ClassID() uint8 {
 	return 19
 }
 
-func (f *flightPlanEvent) Name() string {
+func (f *flightPlanEvent) ClassName() string {
 	return "FlightPlanEvent"
 }
 

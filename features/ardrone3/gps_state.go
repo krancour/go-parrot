@@ -83,11 +83,11 @@ func newGPSState() *gpsState {
 	return &gpsState{}
 }
 
-func (g *gpsState) ID() uint8 {
+func (g *gpsState) ClassID() uint8 {
 	return 31
 }
 
-func (g *gpsState) Name() string {
+func (g *gpsState) ClassName() string {
 	return "GPSState"
 }
 

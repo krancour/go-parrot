@@ -118,11 +118,11 @@ func newSpeedSettingsState() *speedSettingsState {
 	return &speedSettingsState{}
 }
 
-func (s *speedSettingsState) ID() uint8 {
+func (s *speedSettingsState) ClassID() uint8 {
 	return 12
 }
 
-func (s *speedSettingsState) Name() string {
+func (s *speedSettingsState) ClassName() string {
 	return "SpeedSettingsState"
 }
 

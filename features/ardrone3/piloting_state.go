@@ -167,11 +167,11 @@ func newPilotingState() *pilotingState {
 	return &pilotingState{}
 }
 
-func (p *pilotingState) ID() uint8 {
+func (p *pilotingState) ClassID() uint8 {
 	return 4
 }
 
-func (p *pilotingState) Name() string {
+func (p *pilotingState) ClassName() string {
 	return "PilotingState"
 }
 

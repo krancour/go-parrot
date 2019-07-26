@@ -33,11 +33,11 @@ func newWifiSettingsState() *wifiSettingsState {
 	return &wifiSettingsState{}
 }
 
-func (w *wifiSettingsState) ID() uint8 {
+func (w *wifiSettingsState) ClassID() uint8 {
 	return 10
 }
 
-func (w *wifiSettingsState) Name() string {
+func (w *wifiSettingsState) ClassName() string {
 	return "WifiSettingsState"
 }
 

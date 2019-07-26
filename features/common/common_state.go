@@ -104,11 +104,11 @@ func newCommonState() *commonState {
 	}
 }
 
-func (c *commonState) ID() uint8 {
+func (c *commonState) ClassID() uint8 {
 	return 5
 }
 
-func (c *commonState) Name() string {
+func (c *commonState) ClassName() string {
 	return "CommonState"
 }
 

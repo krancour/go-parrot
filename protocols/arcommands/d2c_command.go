@@ -12,8 +12,8 @@ import (
 // D2CCommand ...
 // TODO: Document this
 type D2CCommand interface {
-	ID() uint16
-	Name() string
+	CommandID() uint16
+	CommandName() string
 	execute(data []byte) error
 }
 
@@ -48,11 +48,11 @@ func NewD2CCommand(
 	}
 }
 
-func (d *d2cCommand) ID() uint16 {
+func (d *d2cCommand) CommandID() uint16 {
 	return d.id
 }
 
-func (d *d2cCommand) Name() string {
+func (d *d2cCommand) CommandName() string {
 	return d.name
 }
 

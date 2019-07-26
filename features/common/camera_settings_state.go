@@ -55,11 +55,11 @@ func newCameraSettingsState() *cameraSettingsState {
 	return &cameraSettingsState{}
 }
 
-func (c *cameraSettingsState) ID() uint8 {
+func (c *cameraSettingsState) ClassID() uint8 {
 	return 15
 }
 
-func (c *cameraSettingsState) Name() string {
+func (c *cameraSettingsState) ClassName() string {
 	return "CameraSettingsState"
 }
 

@@ -47,11 +47,11 @@ func newAntiflickeringState() *antiflickeringState {
 	return &antiflickeringState{}
 }
 
-func (a *antiflickeringState) ID() uint8 {
+func (a *antiflickeringState) ClassID() uint8 {
 	return 30
 }
 
-func (a *antiflickeringState) Name() string {
+func (a *antiflickeringState) ClassName() string {
 	return "AntiflickeringState"
 }
 

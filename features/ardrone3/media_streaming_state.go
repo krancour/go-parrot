@@ -24,11 +24,11 @@ func newMediaStreamingState() *mediaStreamingState {
 	return &mediaStreamingState{}
 }
 
-func (m *mediaStreamingState) ID() uint8 {
+func (m *mediaStreamingState) ClassID() uint8 {
 	return 22
 }
 
-func (m *mediaStreamingState) Name() string {
+func (m *mediaStreamingState) ClassName() string {
 	return "MediaStreamingState"
 }
 

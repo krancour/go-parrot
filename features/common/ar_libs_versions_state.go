@@ -31,11 +31,11 @@ func newARLibsVersionsState() *arLibsVersionsState {
 	return &arLibsVersionsState{}
 }
 
-func (a *arLibsVersionsState) ID() uint8 {
+func (a *arLibsVersionsState) ClassID() uint8 {
 	return 18
 }
 
-func (a *arLibsVersionsState) Name() string {
+func (a *arLibsVersionsState) ClassName() string {
 	return "ARLibsVersionsState"
 }
 

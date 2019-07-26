@@ -183,11 +183,11 @@ func newPictureSettingsState() *pictureSettingsState {
 	return &pictureSettingsState{}
 }
 
-func (p *pictureSettingsState) ID() uint8 {
+func (p *pictureSettingsState) ClassID() uint8 {
 	return 20
 }
 
-func (p *pictureSettingsState) Name() string {
+func (p *pictureSettingsState) ClassName() string {
 	return "PictureSettingsState"
 }
 

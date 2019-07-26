@@ -24,11 +24,11 @@ func newPilotingEvent() *pilotingEvent {
 	return &pilotingEvent{}
 }
 
-func (p *pilotingEvent) ID() uint8 {
+func (p *pilotingEvent) ClassID() uint8 {
 	return 34
 }
 
-func (p *pilotingEvent) Name() string {
+func (p *pilotingEvent) ClassName() string {
 	return "PilotingEvent"
 }
 

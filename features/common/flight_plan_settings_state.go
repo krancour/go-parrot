@@ -22,11 +22,11 @@ func newFlightPlanSettingsState() *flightPlanSettingsState {
 	return &flightPlanSettingsState{}
 }
 
-func (f *flightPlanSettingsState) ID() uint8 {
+func (f *flightPlanSettingsState) ClassID() uint8 {
 	return 33
 }
 
-func (f *flightPlanSettingsState) Name() string {
+func (f *flightPlanSettingsState) ClassName() string {
 	return "FlightPlanSettingsState"
 }
 

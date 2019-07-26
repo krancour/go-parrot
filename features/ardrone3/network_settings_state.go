@@ -83,11 +83,11 @@ func newNetworkSettingsState() *networkSettingsState {
 	return &networkSettingsState{}
 }
 
-func (n *networkSettingsState) ID() uint8 {
+func (n *networkSettingsState) ClassID() uint8 {
 	return 10
 }
 
-func (n *networkSettingsState) Name() string {
+func (n *networkSettingsState) ClassName() string {
 	return "NetworkSettingsState"
 }
 

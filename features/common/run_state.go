@@ -32,11 +32,11 @@ func newRunState() *runState {
 	return &runState{}
 }
 
-func (r *runState) ID() uint8 {
+func (r *runState) ClassID() uint8 {
 	return 30
 }
 
-func (r *runState) Name() string {
+func (r *runState) ClassName() string {
 	return "RunState"
 }
 

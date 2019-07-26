@@ -74,11 +74,11 @@ func NewFeature(c2dCommandClient arcommands.C2DCommandClient) Feature {
 	}
 }
 
-func (f *feature) ID() uint8 {
+func (f *feature) FeatureID() uint8 {
 	return 1
 }
 
-func (f *feature) Name() string {
+func (f *feature) FeatureName() string {
 	return "ardrone3"
 }
 

@@ -75,11 +75,11 @@ func newMediaRecordState() *mediaRecordState {
 	return &mediaRecordState{}
 }
 
-func (m *mediaRecordState) ID() uint8 {
+func (m *mediaRecordState) ClassID() uint8 {
 	return 8
 }
 
-func (m *mediaRecordState) Name() string {
+func (m *mediaRecordState) ClassName() string {
 	return "MediaRecordState"
 }
 

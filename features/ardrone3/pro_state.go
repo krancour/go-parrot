@@ -24,11 +24,11 @@ func newPROState() *proState {
 	return &proState{}
 }
 
-func (p *proState) ID() uint8 {
+func (p *proState) ClassID() uint8 {
 	return 32
 }
 
-func (p *proState) Name() string {
+func (p *proState) ClassName() string {
 	return "PROState"
 }
 

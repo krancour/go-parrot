@@ -76,11 +76,11 @@ func newSettingsState() *settingsState {
 	return &settingsState{}
 }
 
-func (s *settingsState) ID() uint8 {
+func (s *settingsState) ClassID() uint8 {
 	return 3
 }
 
-func (s *settingsState) Name() string {
+func (s *settingsState) ClassName() string {
 	return "SettingsState"
 }
 

@@ -24,11 +24,11 @@ func newMediaRecordEvent() *mediaRecordEvent {
 	return &mediaRecordEvent{}
 }
 
-func (m *mediaRecordEvent) ID() uint8 {
+func (m *mediaRecordEvent) ClassID() uint8 {
 	return 3
 }
 
-func (m *mediaRecordEvent) Name() string {
+func (m *mediaRecordEvent) ClassName() string {
 	return "MediaRecordEvent"
 }
 

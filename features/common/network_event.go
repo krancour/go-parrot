@@ -24,11 +24,11 @@ func newNetworkEvent() *networkEvent {
 	return &networkEvent{}
 }
 
-func (n *networkEvent) ID() uint8 {
+func (n *networkEvent) ClassID() uint8 {
 	return 1
 }
 
-func (n *networkEvent) Name() string {
+func (n *networkEvent) ClassName() string {
 	return "NetworkEvent"
 }
 
