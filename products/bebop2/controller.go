@@ -4,6 +4,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/krancour/go-parrot/features/animation"
 	"github.com/krancour/go-parrot/features/ardrone3"
 	"github.com/krancour/go-parrot/features/common"
 	"github.com/krancour/go-parrot/protocols/arcommands"
@@ -18,11 +19,13 @@ import (
 type Controller interface {
 	Common() common.Feature
 	ARDrone3() ardrone3.Feature
+	Animation() animation.Feature
 }
 
 type controller struct {
-	common   common.Feature
-	ardrone3 ardrone3.Feature
+	common    common.Feature
+	ardrone3  ardrone3.Feature
+	animation animation.Feature
 }
 
 // NewController ...
@@ -163,4 +166,8 @@ func (c *controller) Common() common.Feature {
 
 func (c *controller) ARDrone3() ardrone3.Feature {
 	return c.ardrone3
+}
+
+func (c *controller) Animation() animation.Feature {
+	return c.animation
 }
