@@ -255,33 +255,37 @@ func generate(feat *feature) error {
 	for _, e := range feat.Messages.Events {
 		e.FunctionName = fmt.Sprintf("%sEvent", e.Name)
 		for _, arg := range e.Args {
-			switch arg.Type {
-			case "u8":
-				arg.GoType = "uint8"
-			case "i8":
-				arg.GoType = "int8"
-			case "u16":
-				arg.GoType = "uint16"
-			case "i16":
-				arg.GoType = "int16"
-			case "u32":
-				arg.GoType = "uint32"
-			case "i32":
+			if strings.HasPrefix(arg.Type, "bitfield:") || strings.HasPrefix(arg.Type, "enum:") {
 				arg.GoType = "int32"
-			case "u64":
-				arg.GoType = "uint64"
-			case "i64":
-				arg.GoType = "int64"
-			case "float":
-				arg.GoType = "float32"
-			case "double":
-				arg.GoType = "float64"
-			case "string":
-				arg.GoType = "string"
-			case "enum":
-				arg.GoType = "int32"
-			default:
-				arg.GoType = "unknown"
+			} else {
+				switch arg.Type {
+				case "u8":
+					arg.GoType = "uint8"
+				case "i8":
+					arg.GoType = "int8"
+				case "u16":
+					arg.GoType = "uint16"
+				case "i16":
+					arg.GoType = "int16"
+				case "u32":
+					arg.GoType = "uint32"
+				case "i32":
+					arg.GoType = "int32"
+				case "u64":
+					arg.GoType = "uint64"
+				case "i64":
+					arg.GoType = "int64"
+				case "float":
+					arg.GoType = "float32"
+				case "double":
+					arg.GoType = "float64"
+				case "string":
+					arg.GoType = "string"
+				case "enum":
+					arg.GoType = "int32"
+				default:
+					arg.GoType = "unknown"
+				}
 			}
 			arg.UpperGoType = fmt.Sprintf("%s%s", string(arg.GoType[0]+32), arg.GoType[1:len(arg.GoType)])
 		}
