@@ -25,6 +25,13 @@ import (
 
 // {{ .Description }}
 
+// TODO: Need to fix this section
+const(
+	{{- range .Enums.Enums }}
+	{{ .Name }} int32 = 0
+	{{- end }}
+)
+
 type Feature interface {
 	arcommands.D2CFeature
 	lock.ReadLockable
@@ -69,7 +76,7 @@ func (f *feature) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 				{{ .GoType }}(0), // {{ .Name }},
 			{{- end }}
 			},
-			f.{{ .FunctionName }},
+			f.{{ .Name }},
 			log,
 		),
 	{{- end }}
@@ -86,7 +93,7 @@ func (f *feature) D2CCommands(log *log.Entry) []arcommands.D2CCommand {
 // Triggered: {{ .Comment.Triggered }}
 // Result: {{ .Comment.Result }}
 {{- end }}
-func (f *feature) {{ .FunctionName }}(args []interface{}, log *log.Entry) error {
+func (f *feature) {{ .Name }}(args []interface{}, log *log.Entry) error {
 	f.Lock()
 	defer f.Unlock()
 	{{- range $i, $arg := .Args }}
@@ -96,7 +103,7 @@ func (f *feature) {{ .FunctionName }}(args []interface{}, log *log.Entry) error 
 	//   {{ $j }}: {{ $enum.Name }}: {{ $enum.Description }}
 	{{- end }}
 	{{- end }}
-	log.Info("{{ $.Name }}.{{ .FunctionName }}() called")
+	log.Info("{{ $.Name }}.{{ .Name }}() called")
 	return nil
 }
 {{ end }}
@@ -137,21 +144,19 @@ type messages struct {
 }
 
 type event struct {
-	XMLName      xml.Name `xml:"evt"`
-	ID           int      `xml:"id,attr"`
-	Name         string   `xml:"name,attr"`
-	Comment      *comment `xml:"comment"`
-	Args         []*arg   `xml:"arg"`
-	FunctionName string
+	XMLName xml.Name `xml:"evt"`
+	ID      int      `xml:"id,attr"`
+	Name    string   `xml:"name,attr"`
+	Comment *comment `xml:"comment"`
+	Args    []*arg   `xml:"arg"`
 }
 
 type command struct {
-	XMLName      xml.Name `xml:"cmd"`
-	ID           int      `xml:"id,attr"`
-	Name         string   `xml:"name,attr"`
-	Comment      *comment `xml:"comment"`
-	Args         []*arg   `xml:"arg"`
-	FunctionName string
+	XMLName xml.Name `xml:"cmd"`
+	ID      int      `xml:"id,attr"`
+	Name    string   `xml:"name,attr"`
+	Comment *comment `xml:"comment"`
+	Args    []*arg   `xml:"arg"`
 }
 
 type comment struct {
@@ -254,7 +259,6 @@ func generate(feat *feature) error {
 		return err
 	}
 	for _, e := range feat.Messages.Events {
-		e.FunctionName = fmt.Sprintf("%sEvent", e.Name)
 		for _, arg := range e.Args {
 			if strings.HasPrefix(arg.Type, "bitfield:") || strings.HasPrefix(arg.Type, "enum:") {
 				arg.GoType = "int32"
